@@ -32,14 +32,14 @@ const StackNavigator = () => {
                     }}
                 />
                 <Tab.Screen
-                    name="PROFILE"
-                    component={ProfileScreen}
+                    name="EVENT"
+                    component={EventScreen}
                     options={{
                         tabBarActiveTintColor: 'green',
                         headerShown: false,
                         tabBarIcon: ({ focused }) => (
-                            <Ionicons
-                                name={focused ? 'person' : 'person-outline'}
+                            <AntDesign 
+                                name={focused ? 'calendar' : 'calendar'}
                                 size={24}
                                 color={focused ? 'green' : 'gray'}
                             />
@@ -62,14 +62,14 @@ const StackNavigator = () => {
                     }}
                 />
                 <Tab.Screen
-                    name="EVENT"
-                    component={EventScreen}
+                    name="PROFILE"
+                    component={ProfileScreen}
                     options={{
                         tabBarActiveTintColor: 'green',
                         headerShown: false,
                         tabBarIcon: ({ focused }) => (
-                            <AntDesign 
-                                name={focused ? 'calendar' : 'calendar'}
+                            <Ionicons
+                                name={focused ? 'person' : 'person-outline'}
                                 size={24}
                                 color={focused ? 'green' : 'gray'}
                             />
