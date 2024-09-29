@@ -8,6 +8,7 @@ import BookScreen from '../screens/BookScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import VenueInfoScreen from '../screens/VenueInfoScreen';
 
 const StackNavigator = () => {
     const Stack = createNativeStackNavigator();
@@ -83,8 +84,6 @@ const StackNavigator = () => {
     const AuthStack = () => {
         return (
             <Stack.Navigator>
-                <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="Register" component={RegisterScreen} />
             </Stack.Navigator>
         );
     };
@@ -99,6 +98,12 @@ const StackNavigator = () => {
                         headerShown: false,
                     }}
                 />
+                <Stack.Screen 
+                    name="Venue"
+                    component={VenueInfoScreen}
+                    options={{
+                        headerShown: false,
+                    }} />
             </Stack.Navigator>
         );
     }
