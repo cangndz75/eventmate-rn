@@ -18,7 +18,7 @@ const HomeScreen = () => {
       headerTitle: '',
       headerLeft: () => (
         <View>
-          <Text style={{marginLeft: 15}}>Can Gündüz</Text>
+          <Text style={{marginLeft: 15,color:"black"}}>Can Gündüz</Text>
         </View>
       ),
       headerRight: () => (
@@ -68,7 +68,7 @@ const HomeScreen = () => {
     },
   ];
   return (
-    <ScrollView style={{flex: 1, backgroundColor: '#F8F8F8'}}>
+    <ScrollView style={{flex: 1, backgroundColor: '#F8F8F8', padding: 10}}>
       <View
         style={{
           padding: 13,
@@ -93,7 +93,7 @@ const HomeScreen = () => {
         </View>
         <View>
           <View>
-            <Text>Set Your Weekly Fit Goal</Text>
+            <Text style={{color:"black"}}>Set Your Weekly Fit Goal</Text>
             <Image
               style={{width: 20, height: 20, borderRadius: 10}}
               source={{
@@ -101,7 +101,7 @@ const HomeScreen = () => {
               }}
             />
           </View>
-          <Text style={{marginTop: 8, color: 'gray'}}>Keep yourself it</Text>
+          <Text style={{marginTop: 8, color: 'gray'}}>Keep yourself fit</Text>
         </View>
       </View>
       <View
@@ -285,6 +285,7 @@ const HomeScreen = () => {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {data?.map((item, index) => (
               <ImageBackground
+                key={item.id}
                 imageStyle={{borderRadius: 10}}
                 style={{
                   width: 220,
