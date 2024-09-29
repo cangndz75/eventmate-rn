@@ -1,4 +1,11 @@
-import {View, Text, ScrollView, Image, Pressable} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  Pressable,
+  ImageBackground,
+} from 'react-native';
 import React, {useLayoutEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -35,7 +42,31 @@ const HomeScreen = () => {
         </View>
       ),
     });
-  });
+  }, []);
+
+  const data = [
+    {
+      id: '10',
+      image:
+        'https://images.pexels.com/photos/2247678/pexels-photo-2247678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      text: 'Test 1',
+      description: 'Know more',
+    },
+    {
+      id: '11',
+      image:
+        'https://images.pexels.com/photos/2247678/pexels-photo-2247678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      text: 'Test 2',
+      description: 'Know more',
+    },
+    {
+      id: '12',
+      image:
+        'https://images.pexels.com/photos/2247678/pexels-photo-2247678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      text: 'Test 3',
+      description: 'Know more',
+    },
+  ];
   return (
     <ScrollView style={{flex: 1, backgroundColor: '#F8F8F8'}}>
       <View
@@ -189,12 +220,102 @@ const HomeScreen = () => {
           </Pressable>
         </Pressable>
       </View>
-      <View>
-        <View>
+      <View style={{padding: 13}}>
+        <View
+          style={{
+            padding: 10,
+            backgroundColor: 'white',
+            borderRadius: 10,
+            flexDirection: 'row',
+            gap: 10,
+          }}>
+          <View
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: '#29AB87',
+              padding: 10,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <AntDesign name="addusergroup" size={24} color="green" />
+          </View>
           <View>
-
+            <Text style={{fontWeight: 'bold'}}>Groups</Text>
+            <Text style={{color: 'gray', marginTop: 10}}>
+              Join groups to meet people like you
+            </Text>
           </View>
         </View>
+
+        <View
+          style={{
+            padding: 10,
+            backgroundColor: 'white',
+            borderRadius: 10,
+            flexDirection: 'row',
+            gap: 10,
+            marginTop: 15,
+          }}>
+          <View
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: 'yellow',
+              padding: 10,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Ionicons name="mic-circle-outline" size={24} color="green" />
+          </View>
+          <View>
+            <Text style={{fontWeight: 'bold'}}>Activities</Text>
+            <Text style={{color: 'gray', marginTop: 10}}>
+              ... eventmate hosted events
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={{padding: 13}}>
+        <View style={{padding: 10, backgroundColor: 'white', borderRadius: 10}}>
+          <Text style={{fontSize: 15, fontWeight: '500'}}>SpotLight</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {data?.map((item, index) => (
+              <ImageBackground
+                imageStyle={{borderRadius: 10}}
+                style={{
+                  width: 220,
+                  height: 280,
+                  marginRight: 10,
+                  marginVertical: 15,
+                  resizeMode: 'contain',
+                }}
+                source={{uri: item?.image}}></ImageBackground>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+
+      <View>
+        <View style={{marginLeft: 'auto', marginRight: 'auto'}}>
+          <Image
+            style={{width: 120, height: 70, resizeMode: 'contain'}}
+            source={{
+              uri: 'https://images.pexels.com/photos/1337380/pexels-photo-1337380.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+            }}
+          />
+        </View>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
+          <View>
+            <Text style={{width: 70, textAlign: 'center'}}>EventMate</Text>
+          </View>
+          <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
+        </View>
+        <Text style={{color: 'gray', textAlign: 'center', marginTop:5}}>Your event app</Text>
       </View>
     </ScrollView>
   );
