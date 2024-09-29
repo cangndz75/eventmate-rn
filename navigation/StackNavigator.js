@@ -21,6 +21,7 @@ const StackNavigator = () => {
                     component={HomeScreen}
                     options={{
                         tabBarActiveTintColor: 'green',
+                        //headerShown: false,
                         tabBarIcon: ({ focused }) => (
                             <Ionicons
                                 name={focused ? 'home' : 'home-outline'}
@@ -35,6 +36,7 @@ const StackNavigator = () => {
                     component={ProfileScreen}
                     options={{
                         tabBarActiveTintColor: 'green',
+                        headerShown: false,
                         tabBarIcon: ({ focused }) => (
                             <Ionicons
                                 name={focused ? 'person' : 'person-outline'}
@@ -49,6 +51,7 @@ const StackNavigator = () => {
                     component={BookScreen}
                     options={{
                         tabBarActiveTintColor: 'green',
+                        headerShown: false,
                         tabBarIcon: ({ focused }) => (
                             <Ionicons
                                 name={focused ? 'book' : 'book-outline'}
@@ -63,8 +66,9 @@ const StackNavigator = () => {
                     component={EventScreen}
                     options={{
                         tabBarActiveTintColor: 'green',
+                        headerShown: false,
                         tabBarIcon: ({ focused }) => (
-                            <AntDesign
+                            <AntDesign 
                                 name={focused ? 'calendar' : 'calendar'}
                                 size={24}
                                 color={focused ? 'green' : 'gray'}
