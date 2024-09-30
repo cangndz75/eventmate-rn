@@ -9,8 +9,10 @@ const VenueCard = ({item}) => {
     <View style={{margin: 15}}>
       <Pressable
         onPress={() => navigation.navigate('Venue', {
-          name: item?.name,
-          
+          name: item.name,
+          location: item.location,
+          sportsAvailable: item.sportsAvailable,
+
         })}
         style={{
           backgroundColor: 'white',
