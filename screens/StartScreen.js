@@ -1,9 +1,11 @@
-import { Image, SafeAreaView, Text, View } from 'react-native';
-import React, { useEffect } from 'react';
-import MapView, { Marker } from 'react-native-maps';
+import {Image, Pressable, SafeAreaView, Text, View} from 'react-native';
+import React, {useRef} from 'react';
+import MapView, {Marker} from 'react-native-maps';
+import { useNavigation } from '@react-navigation/native';
 
 const StartScreen = () => {
-  const mapView = React.useRef(null);
+  const navigation = useNavigation();
+  const mapView = useRef(null);
   const users = [
     {
       image:
@@ -18,8 +20,8 @@ const StartScreen = () => {
       image:
         'https://images.pexels.com/photos/2913125/pexels-photo-2913125.jpeg?auto=compress&cs=tinysrgb&w=800',
       id: '2',
-      latitude: 40.8880,
-      longitude: 29.1850,
+      latitude: 40.888,
+      longitude: 29.185,
       name: 'Suhas',
       description: "Let's play",
     },
@@ -36,8 +38,8 @@ const StartScreen = () => {
       image:
         'https://images.pexels.com/photos/4307678/pexels-photo-4307678.jpeg?auto=compress&cs=tinysrgb&w=800',
       id: '4',
-      latitude: 40.8890,
-      longitude: 29.1860,
+      latitude: 40.889,
+      longitude: 29.186,
       name: 'Abhi',
       description: 'At 8pm?',
     },
@@ -54,8 +56,8 @@ const StartScreen = () => {
       image:
         'https://images.pexels.com/photos/3264235/pexels-photo-3264235.jpeg?auto=compress&cs=tinysrgb&w=800',
       id: '6',
-      latitude: 40.8900,
-      longitude: 29.1870,
+      latitude: 40.89,
+      longitude: 29.187,
       name: 'Preetham',
       description: 'What up?',
     },
@@ -66,75 +68,154 @@ const StartScreen = () => {
     longitude: 29.184348,
   };
 
-  useEffect(() => {
-    mapView.current.fitToCoordinates(
-      users.map((user) => ({
-        latitude: user.latitude,
-        longitude: user.longitude,
-      })),
-      {
-        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-        animated: true,
-      }
-    );
-  }, []);
+  const onMapReady = () => {
+    if (mapView.current) {
+      mapView.current.fitToCoordinates(
+        users.map(user => ({
+          latitude: user.latitude,
+          longitude: user.longitude,
+        })),
+        {
+          edgePadding: {top: 50, right: 50, bottom: 50, left: 50},
+          animated: true,
+        },
+      );
+    }
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <MapView
-        ref={mapView}
-        style={{ width: '100%', height: '50%' }}
-        initialRegion={{
-          latitude: KARTAL_COORDS.latitude,
-          longitude: KARTAL_COORDS.longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}>
-        {users.map((user) => (
-          <Marker key={user.id} coordinate={{ latitude: user.latitude, longitude: user.longitude }}>
-            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-              <Image
-                source={{ uri: user.image }}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  borderWidth: 2,
-                  borderColor: 'white',
-                }}
-              />
-              <Text
-                style={{
-                  backgroundColor: 'white',
-                  paddingHorizontal: 5,
-                  paddingVertical: 3,
-                  borderRadius: 5,
-                  textAlign: 'center',
-                  marginTop: 5,
-                  fontSize: 12,
-                  color: '#333',
-                }}>
-                {user.description}
-              </Text>
-            </View>
-          </Marker>
-        ))}
-      </MapView>
-      <View style={{ alignItems: 'center', padding: 20, backgroundColor: '#f9f9f9', flex: 1 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
-          Find Player in your neighbourhood
-        </Text>
-        <Text style={{ fontSize: 16, color: '#666', marginBottom: 20 }}>Just like you did as a kid!</Text>
-        <Text style={{ fontSize: 14, color: '#666' }}>
-          Already have an account?{' '}
-          <Text style={{ color: '#1e90ff', fontWeight: 'bold' }}>Login</Text>
-        </Text>
-        <Image
-          source={{ uri: 'https://playo.co/img/logos/logo-green-1.svg' }}
-          style={{ width: 120, height: 40, marginTop: 20, resizeMode: 'contain' }}
-        />
+    <>
+      <SafeAreaView style={{flex: 1, backgroundColor: '#f2f2f2'}}>
+        <MapView
+          ref={mapView}
+          style={{width: '100%', height: '45%'}}
+          initialRegion={{
+            latitude: KARTAL_COORDS.latitude,
+            longitude: KARTAL_COORDS.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }}
+          onMapReady={onMapReady}>
+          {users.map(user => (
+            <Marker
+              key={user.id}
+              coordinate={{latitude: user.latitude, longitude: user.longitude}}>
+              <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                <Image
+                  source={{uri: user.image}}
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    borderWidth: 2,
+                    borderColor: 'white',
+                  }}
+                />
+                <Text
+                  style={{
+                    backgroundColor: 'white',
+                    paddingHorizontal: 5,
+                    paddingVertical: 3,
+                    borderRadius: 5,
+                    textAlign: 'center',
+                    marginTop: 5,
+                    fontSize: 12,
+                    color: '#333',
+                    shadowColor: '#000',
+                    shadowOpacity: 0.1,
+                    shadowOffset: {width: 0, height: 2},
+                    shadowRadius: 2,
+                  }}>
+                  {user.description}
+                </Text>
+              </View>
+            </Marker>
+          ))}
+        </MapView>
+
+        <View
+          style={{
+            alignItems: 'center',
+            padding: 25,
+            backgroundColor: '#fff',
+            flex: 1,
+            marginTop: -10,
+            borderTopLeftRadius: 25,
+            borderTopRightRadius: 25,
+            shadowColor: '#000',
+            shadowOpacity: 0.2,
+            shadowOffset: {width: 0, height: -5},
+            shadowRadius: 10,
+          }}>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              marginBottom: 10,
+              color: '#333',
+            }}>
+            Find Players in your neighbourhood
+          </Text>
+          <Text style={{fontSize: 16, color: '#666', marginBottom: 20}}>
+            Just like you did as a kid!
+          </Text>
+          <Image
+            source={{uri: 'https://playo.co/img/logos/logo-green-1.svg'}}
+            style={{
+              width: 120,
+              height: 40,
+              marginTop: 20,
+              resizeMode: 'contain',
+            }}
+          />
+        </View>
+
+        <Pressable
+          style={{
+            padding: 10,
+            borderRadius: 8,
+            marginHorizontal: 30,
+            alignItems: 'center',
+            marginBottom: 15,
+          }}
+          onPress={() => navigation.navigate("Login")}>
+          <Text style={{fontSize: 16, color: 'gray', fontWeight: 'bold'}}>
+            Already have an account? Login
+          </Text>
+        </Pressable>
+
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: 20,
+          }}>
+          <Image
+            source={{
+              uri: 'https://playo-website.gumlet.io/playo-website-v2/logos-icons/new-logo-playo.png',
+            }}
+            style={{width: 120, height: 40, resizeMode: 'contain'}}
+          />
+        </View>
+      </SafeAreaView>
+
+      <View style={{padding: 10, backgroundColor: 'white', marginTop: 'auto'}}>
+        <Pressable
+          onPress={() => navigation.navigate("Register")}
+          style={{
+            marginTop: 'auto',
+            backgroundColor: '#1ec921',
+            padding: 12,
+            borderRadius: 7,
+            marginBottom: 20,
+          }}>
+          <Text
+            style={{textAlign: 'center', color: 'white', fontWeight: '500'}}>
+            READY, SET, GO
+          </Text>
+        </Pressable>
       </View>
-    </SafeAreaView>
+    </>
   );
 };
 
