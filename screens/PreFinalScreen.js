@@ -1,7 +1,30 @@
 import {Pressable, SafeAreaView, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { AuthContext } from '../AuthContext';
+import { getRegistrationProgress } from '../registrationUtils';
 
 const PreFinalScreen = () => {
+  const {token,setToken} = useContext(AuthContext);
+  const [userData,setUserData] = useState();
+  useEffect(() => {
+    getAllScreenData();
+  }, []);
+
+  const getAllScreenData = async () => {
+    try {
+      const screens = ['Register','Password','Name','Image'];
+      let userData = {};
+      for(const screenName of screens){
+        const screenData = await getRegistrationProgress(screenName);
+        if(screenData){
+          userData = {...userData,...screenData};
+        }
+      }
+      setUserData(userData);
+    } catch (error) {
+      console.log(error);
+    }
+  }
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <View style={{marginTop: 80}}>
