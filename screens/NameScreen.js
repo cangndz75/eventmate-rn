@@ -1,65 +1,77 @@
 import {
-  Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   View,
+  SafeAreaView,
+  TextInput,
+  Pressable,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
-import {saveRegistrationProgress} from '../registrationUtils';
-import { getRegistrationProgress } from '../registrationUtils';
+import {
+  getRegistrationProgress,
+  saveRegistrationProgress,
+} from '../registrationUtils';
 
 const NameScreen = () => {
-  const [name, setName] = React.useState('');
-  const [lastname, setLastname] = React.useState('');
   const navigation = useNavigation();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   useEffect(() => {
     getRegistrationProgress('Name').then(progressData => {
       if (progressData) {
-        setName(progressData.name || '');
-        setLastname(progressData.lastname || '');
+        setFirstName(progressData.firstName || '');
+        setLastName(progressData.lastName);
       }
     });
   }, []);
+
   const saveName = () => {
-    if (name.trim() !== '') {
-      saveRegistrationProgress('Name', {name, lastname});
+    if (firstName.trim() !== '') {
+      saveRegistrationProgress('Name', {firstName, lastName});
     }
     navigation.navigate('Image');
   };
   return (
     <>
       <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
-        <View>
-          <Ionicons name="arrow-back" size={24} color="black" />
+        <View style={{marginHorizontal: 10}}>
+          <Ionicons
+            onPress={() => navigation.goBack()}
+            name="arrow-back"
+            size={24}
+            color="black"
+          />
         </View>
+
         <View style={{marginHorizontal: 10, marginVertical: 15}}>
           <Text style={{fontSize: 20, fontWeight: 'bold'}}>
             Complete Your Profile
           </Text>
-          <Text style={{marginTop: 10, fontWeight: 'bold'}}>
-            What should we call you? Enter your name and add a profile picture
+
+          <Text style={{marginTop: 10, color: 'gray'}}>
+            What would you like your mates to call you? ❤️
           </Text>
         </View>
+
         <View
           style={{
             backgroundColor: 'white',
             marginHorizontal: 10,
             marginVertical: 25,
-            gap: 20,
             flexDirection: 'column',
+            gap: 20,
           }}>
           <View>
-            <Text style={{color: 'black', fontSize: 16}}>First Name*</Text>
+            <Text style={{fontSize: 16, color: 'gray'}}>First Name *</Text>
+
             <TextInput
-              value={name}
-              onChangeText={setName}
+              value={firstName}
+              onChangeText={setFirstName}
               style={{
-                padding: 10,
+                padding: 18,
                 borderColor: '#D0D0D0',
                 borderWidth: 1,
                 borderRadius: 10,
@@ -67,13 +79,15 @@ const NameScreen = () => {
               }}
             />
           </View>
+
           <View>
-            <Text style={{fontSize: 16, color: 'black'}}>Last Name*</Text>
+            <Text style={{fontSize: 16, color: 'gray'}}>Last Name</Text>
+
             <TextInput
-              value={name}
-              onChangeText={setLastname}
+              value={lastName}
+              onChangeText={setLastName}
               style={{
-                padding: 10,
+                padding: 18,
                 borderColor: '#D0D0D0',
                 borderWidth: 1,
                 borderRadius: 10,
@@ -83,6 +97,7 @@ const NameScreen = () => {
           </View>
         </View>
       </SafeAreaView>
+
       <Pressable
         onPress={saveName}
         style={{

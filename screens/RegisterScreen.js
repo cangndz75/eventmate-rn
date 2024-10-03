@@ -1,22 +1,24 @@
 import {
-  Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   View,
+  SafeAreaView,
+  TextInputBase,
+  TextInput,
+  Pressable,
+  Alert,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import axios from 'axios';
 import {
   getRegistrationProgress,
   saveRegistrationProgress,
 } from '../registrationUtils';
 
 const RegisterScreen = () => {
-  const [email, setEmail] = React.useState('');
   const navigation = useNavigation();
-
+  const [email, setEmail] = useState('');
   useEffect(() => {
     getRegistrationProgress('Register').then(progressData => {
       if (progressData) {
@@ -24,7 +26,8 @@ const RegisterScreen = () => {
       }
     });
   }, []);
-  const next = () => {
+
+  const sendOTP = () => {
     if (email.trim() !== '') {
       saveRegistrationProgress('Register', {email});
     }
@@ -33,9 +36,13 @@ const RegisterScreen = () => {
   return (
     <SafeAreaView>
       <View style={{padding: 13}}>
-        <Text style={{fontSize: 16, fontWeight: '500'}}>Deneme</Text>
+        <Text style={{fontSize: 16, fontWeight: '500'}}>
+          You're Almost There
+        </Text>
+
         <View style={{flexDirection: 'column', gap: 16, marginVertical: 40}}>
-          <Text style={{color: 'black'}}>Enter Email</Text>
+          <Text style={{fontSize: 16, color: 'gray'}}>Enter Email</Text>
+
           <TextInput
             value={email}
             onChangeText={setEmail}
@@ -46,25 +53,32 @@ const RegisterScreen = () => {
               borderRadius: 10,
             }}
           />
+
           <Pressable
-            onPress={next}
+            onPress={sendOTP}
             style={{
               padding: 15,
               backgroundColor: email?.length > 4 ? '#2dcf30' : '#E0E0E0',
               borderRadius: 8,
             }}>
-            <Text style={{textAlign: 'center', color: 'black', fontSize: 14}}>
-              Next
-            </Text>
+            <Text style={{textAlign: 'center'}}>Next</Text>
           </Pressable>
         </View>
 
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
-          <Text style={{textAlign: 'center', color: 'black', fontSize: 14}}>
-            I agree to recieve updates over WhatsApp
+          <Text style={{textAlign: 'center', fontWeight: '500', fontSize: 15}}>
+            I agree to receive updates over Whatsapp
           </Text>
-          <Text style={{textAlign: 'center', color: 'black', fontSize: 14}}>
-            Terms of Service & Privacy Policy
+
+          <Text
+            style={{
+              fontSize: 15,
+              color: 'gray',
+              textAlign: 'center',
+              marginTop: 20,
+            }}>
+            By Signing up, you agree to the Terms of Service and Privacy and
+            Privacy Policy
           </Text>
         </View>
       </View>
