@@ -6,17 +6,31 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import {saveRegistrationProgress} from '../registrationUtils';
+import { getRegistrationProgress } from '../registrationUtils';
 
 const NameScreen = () => {
   const [name, setName] = React.useState('');
   const [lastname, setLastname] = React.useState('');
   const navigation = useNavigation();
+
+  useEffect(() => {
+    getRegistrationProgress('Name').then(progressData => {
+      if (progressData) {
+        setName(progressData.name || '');
+        setLastname(progressData.lastname || '');
+      }
+    });
+  }, []);
   const saveName = () => {
+    if (name.trim() !== '') {
+      saveRegistrationProgress('Name', {name, lastname});
+    }
     navigation.navigate('Image');
-  }
+  };
   return (
     <>
       <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
@@ -54,10 +68,10 @@ const NameScreen = () => {
             />
           </View>
           <View>
-            <Text style={{fontSize:16,color:"black"}}>Last Name*</Text>
+            <Text style={{fontSize: 16, color: 'black'}}>Last Name*</Text>
             <TextInput
               value={name}
-              onChangeText={setName}
+              onChangeText={setLastname}
               style={{
                 padding: 10,
                 borderColor: '#D0D0D0',
@@ -70,7 +84,7 @@ const NameScreen = () => {
         </View>
       </SafeAreaView>
       <Pressable
-      onPress={saveName}
+        onPress={saveName}
         style={{
           backgroundColor: '#07bc0c',
           marginTop: 'auto',

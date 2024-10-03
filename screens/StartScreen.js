@@ -1,7 +1,7 @@
 import {Image, Pressable, SafeAreaView, Text, View} from 'react-native';
 import React, {useRef} from 'react';
 import MapView, {Marker} from 'react-native-maps';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 const StartScreen = () => {
   const navigation = useNavigation();
@@ -178,7 +178,7 @@ const StartScreen = () => {
             alignItems: 'center',
             marginBottom: 15,
           }}
-          onPress={() => navigation.navigate("Login")}>
+          onPress={() => navigation.navigate('Login')}>
           <Text style={{fontSize: 16, color: 'gray', fontWeight: 'bold'}}>
             Already have an account? Login
           </Text>
@@ -201,17 +201,25 @@ const StartScreen = () => {
 
       <View style={{padding: 10, backgroundColor: 'white', marginTop: 'auto'}}>
         <Pressable
-          onPress={() => navigation.navigate("Register")}
+          onPress={() => navigation.navigate('Register')}
           style={{
-            marginTop: 'auto',
-            backgroundColor: '#1ec921',
+            backgroundColor: '#fff',
             padding: 12,
             borderRadius: 7,
-            marginBottom: 20,
+            borderWidth: 2,
+            borderColor: '#000',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
           }}>
           <Text
-            style={{textAlign: 'center', color: 'white', fontWeight: '500'}}>
-            READY, SET, GO
+            style={{
+              textAlign: 'center',
+              color: '#000',
+              fontWeight: '500',
+              marginRight: 10,
+            }}>
+            READY
           </Text>
         </Pressable>
       </View>
