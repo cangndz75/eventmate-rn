@@ -17,6 +17,7 @@ import NameScreen from '../screens/NameScreen';
 import SelectImage from '../screens/SelectImage';
 import PreFinalScreen from '../screens/PreFinalScreen';
 import {AuthContext} from '../AuthContext';
+import CreateEvent from '../screens/CreateEvent';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -167,6 +168,13 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Venue"
           component={VenueInfoScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="Create"
+          component={CreateEvent}
           options={{
             headerShown: false,
           }}

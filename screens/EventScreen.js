@@ -10,10 +10,13 @@ import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation } from '@react-navigation/native';
 
 const EventScreen = () => {
   const [option, setOption] = useState('My Events');
   const [event, setEvent] = useState('Concert');
+
+  const navigation = useNavigation();
   return (
     <SafeAreaView>
       <View style={{padding: 12, backgroundColor: '#223536'}}>
@@ -165,7 +168,7 @@ const EventScreen = () => {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-        <Pressable>
+        <Pressable onPress={() => navigation.navigate("Create")}>
           <Text style={{fontWeight: 'bold', color: 'black'}}>Create Event</Text>
         </Pressable>
         <View style={{flexDirection:"row",alignItems:"center",gap:10}}>

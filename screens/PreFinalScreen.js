@@ -64,7 +64,7 @@ const PreFinalScreen = () => {
   console.log(userData)
   const registerUser = async () => {
     try {
-      const response = await axios.post('http://10.0.2.2:8000/register', userData);
+      const response = await axios.post('http://10.0.2.2:8000/register', userData)
       const token = response.data.token;
   
       if (!token) {
@@ -72,12 +72,12 @@ const PreFinalScreen = () => {
       }
   
       await AsyncStorage.setItem('token', token);
+      setToken(token);
       clearAllScreenData();
     } catch (error) {
       console.error('Registration error:', error.response?.data || error.message);
     }
   };
-  
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <View style={{marginTop: 80}}>
