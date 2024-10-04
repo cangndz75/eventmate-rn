@@ -18,6 +18,7 @@ import SelectImage from '../screens/SelectImage';
 import PreFinalScreen from '../screens/PreFinalScreen';
 import {AuthContext} from '../AuthContext';
 import CreateEvent from '../screens/CreateEvent';
+import TagVenueScreen from '../screens/TagVenueScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -175,6 +176,13 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Create"
           component={CreateEvent}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="TagVenue"
+          component={TagVenueScreen}
           options={{
             headerShown: false,
           }}

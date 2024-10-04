@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -17,6 +17,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 const CreateEvent = () => {
   const [event, setEvent] = useState('');
@@ -24,7 +25,14 @@ const CreateEvent = () => {
   const [date, setDate] = useState('');
   const [timeInterval, setTimeInterval] = useState('');
   const [noOfParticipants, setNoOfParticipants] = useState(0);
-
+  const navigation = useNavigation();
+  const route = useRoute();
+  const [taggedVenue, setTaggedVenue] = useState(null);
+  useEffect(() => {
+    if (route?.params?.taggedVenue) {
+      setTaggedVenue(route?.params?.taggedVenue);
+    }
+  }, [route?.params]);
   const [selected, setSelected] = useState('Public');
   return (
     <SafeAreaView
@@ -66,6 +74,7 @@ const CreateEvent = () => {
           </Pressable>
           <Text style={{borderColor: '#E0E0E0', borderWidth: 1, height: 1}} />
           <Pressable
+            onPress={() => navigation.navigate('TagVenue')}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -79,7 +88,7 @@ const CreateEvent = () => {
                 Event
               </Text>
               <TextInput
-                value={area}
+                value={area ? area : taggedVenue}
                 onChangeText={setArea}
                 style={{marginTop: 7, fontSize: 15, color: 'black'}}
                 placeholder="Enter event area"
