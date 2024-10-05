@@ -88,17 +88,42 @@ const CreateEvent = () => {
   console.log("User ID: ", userId);
   
   const createEvent = async () => {
-    if (!userId) {
-      Alert.alert('Error', 'User is not authenticated.');
-      return;
-    }
-  
-    if (!event || !area || !date || !timeInterval || !selectedType || !noOfParticipants) {
-      Alert.alert('Error', 'All fields are required.');
-      return;
-    }
-  
     try {
+      if (!userId) {
+        Alert.alert('Error', 'User is not authenticated.');
+        return;
+      }
+  
+      if (!event) {
+        Alert.alert('Error', 'Event title is required.');
+        return;
+      }
+      
+      if (!area) {
+        Alert.alert('Error', 'Event location is required.');
+        return;
+      }
+  
+      if (!date) {
+        Alert.alert('Error', 'Event date is required.');
+        return;
+      }
+  
+      if (!timeInterval) {
+        Alert.alert('Error', 'Event time is required.');
+        return;
+      }
+  
+      if (!selectedType) {
+        Alert.alert('Error', 'Event type is required.');
+        return;
+      }
+  
+      if (!noOfParticipants) {
+        Alert.alert('Error', 'Number of participants is required.');
+        return;
+      }
+  
       const eventData = {
         title: event,
         location: area,
@@ -109,20 +134,29 @@ const CreateEvent = () => {
         organizer: userId,
       };
   
-      console.log('Event Data:', eventData); // Log the event data to verify
+      console.log('Event Data:', eventData);
   
       const response = await axios.post('http://10.0.2.2:8000/createevent', eventData);
   
       if (response.status === 200) {
-        Alert.alert('Event Created Successfully');
-        navigation.goBack();
+        Alert.alert('Success!', 'Event created successfully!', [
+          {
+            text: 'Cancel',
+            onPress: () => console.log('Cancel Pressed'),
+            style: 'cancel',
+          },
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+  
+        setEvent('');
+        setArea('');
+        setDate('');
+        setTimeInterval('');
+        setNoOfParticipants('');
       }
     } catch (error) {
-      if (error.response) {
-        console.error('Error response:', error.response.data);  // Log the error response from the backend
-      } else {
-        console.error('Error creating event:', error.message);
-      }
+      console.error('Failed to create event:', error);
+      Alert.alert('Error', 'Failed to create event. Please try again.');
     }
   };
   

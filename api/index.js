@@ -286,7 +286,15 @@ app.get('/venues', async (req, res) => {
 
 app.post('/createevent', async (req, res) => {
   try {
-    const { title, eventType, date, time, location, organizer, totalParticipants } = req.body;
+    const {
+      title,
+      eventType,
+      date,
+      time,
+      location,
+      organizer,
+      totalParticipants,
+    } = req.body;
 
     // if (!title || !eventType || !date || !time || !location ) {
     //   return res.status(400).json({ message: 'All fields are required.' });
@@ -308,5 +316,86 @@ app.post('/createevent', async (req, res) => {
   } catch (error) {
     console.error('Error creating event:', error);
     res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/events', async (req, res) => {
+  try {
+    const events = await Event.find({})
+      .populate('organizer')
+      .populate('attendees', 'image firstName lastName');
+    const currentDate = moment();
+    const filteredEvents = events?.filter(event => {
+      const eventData = moment(event.date, 'Do MMMM');
+      console.log('eventData:', eventData);
+
+      const eventTime = event.time.split(' - ')[0];
+      console.log('eventTime:', eventTime);
+      const eventDateTime = moment(
+        `${event.date} ${eventTime}`,
+        'Do MMMM HH:mm',
+      );
+      return eventDateTime.isAfter(currentDate);
+    });
+    const formattedEvents = filteredEvents.map(event => ({
+      _id: event._id,
+      title: event.title,
+      eventType: event.eventType,
+      location: event.location,
+      date: event.date,
+      time: event.time,
+      attendees: event.attendees.map(attendee => ({
+        _id: attendee._id,
+        imageUrl: attendee.image,
+        name: `${attendee.firstName} ${attendee.lastName}`,
+      })),
+      totalParticipants: event.totalParticipants,
+      queries: event.queries,
+      request: event.request,
+      isBooked: event.isBooked,
+      organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
+      organizerUrl: event.organizer.image,
+      isFull: event.isFull,
+    }));
+    res.json(formattedEvents);
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).send('Error fetching events');
+  }
+});
+
+app.get('/upcoming', async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    const events = await Event.find({
+      $or: [{organizer: userId}, {attendees: userId}],
+    })
+      .populate('organizer')
+      .populate('attendees', 'image firstName lastName');
+
+    const formattedEvents = events.map(event => ({
+      _id: event._id,
+      title: event.title,
+      eventType: event.eventType,
+      location: event.location,
+      date: event.date,
+      time: event.time,
+      attendees: event.attendees.map(attendee => ({
+        _id: attendee._id,
+        imageUrl: attendee.image,
+        name: `${attendee.firstName} ${attendee.lastName}`,
+      })),
+      totalParticipants: event.totalParticipants,
+      queries: event.queries,
+      request: event.request,
+      isBooked: event.isBooked,
+      organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
+      organizerUrl: event.organizer.image,
+      isFull: event.isFull,
+    }));
+    res.json(formattedEvents);
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).send('Error fetching events');
   }
 });

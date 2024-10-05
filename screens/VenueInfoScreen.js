@@ -118,35 +118,40 @@ const VenueInfoScreen = () => {
 
             <Text style={{color: 'black'}}>Events Available</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {route?.params?.sportsAvailable.map((item, index) => (
-                <View
-                  style={{
-                    borderColor: '#686868',
-                    margin: 10,
-                    padding: 20,
-                    width: 130,
-                    height: 90,
-                    borderWidth: 1,
-                    borderRadius: 5,
-                  }}>
-                  <MaterialCommunityIcons
-                    style={{textAlign: 'center'}}
-                    name={item.icon}
-                    size={24}
-                    color="gray"
-                  />
-                  <Text
+              {route?.params?.eventsAvailable && Array.isArray(route.params.eventsAvailable) ? (
+                route.params.eventsAvailable.map((item, index) => (
+                  <View
+                    key={index}
                     style={{
-                      color: 'black',
-                      fontSize: 13,
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                      marginTop: 10,
+                      borderColor: '#686868',
+                      margin: 10,
+                      padding: 20,
+                      width: 130,
+                      height: 90,
+                      borderWidth: 1,
+                      borderRadius: 5,
                     }}>
-                    {item?.name}
-                  </Text>
-                </View>
-              ))}
+                    <MaterialCommunityIcons
+                      style={{textAlign: 'center'}}
+                      name={item.icon}
+                      size={24}
+                      color="gray"
+                    />
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontSize: 13,
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        marginTop: 10,
+                      }}>
+                      {item?.name}
+                    </Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={{color: 'black'}}>No events available</Text>
+              )}
             </ScrollView>
             <Amenities />
             <View style={{marginHorizontal: 10}}>

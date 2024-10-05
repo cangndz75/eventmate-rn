@@ -5,20 +5,53 @@ import {
   Image,
   Pressable,
   ScrollView,
+  FlatList,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import axios from 'axios';
+import Event from '../components/Event';
+import { AuthContext } from '../AuthContext';
+import UpComingEvent from '../components/UpComingEvent';
 
 const EventScreen = () => {
   const [option, setOption] = useState('My Events');
   const [event, setEvent] = useState('Concert');
-
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const {userId} = useContext(AuthContext);
   const navigation = useNavigation();
+  const [events, setEvents] = useState([]);
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get('http://10.0.2.2:8000/events');
+      setEvents(response.data);
+    } catch (error) {
+      console.log('Error fetching events:', error);
+    }
+  };
+
+  useEffect(() => {
+    if(userId){
+      fetchUpcomingEvents();
+    }
+  }, [userId]);
+  const fetchUpcomingEvents = async () => {
+    try {
+      const response = await axios.get(`http://10.0.2.2:8000/upcoming?userId=${userId}`);
+      setUpcomingEvents(response.data);
+    } catch (error) {
+      console.log('Error fetching upcoming events:', error);
+    }
+  }
+  console.log('Events', upcomingEvents);
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{flex:1}}>
       <View style={{padding: 12, backgroundColor: '#223536'}}>
         <View
           style={{
@@ -168,10 +201,10 @@ const EventScreen = () => {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-        <Pressable onPress={() => navigation.navigate("Create")}>
+        <Pressable onPress={() => navigation.navigate('Create')}>
           <Text style={{fontWeight: 'bold', color: 'black'}}>Create Event</Text>
         </Pressable>
-        <View style={{flexDirection:"row",alignItems:"center",gap:10}}>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
           <Pressable>
             <Text style={{fontWeight: 'bold', color: 'black'}}>Filter</Text>
           </Pressable>
@@ -180,6 +213,23 @@ const EventScreen = () => {
           </Pressable>
         </View>
       </View>
+      {option == 'My Events' && (
+        <FlatList
+          data={events}
+          renderItem={({item}) => <Event item={item} />}
+          keyExtractor={item => item._id}
+          contentContainerStyle={{paddingBottom: 20}}
+        />
+      )}
+
+      {option == 'Calendar' && (
+        <FlatList
+          data={upcomingEvents}
+          renderItem={({item}) => <UpComingEvent item={item} />}
+          keyExtractor={item => item._id}
+          contentContainerStyle={{paddingBottom: 20}}
+        />
+      )}
     </SafeAreaView>
   );
 };
