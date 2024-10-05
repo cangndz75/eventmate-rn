@@ -44,7 +44,7 @@ const CreateEvent = () => {
     }
   }, [route?.params]);
   
-  const eventTypes = ['Concert', 'Football', 'Theatre', 'Dance', 'Other'];
+  const eventTypes = ['concert', 'football', 'theater', 'dance', 'other'];
 
   const toggleEventType = (type) => {
     console.log("Selected Type: ", type);
@@ -100,11 +100,11 @@ const CreateEvent = () => {
   
     try {
       const eventData = {
-        event,
+        title: event,
         location: area,
         date,
         time: timeInterval,
-        eventType: selectedType,
+        eventType: selectedType.toLowerCase(),
         totalParticipants: noOfParticipants,
         organizer: userId,
       };

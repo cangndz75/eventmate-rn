@@ -8,7 +8,7 @@ const eventSchema = new Schema({
   },
   eventType: {
     type: String,
-    enum: ['concert', 'theater', 'football', 'other'],
+    enum: ['concert', 'football', 'theater', 'dance', 'other'],
     required: true,
   },
   location: {

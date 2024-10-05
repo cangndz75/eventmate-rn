@@ -288,9 +288,9 @@ app.post('/createevent', async (req, res) => {
   try {
     const { title, eventType, date, time, location, organizer, totalParticipants } = req.body;
 
-    if (!title || !eventType || !date || !time || !location || !organizer) {
-      return res.status(400).json({ message: 'All fields are required.' });
-    }
+    // if (!title || !eventType || !date || !time || !location ) {
+    //   return res.status(400).json({ message: 'All fields are required.' });
+    // }
 
     const newEvent = new Event({
       title,
