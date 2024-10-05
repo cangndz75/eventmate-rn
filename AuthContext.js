@@ -1,21 +1,22 @@
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState, createContext } from 'react';
 
 const AuthContext = createContext();
 
-const AuthProvider = ({children}) => {
+const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
   const isLoggedIn = async () => {
     try {
       setIsLoading(true);
-      const userToken = await AsyncStorage.getItem('token');
-      if (userToken) {
-        setToken(userToken);
+      const storedToken = await AsyncStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+        decodeToken(storedToken);
       }
       setIsLoading(false);
     } catch (error) {
@@ -24,29 +25,37 @@ const AuthProvider = ({children}) => {
     }
   };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (token) { 
-        try {
-          const decodedToken = jwtDecode(token); 
-          const userId = decodedToken.userId; 
-          setUserId(userId);
-        } catch (error) {
-          console.log('Error decoding token:', error);
-        }
+  const decodeToken = (token) => {
+    try {
+      const decodedToken = jwtDecode(token);  // Correct usage
+      const userIdFromToken = decodedToken.userId;
+      if (userIdFromToken) {
+        setUserId(userIdFromToken);
+        console.log('Decoded userId:', userIdFromToken);
+      } else {
+        console.error('userId not found in the token');
       }
-    };
-
-    fetchUser(); 
-  }, [token]); 
+    } catch (error) {
+      console.error('Error decoding token:', error);
+    }
+  };
 
   useEffect(() => {
-    isLoggedIn(); 
+    isLoggedIn();
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ token, isLoading, setToken, userId, setUserId, upcomingEvents, setUpcomingEvents }}>
+      value={{
+        token,
+        isLoading,
+        setToken,
+        userId,
+        setUserId,
+        upcomingEvents,
+        setUpcomingEvents,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

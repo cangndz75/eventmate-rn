@@ -33,18 +33,15 @@ app.listen(port, () => {
 
 app.post('/register', async (req, res) => {
   try {
-    const {firstName, lastName, email, password, image} = req.body;
+    const userData = req.body;
 
-    if (!firstName || !email || !password || !image) {
-      return res.status(400).json({message: 'All fields are required.'});
-    }
-
-    const newUser = new User({firstName, lastName, email, password, image});
+    const newUser = new User(userData);
 
     await newUser.save();
 
     const secretKey = crypto.randomBytes(32).toString('hex');
-    const token = jwt.sign({id: newUser._id}, secretKey);
+
+    const token = jwt.sign({userId: newUser._id}, secretKey);
 
     res.status(200).json({token});
   } catch (error) {
@@ -73,6 +70,22 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.get('/user/:userId', async (req, res) => {
+  try {
+    const {userId} = req.params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(500).json({message: 'User not found'});
+    }
+
+    return res.status(200).json({user});
+  } catch (error) {
+    res.status(500).json({message: 'Error fetching the user details'});
+  }
+});
+
 const venues = [
   {
     name: 'Bostancı Gösteri Merkezi',
@@ -85,7 +98,7 @@ const venues = [
     lng: 29.096045,
     icon: 'https://maps.google.com/mapfiles/kml/paddle/4-lv.png',
     filter_by: ['Concert', 'Theatre'],
-    sportsAvailable: [
+    eventsAvailable: [
       {
         id: '1',
         name: 'Concert',
@@ -130,7 +143,7 @@ const venues = [
     lng: 29.034174,
     icon: 'https://maps.google.com/mapfiles/kml/paddle/4-lv.png',
     filter_by: ['Theatre', 'Concert'],
-    sportsAvailable: [
+    eventsAvailable: [
       {
         id: '1',
         name: 'Concert',
@@ -175,7 +188,7 @@ const venues = [
     lng: 28.833333,
     icon: 'https://maps.google.com/mapfiles/kml/paddle/4-lv.png',
     filter_by: ['Football', 'Concert'],
-    sportsAvailable: [
+    eventsAvailable: [
       {
         id: '1',
         name: 'Football',
@@ -220,7 +233,7 @@ const venues = [
     lng: 28.978358,
     icon: 'https://maps.google.com/mapfiles/kml/paddle/4-lv.png',
     filter_by: ['Dance'],
-    sportsAvailable: [
+    eventsAvailable: [
       {
         id: '1',
         name: 'Dance',
@@ -259,7 +272,7 @@ async function addVenues() {
 
 addVenues().catch(err => {
   console.log('Error adding venues:', err);
-})
+});
 
 app.get('/venues', async (req, res) => {
   try {
@@ -267,6 +280,33 @@ app.get('/venues', async (req, res) => {
     res.status(200).json(venues);
   } catch (error) {
     console.error('Error fetching venues:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/createevent', async (req, res) => {
+  try {
+    const { title, eventType, date, time, location, organizer, totalParticipants } = req.body;
+
+    if (!title || !eventType || !date || !time || !location || !organizer) {
+      return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    const newEvent = new Event({
+      title,
+      eventType,
+      date,
+      time,
+      location,
+      organizer,
+      totalParticipants,
+      attendees: [organizer],
+    });
+
+    const savedEvent = await newEvent.save();
+    res.status(200).json(savedEvent);
+  } catch (error) {
+    console.error('Error creating event:', error);
     res.status(500).send('Internal Server Error');
   }
 });
