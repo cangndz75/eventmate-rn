@@ -6,19 +6,24 @@ import {
   Pressable,
   ImageBackground,
 } from 'react-native';
-import React, {useLayoutEffect} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {AuthContext} from '../AuthContext';
+import axios from 'axios';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const {userId, setToken, setUserId} = useContext(AuthContext);
+  const [user, setUser] = useState(null);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: '',
       headerLeft: () => (
         <View>
-          <Text style={{marginLeft: 15,color:"black"}}>Can Gündüz</Text>
+          <Text style={{marginLeft: 15, color: 'black'}}>Can Gündüz</Text>
         </View>
       ),
       headerRight: () => (
@@ -35,14 +40,14 @@ const HomeScreen = () => {
             <Image
               style={{width: 30, height: 30, borderRadius: 15}}
               source={{
-                uri: 'https://lh3.googleusercontent.com/ogw/AF2bZygt1JucrWn0fCbOOWjGjCOa_3Q88Fw4DT0zyVurZmbzxwc=s32-c-mo',
+                uri: user?.user?.image,
               }}
             />
           </Pressable>
         </View>
       ),
     });
-  }, []);
+  }, [user]);
 
   const data = [
     {
@@ -67,6 +72,27 @@ const HomeScreen = () => {
       description: 'Know more',
     },
   ];
+
+  const clearAuthToken = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      setToken('');
+      setUserId('');
+      navigation.replace('Start');
+    } catch (error) {
+      console.log('Error clearing auth token:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchUser();
+    }
+  }, [userId]);
+  const fetchUser = async () => {
+    const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
+    setUser(response.data);
+  };
   return (
     <ScrollView style={{flex: 1, backgroundColor: '#F8F8F8', padding: 10}}>
       <View
@@ -93,7 +119,7 @@ const HomeScreen = () => {
         </View>
         <View>
           <View>
-            <Text style={{color:"black"}}>Set Your Weekly Fit Goal</Text>
+            <Text style={{color: 'black'}}>Set Your Weekly Fit Goal</Text>
             <Image
               style={{width: 20, height: 20, borderRadius: 10}}
               source={{
@@ -316,7 +342,9 @@ const HomeScreen = () => {
           </View>
           <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
         </View>
-        <Text style={{color: 'gray', textAlign: 'center', marginTop:5}}>Your event app</Text>
+        <Text style={{color: 'gray', textAlign: 'center', marginTop: 5}}>
+          Your event app
+        </Text>
       </View>
     </ScrollView>
   );

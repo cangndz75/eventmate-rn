@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const User = require('./models/user');
 const Event = require('./models/event');
 const Venue = require('./models/venue');
+const { request } = require('http');
 
 const app = express();
 const port = 8000;
@@ -417,6 +418,39 @@ app.post('/events/:eventId/request', async (req, res) => {
     event.requests.push({userId, comment});
     await event.save();
     res.status(200).send('Request sent successfully');
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).send('Error fetching events');
+  }
+});
+
+app.get('/events/:eventId/requests', async (req, res) => {
+  try {
+    const {eventId} = req.params;
+    const event = await Event.findById(eventId).populate({
+      path: 'requests.userId',
+      select:
+        'email firstName lastName image image skill noOfEvents eventPals events badges level points',
+    });
+    if (!event) {
+      return res.status(404).send('Event not found');
+    }
+    const requestsWithUserInfo = event?.requests?.map(request => ({
+      userId:request.userId._id,
+      email: request.userId.email,
+      firstName: request.userId.firstName,
+      lastName: request.userId.lastName,
+      image: request.userId.image,
+      skill: request.userId.skill,
+      noOfEvents: request.userId.noOfEvents,
+      eventPals: request.userId.eventPals,
+      events: request.userId.events,
+      badges: request.userId.badges,
+      level: request.userId.level,
+      points: request.userId.points,
+      comment: request.comment,
+    }));
+    res.json(requestsWithUserInfo);
   } catch (error) {
     console.log('Error:', error);
     res.status(500).send('Error fetching events');
