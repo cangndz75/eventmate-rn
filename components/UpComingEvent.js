@@ -8,7 +8,7 @@ const UpComingEvent = ({item}) => {
   return (
     <Pressable
       onPress={() =>
-        navigation.navigate('Venue', {
+        navigation.navigate('Event', {
           item: item,
         })
       }

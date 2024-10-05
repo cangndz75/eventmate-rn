@@ -20,6 +20,7 @@ import {AuthContext} from '../AuthContext';
 import CreateEvent from '../screens/CreateEvent';
 import TagVenueScreen from '../screens/TagVenueScreen';
 import SelectTimeScreen from '../screens/SelectTimeScreen';
+import EventSetUpScreen from '../screens/EventSetUpScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -188,9 +189,10 @@ const StackNavigator = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen name="Time" component={SelectTimeScreen} />
         <Stack.Screen
-          name="Time"
-          component={SelectTimeScreen}
+          name="Event"
+          component={EventSetUpScreen}
           options={{
             headerShown: false,
           }}

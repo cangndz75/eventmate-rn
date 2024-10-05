@@ -399,3 +399,26 @@ app.get('/upcoming', async (req, res) => {
     res.status(500).send('Error fetching events');
   }
 });
+
+app.post('/events/:eventId/request', async (req, res) => {
+  try {
+    const {userId, comment} = req.body;
+    const {eventId} = req.params;
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).send('Event not found');
+    }
+    const existingRequest = event?.requests.find(
+      request => request.userId.toString() === userId,
+    );
+    if (existingRequest) {
+      return res.status(400).send('Request already exists');
+    }
+    event.requests.push({userId, comment});
+    await event.save();
+    res.status(200).send('Request sent successfully');
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).send('Error fetching events');
+  }
+});
