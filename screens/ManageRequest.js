@@ -1,46 +1,36 @@
 import {
-    StyleSheet,
-    Text,
-    View,
     SafeAreaView,
-    Pressable,
+    View,
     Image,
+    Pressable,
+    Text,
     Alert,
   } from 'react-native';
-  import React, {useEffect} from 'react';
+  import React, { useEffect, useState } from 'react';
   import Ionicons from 'react-native-vector-icons/Ionicons';
   import AntDesign from 'react-native-vector-icons/AntDesign';
-  import {useState} from 'react';
-  import {useRoute} from '@react-navigation/native';
+  import { useRoute } from '@react-navigation/native';
   import axios from 'axios';
-  import Entypo from 'react-native-vector-icons/Entypo';
   
   const ManageRequests = () => {
     const [option, setOption] = useState('Requests');
     const route = useRoute();
   
     const userId = route?.params?.userId;
-    const gameId = route?.params?.gameId;
+    const eventId = route?.params?.eventId;
   
-    console.log(userId);
-    console.log(gameId);
-  
-    const acceptRequest = async userId => {
+    const acceptRequest = async (userId) => {
       try {
         const user = {
-          gameId: gameId,
+          eventId: eventId,
           userId: userId,
         };
-        console.log(user);
-        const response = await axios.post('http://localhost:8000/accept', user);
+        const response = await axios.post('http://10.0.2.2:8000/accept', user);
   
         if (response.status === 200) {
           Alert.alert('Success', 'Request accepted');
-  
           await fetchRequests();
-  
-          await fetchPlayers();
-          // Optionally, refresh the data or update the stat
+          await fetchAttendees();
         }
       } catch (error) {
         console.error('Failed to accept request:', error);
@@ -48,43 +38,40 @@ import {
     };
   
     const [requests, setRequests] = useState([]);
+    const [attendees, setAttendees] = useState([]);
+    const [invited, setInvited] = useState([]); // Simulate invited data
+    const [retired, setRetired] = useState([]); // Simulate retired data
   
     useEffect(() => {
       fetchRequests();
+      fetchAttendees();
     }, []);
-  
   
     const fetchRequests = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/games/${gameId}/requests`,
+          `http://10.0.2.2:8000/events/${eventId}/requests`
         );
         setRequests(response.data);
       } catch (error) {
         console.error('Failed to fetch requests:', error);
       }
     };
-    const [players, setPlayers] = useState([]);
   
-    useEffect(() => {
-      fetchPlayers();
-    }, []);
-  
-    const fetchPlayers = async () => {
+    const fetchAttendees = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/game/${gameId}/players`,
+          `http://10.0.2.2:8000/event/${eventId}/attendees`
         );
-        setPlayers(response.data);
+        setAttendees(response.data);
       } catch (error) {
-        console.error('Failed to fetch players:', error);
+        console.error('Failed to fetch attendees:', error);
       }
     };
   
-    console.log('dfdfdfd', route?.params);
     return (
       <SafeAreaView>
-        <View style={{padding: 12, backgroundColor: '#223536'}}>
+        <View style={{ padding: 12, backgroundColor: '#223536' }}>
           <View
             style={{
               flexDirection: 'row',
@@ -104,13 +91,9 @@ import {
               gap: 5,
               justifyContent: 'space-between',
             }}>
-            <Text style={{fontSize: 20, fontWeight: '600', color: 'white'}}>
+            <Text style={{ fontSize: 20, fontWeight: '600', color: 'white' }}>
               Manage
             </Text>
-  
-            <View>
-              <Text style={{color: 'white', fontSize: 17}}>Match Full</Text>
-            </View>
           </View>
   
           <View
@@ -127,7 +110,6 @@ import {
                   fontWeight: '500',
                   color: option == 'Requests' ? '#1dd132' : 'white',
                 }}>
-                {/* Requests ({route?.params?.requests?.length}) */}
                 Requests ({requests?.length})
               </Text>
             </Pressable>
@@ -138,7 +120,7 @@ import {
                   fontWeight: '500',
                   color: option == 'Invited' ? '#1dd132' : 'white',
                 }}>
-                Invited (0)
+                Invited ({invited?.length})
               </Text>
             </Pressable>
   
@@ -148,7 +130,7 @@ import {
                   fontWeight: '500',
                   color: option == 'Playing' ? '#1dd132' : 'white',
                 }}>
-                Playing({players?.length})
+                Playing ({attendees?.length})
               </Text>
             </Pressable>
   
@@ -158,19 +140,31 @@ import {
                   fontWeight: '500',
                   color: option == 'Retired' ? '#1dd132' : 'white',
                 }}>
-                Retired(0)
+                Retired ({retired?.length})
               </Text>
             </Pressable>
           </View>
         </View>
   
-        <View style={{marginTop: 10, marginHorizontal: 15}}>
-          <View>
-            {option == 'Requests' && (
-              <View>
-                {/* {route?.params?.requests?.map((item, index) => ( */}
-                {requests?.map((item, index) => (
+        <View style={{ marginTop: 10, marginHorizontal: 15 }}>
+          {option == 'Requests' && (
+            <View>
+              {requests.length === 0 ? (
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                  }}>
+                  <Text style={{ fontWeight: '500', fontSize: 16 }}>
+                    No requests
+                  </Text>
+                </View>
+              ) : (
+                requests.map((item, index) => (
                   <Pressable
+                    key={index}
                     style={{
                       padding: 10,
                       backgroundColor: 'white',
@@ -184,12 +178,12 @@ import {
                         gap: 13,
                       }}>
                       <Image
-                        style={{width: 50, height: 50, borderRadius: 25}}
-                        source={{uri: item?.image}}
+                        style={{ width: 50, height: 50, borderRadius: 25 }}
+                        source={{ uri: item?.image }}
                       />
   
-                      <View style={{flex: 1}}>
-                        <Text style={{fontWeight: '600'}}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontWeight: '600' }}>
                           {item?.firstName} {item?.lastName}
                         </Text>
                         <View
@@ -202,23 +196,12 @@ import {
                             borderWidth: 1,
                             alignSelf: 'flex-start',
                           }}>
-                          <Text style={{fontSize: 13}}>INTERMEDIATE</Text>
+                          <Text style={{ fontSize: 13 }}>INTERMEDIATE</Text>
                         </View>
-                      </View>
-  
-                    
-  
-                      <View>
-                        <Image
-                          style={{width: 110, height: 60, resizeMode: 'contain'}}
-                          source={{
-                            uri: 'https://playo-website.gumlet.io/playo-website-v2/logos-icons/new-logo-playo.png?q=50',
-                          }}
-                        />
                       </View>
                     </View>
   
-                    <Text style={{marginTop:8}}>{item?.comment}</Text>
+                    <Text style={{ marginTop: 8 }}>{item?.comment}</Text>
   
                     <View
                       style={{
@@ -244,7 +227,7 @@ import {
                             borderRadius: 5,
                             alignSelf: 'flex-start',
                           }}>
-                          <Text style={{fontSize: 14, color: 'gray'}}>
+                          <Text style={{ fontSize: 14, color: 'gray' }}>
                             0 NO SHOWS
                           </Text>
                         </View>
@@ -273,7 +256,7 @@ import {
                             borderWidth: 1,
                             width: 100,
                           }}>
-                          <Text style={{textAlign: 'center'}}>RETIRE</Text>
+                          <Text style={{ textAlign: 'center' }}>RETIRE</Text>
                         </Pressable>
   
                         <Pressable
@@ -284,65 +267,118 @@ import {
                             backgroundColor: '#26bd37',
                             width: 100,
                           }}>
-                          <Text style={{textAlign: 'center', color: 'white'}}>
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              color: 'white',
+                            }}>
                             ACCEPT
                           </Text>
                         </Pressable>
                       </View>
                     </View>
                   </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
+                ))
+              )}
+            </View>
+          )}
   
-        <View style={{marginTop: 10, marginHorizontal: 15}}>
-          <View>
-            {option == 'Playing' && (
-              <>
-                <View style={{}}>
-                  {players?.map((item, index) => (
-                    <Pressable
-                      style={{
-                        marginVertical: 10,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 10,
-                      }}>
-                      <View>
-                        <Image
-                          style={{width: 60, height: 60, borderRadius: 30}}
-                          source={{uri: item?.image}}
-                        />
-                      </View>
-  
-                      <View>
-                        <Text>
-                          {item?.firstName} {item?.lastName}
-                        </Text>
-  
-                        <View
-                          style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            marginTop: 10,
-                            borderRadius: 20,
-                            borderColor: 'orange',
-                            borderWidth: 1,
-                            alignSelf: 'flex-start',
-                          }}>
-                          <Text style={{fontSize: 13, fontWeight: '400'}}>
-                            INTERMEDIATE
-                          </Text>
-                        </View>
-                      </View>
-                    </Pressable>
-                  ))}
+          {option == 'Playing' && (
+            <View>
+              {attendees.length === 0 ? (
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                  }}>
+                  <Text style={{ fontWeight: '500', fontSize: 16 }}>
+                    No attendees
+                  </Text>
                 </View>
-              </>
-            )}
-          </View>
+              ) : (
+                attendees.map((item, index) => (
+                  <Pressable
+                    key={index}
+                    style={{
+                      marginVertical: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 10,
+                    }}>
+                    <View>
+                      <Image
+                        style={{ width: 60, height: 60, borderRadius: 30 }}
+                        source={{ uri: item?.image }}
+                      />
+                    </View>
+  
+                    <View>
+                      <Text>
+                        {item?.firstName} {item?.lastName}
+                      </Text>
+  
+                      <View
+                        style={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 5,
+                          marginTop: 10,
+                          borderRadius: 20,
+                          borderColor: 'orange',
+                          borderWidth: 1,
+                          alignSelf: 'flex-start',
+                        }}>
+                        <Text style={{ fontSize: 13, fontWeight: '400' }}>
+                          INTERMEDIATE
+                        </Text>
+                      </View>
+                    </View>
+                  </Pressable>
+                ))
+              )}
+            </View>
+          )}
+  
+          {option == 'Invited' && (
+            <View>
+              {invited.length === 0 ? (
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                  }}>
+                  <Text style={{ fontWeight: '500', fontSize: 16 }}>
+                    No invited players
+                  </Text>
+                </View>
+              ) : (
+                <Text>Invited players will be shown here.</Text>
+              )}
+            </View>
+          )}
+  
+          {option == 'Retired' && (
+            <View>
+              {retired.length === 0 ? (
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                  }}>
+                  <Text style={{ fontWeight: '500', fontSize: 16 }}>
+                    No retired players
+                  </Text>
+                </View>
+              ) : (
+                <Text>Retired players will be shown here.</Text>
+              )}
+            </View>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -350,4 +386,3 @@ import {
   
   export default ManageRequests;
   
-  const styles = StyleSheet.create({});

@@ -1,18 +1,10 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  Pressable,
-  ImageBackground,
-} from 'react-native';
 import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
+import {View, Text, ScrollView, Image, Pressable, ImageBackground} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {AuthContext} from '../AuthContext';
 import axios from 'axios';
+import {AuthContext} from '../AuthContext';
 import {Modal, ModalContent, ModalFooter, ModalButton} from 'react-native-modals';
 
 const HomeScreen = () => {
@@ -20,13 +12,16 @@ const HomeScreen = () => {
   const {userId, setToken, setUserId} = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [eventList, setEventList] = useState([]); // Tüm etkinlik listesi
+  const [popularEvent, setPopularEvent] = useState(null); // Popüler etkinlik (liste başı)
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: '',
       headerLeft: () => (
-        <View>
-          <Text style={{marginLeft: 15, color: 'black'}}>Can Gündüz</Text>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Ionicons name="person-circle-outline" size={24} color="black" />
+          <Text style={{marginLeft: 10, color: 'black'}}>Can Gündüz</Text>
         </View>
       ),
       headerRight: () => (
@@ -52,43 +47,38 @@ const HomeScreen = () => {
     });
   }, [user]);
 
-  const popularEvent = {
-    image:
-      'https://images.pexels.com/photos/2247678/pexels-photo-2247678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    title: 'La Rosalía',
-    date: 'Mon, Apr 18 - 21:00 PM',
-    location: 'Palau Sant Jordi, Barcelona',
+  // Veritabanından kullanıcı bilgilerini çek
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
   };
 
-  const eventList = [
-    {
-      id: '1',
-      image:
-        'https://images.pexels.com/photos/2247678/pexels-photo-2247678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      title: 'The Kooks',
-      date: 'Thu, Apr 19 - 20:00 PM',
-      location: 'Razzmatazz',
-      isNew: true,
-    },
-    {
-      id: '2',
-      image:
-        'https://images.pexels.com/photos/2247678/pexels-photo-2247678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      title: 'The Wombats',
-      date: 'Fri, Apr 22 - 21:00 PM',
-      location: 'Sala Apolo',
-      isNew: false,
-    },
-    {
-      id: '3',
-      image:
-        'https://images.pexels.com/photos/2247678/pexels-photo-2247678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      title: 'Foster The People',
-      date: 'Mon, Apr 25 - 17:30 PM',
-      location: 'La Monumental',
-      isNew: false,
-    },
-  ];
+  // Veritabanından tüm etkinlik verisini çek
+  const fetchEvents = async () => {
+    try {
+      const eventListResponse = await axios.get('http://10.0.2.2:8000/events');
+      const events = eventListResponse.data;
+      setEventList(events); // Tüm etkinlik listesini sakla
+
+      // İlk etkinliği popüler etkinlik olarak ayarla
+      if (events.length > 0) {
+        setPopularEvent(events[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchUser();
+      fetchEvents();  // Etkinlikleri çek
+    }
+  }, [userId]);
 
   const clearAuthToken = async () => {
     try {
@@ -101,91 +91,77 @@ const HomeScreen = () => {
     }
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchUser();
-    }
-  }, [userId]);
-
-  const fetchUser = async () => {
-    const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
-    setUser(response.data);
-  };
-
   return (
     <ScrollView style={{flex: 1, backgroundColor: '#F8F8F8', padding: 10}}>
-      {/* Popular in Barcelona section */}
-      <View style={{padding: 13}}>
-        <Text style={{fontSize: 18, fontWeight: '600', marginBottom: 10}}>
-          Popular in Barcelona
-        </Text>
-        <View
-          style={{
-            backgroundColor: 'white',
-            borderRadius: 15,
-            shadowColor: '#000',
-            shadowOffset: {width: 0, height: 2},
-            shadowOpacity: 0.2,
-            shadowRadius: 3,
-            padding: 10,
-          }}>
-          <ImageBackground
-            source={{uri: popularEvent.image}}
-            style={{height: 200, borderRadius: 15, overflow: 'hidden'}}
-            imageStyle={{borderRadius: 10}}>
-            <View style={{padding: 10}}>
-              <Text
-                style={{
-                  color: 'white',
-                  backgroundColor: 'green',
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 5,
-                  position: 'absolute',
-                  right: 10,
-                  top: 10,
-                  fontSize: 12,
-                }}>
-                New
-              </Text>
-            </View>
-          </ImageBackground>
-          <View style={{paddingVertical: 10}}>
-            <Text style={{fontSize: 16, fontWeight: '600', color: 'black'}}>
-              {popularEvent.title}
-            </Text>
-            <Text style={{fontSize: 14, color: 'gray'}}>{popularEvent.date}</Text>
-            <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 4}}>
-              <Ionicons name="location-outline" size={16} color="gray" />
-              <Text style={{marginLeft: 4, color: 'gray', fontSize: 12}}>
-                {popularEvent.location}
-              </Text>
-            </View>
-          </View>
-          <View
+      {/* Popüler etkinlik kısmı */}
+      {popularEvent && (
+        <View style={{padding: 13}}>
+          <Text style={{fontSize: 18, fontWeight: '600', marginBottom: 10}}>
+            Popular in Barcelona
+          </Text>
+          <Pressable
+            onPress={() => navigation.navigate('Event', {item: popularEvent})} // Navigate to Event screen
             style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingVertical: 10,
-              paddingHorizontal: 5,
-              borderTopWidth: 1,
-              borderTopColor: '#E0E0E0',
+              backgroundColor: 'white',
+              borderRadius: 15,
+              shadowColor: '#000',
+              shadowOffset: {width: 0, height: 2},
+              shadowOpacity: 0.2,
+              shadowRadius: 3,
+              padding: 10,
             }}>
-            <Pressable>
-              <Ionicons name="heart-outline" size={24} color="black" />
-            </Pressable>
-            <Pressable>
-              <Ionicons name="share-outline" size={24} color="black" />
-            </Pressable>
-          </View>
+            <ImageBackground
+              source={{uri: popularEvent.organizerUrl}}
+              style={{height: 200, borderRadius: 15, overflow: 'hidden'}}
+              imageStyle={{borderRadius: 10}}>
+              <View style={{padding: 10}}>
+                <Text
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'green',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 5,
+                    position: 'absolute',
+                    right: 10,
+                    top: 10,
+                    fontSize: 12,
+                  }}>
+                  New
+                </Text>
+              </View>
+            </ImageBackground>
+            <View style={{paddingVertical: 10}}>
+              <Text style={{fontSize: 16, fontWeight: '600', color: 'black'}}>
+                {popularEvent.title}
+              </Text>
+              <Text style={{fontSize: 14, color: 'gray'}}>{popularEvent.date}</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 4}}>
+                <Ionicons name="location-outline" size={16} color="gray" />
+                <Text style={{marginLeft: 4, color: 'gray', fontSize: 12}}>
+                  {popularEvent.location}
+                </Text>
+              </View>
+            </View>
+            <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
+              <Image
+                source={{uri: popularEvent.organizerUrl}}
+                style={{width: 30, height: 30, borderRadius: 15}}
+              />
+              <Text style={{marginLeft: 10, color: 'gray'}}>
+                {popularEvent.attendees?.length} Going
+              </Text>
+            </View>
+          </Pressable>
         </View>
-      </View>
+      )}
 
-      {/* Event List */}
+      {/* Etkinlik Listesi */}
       <View style={{padding: 13}}>
-        {eventList.map((item) => (
-          <View
-            key={item.id}
+        {eventList.slice(1).map((item) => (
+          <Pressable
+            key={item._id}
+            onPress={() => navigation.navigate('Event', {item})} // Navigate to Event screen
             style={{
               backgroundColor: 'white',
               borderRadius: 15,
@@ -199,7 +175,7 @@ const HomeScreen = () => {
               alignItems: 'center',
             }}>
             <Image
-              source={{uri: item.image}}
+              source={{uri: item.organizerUrl}}
               style={{width: 60, height: 60, borderRadius: 12}}
             />
             <View style={{flex: 1, marginLeft: 10}}>
@@ -229,6 +205,19 @@ const HomeScreen = () => {
                   {item.location}
                 </Text>
               </View>
+              {/* Going section */}
+              <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
+                {item?.attendees?.slice(0, 3).map((attendee) => (
+                  <Image
+                    key={attendee?._id}
+                    source={{uri: attendee?.imageUrl}}
+                    style={{width: 30, height: 30, borderRadius: 15, marginLeft: -7}}
+                  />
+                ))}
+                <Text style={{marginLeft: 10, color: 'gray'}}>
+                  {item.attendees?.length} Going
+                </Text>
+              </View>
             </View>
             <Pressable style={{marginLeft: 'auto'}}>
               <Ionicons name="heart-outline" size={24} color="black" />
@@ -236,7 +225,7 @@ const HomeScreen = () => {
             <Pressable style={{marginLeft: 10}}>
               <Ionicons name="share-outline" size={24} color="black" />
             </Pressable>
-          </View>
+          </Pressable>
         ))}
       </View>
 

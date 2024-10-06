@@ -7,7 +7,6 @@ import {
   TextInput,
   Pressable,
   Image,
-  ScrollView,
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';

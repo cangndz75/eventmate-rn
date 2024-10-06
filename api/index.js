@@ -555,3 +555,35 @@ app.put('/updateAllUsersToAddOrganizer', async (req, res) => {
   }
 });
 
+app.post('/accept', async (req, res) => {
+  const {eventId, userId} = req.body;
+
+  console.log('user', userId);
+
+  console.log('heyy', eventId);
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({message: 'Event not found'});
+    }
+
+    event.attendees.push(userId);
+
+
+    await Event.findByIdAndUpdate(
+      eventId,
+      {
+        $pull: {requests: {userId: userId}},
+      },
+      {new: true},
+    );
+
+    await event.save();
+
+    res.status(200).json({message: 'Request accepted', event});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Server error'});
+  }
+});
