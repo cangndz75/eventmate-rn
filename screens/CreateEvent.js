@@ -98,7 +98,6 @@ const CreateEvent = () => {
         Alert.alert('Error', 'Event title is required.');
         return;
       }
-      
       if (!area) {
         Alert.alert('Error', 'Event location is required.');
         return;
@@ -131,7 +130,7 @@ const CreateEvent = () => {
         time: timeInterval,
         eventType: selectedType.toLowerCase(),
         totalParticipants: noOfParticipants,
-        organizer: userId,
+        organizer: userId, // Assuming userId is the logged-in user's ID
       };
   
       console.log('Event Data:', eventData);
@@ -141,11 +140,11 @@ const CreateEvent = () => {
       if (response.status === 200) {
         Alert.alert('Success!', 'Event created successfully!', [
           {
-            text: 'Cancel',
-            onPress: () => console.log('Cancel Pressed'),
-            style: 'cancel',
+            text: 'OK',
+            onPress: () => {
+              navigation.navigate('Event', { refresh: true });
+            },
           },
-          { text: 'OK', onPress: () => navigation.goBack() },
         ]);
   
         setEvent('');
@@ -153,9 +152,12 @@ const CreateEvent = () => {
         setDate('');
         setTimeInterval('');
         setNoOfParticipants('');
+      } else {
+        console.error('Unexpected response:', response.status);
+        Alert.alert('Error', 'Unexpected response. Please try again.');
       }
     } catch (error) {
-      console.error('Failed to create event:', error);
+      console.error('Failed to create event:', error?.response?.data || error);
       Alert.alert('Error', 'Failed to create event. Please try again.');
     }
   };

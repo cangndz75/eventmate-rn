@@ -1,10 +1,14 @@
-import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import React from 'react';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
-const UpComingEvent = ({item}) => {
-  console.log('item', item);
+const UpComingEvent = ({ item }) => {
   const navigation = useNavigation();
+
+  if (!item) {
+    return null;
+  }
+
   return (
     <Pressable
       onPress={() =>
@@ -15,116 +19,102 @@ const UpComingEvent = ({item}) => {
       style={{
         backgroundColor: 'white',
         padding: 12,
-        borderBottomColor: '#E0E0E0',
-        borderBottomWidth: 2,
+        borderRadius: 12,
         marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 5,
       }}>
+      {/* Event Date */}
       <Text
         style={{
-          marginVertical: 7,
-          borderBottomColor: '#E0E0E0',
-          borderBottomWidth: 2,
-          color: 'blue',
+          fontSize: 12,
+          fontWeight: '600',
+          color: '#FF6347',
+          marginBottom: 6,
         }}>
         {item?.date}
       </Text>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          gap: 10,
-          backgroundColor: 'white',
-          marginTop: 12,
-        }}>
-        <View>
-          <Image
-            style={{width: 40, height: 40, borderRadius: 20}}
-            source={{uri: item?.organizerUrl}}
-          />
-        </View>
+      {/* Event Image and Info */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Image
+          style={{ width: 80, height: 80, borderRadius: 10 }}
+          source={{ uri: item?.organizerUrl }}
+        />
 
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontSize: 15,
-              fontWeight: '600',
-              flexWrap: 'wrap',
-              marginBottom: 6,
+              fontSize: 16,
+              fontWeight: '700',
+              color: '#333',
             }}>
-            {item?.organizerName}'s {item?.title}
+            {item?.title}
           </Text>
 
           <Text
             style={{
-              color: 'gray',
-              marginBottom: 10,
-              flexShrink: 1,
-            }}
-            numberOfLines={2} 
-          >
+              fontSize: 12,
+              color: '#777',
+              marginVertical: 4,
+            }}>
             {item?.location}
           </Text>
 
-          <View
-            style={{
-              marginVertical: 10,
-              padding: item?.isBooked ? 0 : 15,
-              borderRadius: 8,
-              borderColor: '#E0E0E0',
-              borderWidth: 1,
-              width: '100%', 
-            }}>
-            {item?.isBooked ? (
-              <>
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    fontWeight: '500',
-                    fontSize: 13,
-                    paddingVertical: 10,
-                  }}>
-                  {item?.courtNumber}
-                </Text>
-
-                <View
-                  style={{
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: '#56cc79',
-                    paddingVertical: 5,
-                  }}>
-                  <Text
-                    style={{fontSize: 13, fontWeight: '500', color: 'white'}}>
-                    Booked
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <Text style={{textAlign: 'center', fontWeight: '500'}}>
-                {item?.time}
-              </Text>
-            )}
-          </View>
+          <Text style={{ fontSize: 12, color: '#888' }}>
+            Hosted by {item?.organizerName}
+          </Text>
         </View>
 
         <View
           style={{
             alignItems: 'center',
             justifyContent: 'center',
-            marginLeft: 10,
           }}>
-          <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: '#FF6347' }}>
             {item?.attendees?.length}
           </Text>
-          <Text style={{fontSize: 16, fontWeight: '600', marginTop: 10}}>
-            GOING
-          </Text>
+          <Text style={{ fontSize: 12, color: '#FF6347' }}>Going</Text>
         </View>
+      </View>
+
+      {/* Event Action Area */}
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: 10,
+        }}>
+        {item?.isBooked ? (
+          <View
+            style={{
+              backgroundColor: '#56cc79',
+              paddingVertical: 5,
+              paddingHorizontal: 15,
+              borderRadius: 8,
+            }}>
+            <Text style={{ color: 'white', fontWeight: '500' }}>Booked</Text>
+          </View>
+        ) : (
+          <Text style={{ fontWeight: '500', color: '#888' }}>{item?.time}</Text>
+        )}
+
+        <Pressable
+          style={{
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            backgroundColor: '#FF6347',
+            borderRadius: 8,
+          }}>
+          <Text style={{ color: 'white', fontWeight: '600' }}>Join</Text>
+        </Pressable>
       </View>
     </Pressable>
   );
 };
 
 export default UpComingEvent;
-
-const styles = StyleSheet.create({});

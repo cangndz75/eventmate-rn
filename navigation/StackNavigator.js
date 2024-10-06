@@ -22,6 +22,8 @@ import TagVenueScreen from '../screens/TagVenueScreen';
 import SelectTimeScreen from '../screens/SelectTimeScreen';
 import EventSetUpScreen from '../screens/EventSetUpScreen';
 import AttendeesScreen from '../screens/AttendeesScreen';
+import ManageRequests from '../screens/ManageRequest';
+import ProfileDetailScreen from '../screens/ProfileDetail';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -79,7 +81,7 @@ const StackNavigator = () => {
         />
         <Tab.Screen
           name="PROFILE"
-          component={ProfileScreen}
+          component={ProfileDetailScreen}
           options={{
             tabBarActiveTintColor: 'green',
             headerShown: false,
@@ -201,6 +203,12 @@ const StackNavigator = () => {
          <Stack.Screen
           name="Attendees"
           component={AttendeesScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+        <Stack.Screen
+          name="Manage"
+          component={ManageRequests}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

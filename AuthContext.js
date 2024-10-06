@@ -1,4 +1,4 @@
-import {jwtDecode} from 'jwt-decode'; // jwt-decode paketi import edilmeli
+import jwtDecode from 'jwt-decode'; // jwt-decode paketi import edilmeli
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState, createContext } from 'react';
 
@@ -28,23 +28,24 @@ const AuthProvider = ({ children }) => {
 
   const decodeToken = (token) => {
     try {
-      const decodedToken = jwtDecode(token);
-      console.log('Decoded token:', decodedToken);
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const decodedData = JSON.parse(atob(base64));
   
-      const userIdFromToken = decodedToken?.userId;
-      const isUserOrganizer = decodedToken?.isOrganizer; // Token'dan isOrganizer çekiliyor
+      console.log('Decoded token:', decodedData);
+  
+      const userIdFromToken = decodedData?.userId;
+      const isUserOrganizer = decodedData?.isOrganizer;
   
       if (userIdFromToken) {
         setUserId(userIdFromToken);
-        setIsOrganizer(isUserOrganizer);  // isOrganizer'ı frontend'de state'e kaydedelim
+        setIsOrganizer(isUserOrganizer);
         console.log('Decoded isOrganizer:', isUserOrganizer);
       }
     } catch (error) {
       console.error('Error decoding token:', error);
     }
   };
-  
-  
 
   useEffect(() => {
     isLoggedIn();

@@ -303,10 +303,7 @@ app.post('/createevent', async (req, res) => {
       totalParticipants,
     } = req.body;
 
-    // if (!title || !eventType || !date || !time || !location ) {
-    //   return res.status(400).json({ message: 'All fields are required.' });
-    // }
-
+    // Yeni bir event oluşturuluyor
     const newEvent = new Event({
       title,
       eventType,
@@ -319,6 +316,13 @@ app.post('/createevent', async (req, res) => {
     });
 
     const savedEvent = await newEvent.save();
+
+    const user = await User.findById(organizer);
+    if (user) {
+      user.events.push(savedEvent._id);
+      await user.save();
+    }
+
     res.status(200).json(savedEvent);
   } catch (error) {
     console.error('Error creating event:', error);
@@ -334,10 +338,7 @@ app.get('/events', async (req, res) => {
     const currentDate = moment();
     const filteredEvents = events?.filter(event => {
       const eventData = moment(event.date, 'Do MMMM');
-      console.log('eventData:', eventData);
-
       const eventTime = event.time.split(' - ')[0];
-      console.log('eventTime:', eventTime);
       const eventDateTime = moment(
         `${event.date} ${eventTime}`,
         'Do MMMM HH:mm',
@@ -360,6 +361,7 @@ app.get('/events', async (req, res) => {
       queries: event.queries,
       request: event.request,
       isBooked: event.isBooked,
+      organizerId: event.organizer._id,
       organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
       organizerUrl: event.organizer.image,
       isFull: event.isFull,
@@ -373,14 +375,20 @@ app.get('/events', async (req, res) => {
 
 app.get('/upcoming', async (req, res) => {
   try {
-    const userId = req.query.userId;
-    const events = await Event.find({
-      $or: [{organizer: userId}, {attendees: userId}],
-    })
+    const events = await Event.find({})
       .populate('organizer')
       .populate('attendees', 'image firstName lastName');
-
-    const formattedEvents = events.map(event => ({
+    const currentDate = moment();
+    const filteredEvents = events?.filter(event => {
+      const eventData = moment(event.date, 'Do MMMM');
+      const eventTime = event.time.split(' - ')[0];
+      const eventDateTime = moment(
+        `${event.date} ${eventTime}`,
+        'Do MMMM HH:mm',
+      );
+      return eventDateTime.isAfter(currentDate);
+    });
+    const formattedEvents = filteredEvents.map(event => ({
       _id: event._id,
       title: event.title,
       eventType: event.eventType,
@@ -396,6 +404,7 @@ app.get('/upcoming', async (req, res) => {
       queries: event.queries,
       request: event.request,
       isBooked: event.isBooked,
+      organizerId: event.organizer._id,
       organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
       organizerUrl: event.organizer.image,
       isFull: event.isFull,
@@ -406,6 +415,7 @@ app.get('/upcoming', async (req, res) => {
     res.status(500).send('Error fetching events');
   }
 });
+
 
 app.post('/events/:eventId/request', async (req, res) => {
   try {

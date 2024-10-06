@@ -13,33 +13,54 @@ import React, {useContext, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { AuthContext } from '../AuthContext';
+import {AuthContext} from '../AuthContext';
+import jwt_decode from 'jwt-decode';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  const {token, setToken, userId, setUserId} = useContext(AuthContext);
+  const { setToken, setUserId, setIsOrganizer } = useContext(AuthContext);
+  const [token, setTokenState] = useState(null);
+
   useEffect(() => {
     if (token) {
       navigation.replace('MainStack', {screen: 'Main'});
     }
   }, [token, navigation]);
+
   const handleLogin = () => {
     const user = {
       email: email,
       password: password,
     };
-
-    axios.post('http://10.0.2.2:8000/login', user).then(response => {
-      const token = response.data.token;
-      console.log("token",token)
-      AsyncStorage.setItem('token', token);
-      setToken(token);
-    });
+  
+    axios
+      .post('http://10.0.2.2:8000/login', user)
+      .then(response => {
+        const token = response.data.token;
+        console.log('token', token);
+  
+        // Token'ı AsyncStorage'a kaydet
+        AsyncStorage.setItem('token', token);
+        setToken(token);
+        setTokenState(token);
+  
+        // jwt_decode ile token'ı decode et
+        const decodedData = jwt_decode(token);
+  
+        const userIdFromToken = decodedData?.userId;
+        const isUserOrganizer = decodedData?.isOrganizer;
+  
+        setUserId(userIdFromToken);
+        setIsOrganizer(isUserOrganizer);
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+      });
   };
   return (
-      <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
+    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <View style={{padding: 10, alignItems: 'center'}}>
         <KeyboardAvoidingView>
           <View
@@ -147,16 +168,15 @@ const LoginScreen = () => {
               alignItems: 'center',
             }}>
             <Image
-            style={{width: 110, height: 60, resizeMode: 'contain'}}
-            source={{
-              uri: 'https://playo-website.gumlet.io/playo-website-v2/logos-icons/new-logo-playo.png?q=50',
-            }}
-          />
+              style={{width: 110, height: 60, resizeMode: 'contain'}}
+              source={{
+                uri: 'https://playo-website.gumlet.io/playo-website-v2/logos-icons/new-logo-playo.png?q=50',
+              }}
+            />
           </View>
         </KeyboardAvoidingView>
       </View>
     </SafeAreaView>
-
   );
 };
 
