@@ -35,14 +35,14 @@ app.listen(port, () => {
 app.post('/register', async (req, res) => {
   try {
     const userData = req.body;
-
+    userData.isOrganizer = false;
     const newUser = new User(userData);
 
     await newUser.save();
 
     const secretKey = crypto.randomBytes(32).toString('hex');
 
-    const token = jwt.sign({userId: newUser._id}, secretKey);
+    const token = jwt.sign({userId: newUser._id, isOrganizer: newUser.isOrganizer}, secretKey);
 
     res.status(200).json({token});
   } catch (error) {
@@ -53,19 +53,25 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   try {
-    const {email, password} = req.body;
-
-    const user = await User.findOne({email});
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).send('User not found');
     }
+
     if (user.password !== password) {
       return res.status(401).send('Invalid password');
     }
+
+    // Burada token'a doğru isOrganizer değerini ekleyelim
     const secretKey = crypto.randomBytes(32).toString('hex');
-    const token = jwt.sign({id: user._id}, secretKey);
-    res.status(200).json({token});
+    const token = jwt.sign({ userId: user._id, isOrganizer: user.isOrganizer }, secretKey); 
+
+    res.status(200).json({ token });
+    console.log('User logged in:', user);
+    console.log('Token:', token);
+    console.log('Is Organizer:', user.isOrganizer);
   } catch (error) {
     console.log(error);
   }
@@ -508,3 +514,34 @@ app.get('/event/:eventId/attendees', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch attendees' });
   }
 });
+
+app.put('/user/:userId/makeOrganizer', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    user.isOrganizer = true;
+    await user.save();
+
+    res.status(200).send('User updated as organizer');
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).send('Error updating user');
+  }
+});
+
+
+app.put('/updateAllUsersToAddOrganizer', async (req, res) => {
+  try {
+    const updatedUsers = await User.updateMany({}, { $set: { isOrganizer: false } });
+    res.status(200).send('All users updated with isOrganizer field');
+  } catch (error) {
+    console.error('Error updating all users:', error);
+    res.status(500).send('Error updating users');
+  }
+});
+

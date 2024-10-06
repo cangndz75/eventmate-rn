@@ -13,11 +13,14 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../AuthContext';
 import axios from 'axios';
+import { Modal, ModalContent, ModalFooter, ModalButton } from 'react-native-modals';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const {userId, setToken, setUserId} = useContext(AuthContext);
   const [user, setUser] = useState(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: '',
@@ -36,7 +39,7 @@ const HomeScreen = () => {
           }}>
           <Ionicons name="chatbox-outline" size={24} color="black" />
           <Ionicons name="notifications-outline" size={24} color="black" />
-          <Pressable>
+          <Pressable onPress={() => setModalVisible(true)}>
             <Image
               style={{width: 30, height: 30, borderRadius: 15}}
               source={{
@@ -78,7 +81,7 @@ const HomeScreen = () => {
       await AsyncStorage.removeItem('token');
       setToken('');
       setUserId('');
-      navigation.replace('Start');
+      navigation.replace('Start');  // Login ekranına yönlendirme
     } catch (error) {
       console.log('Error clearing auth token:', error);
     }
@@ -89,12 +92,15 @@ const HomeScreen = () => {
       fetchUser();
     }
   }, [userId]);
+
   const fetchUser = async () => {
     const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
     setUser(response.data);
   };
+
   return (
     <ScrollView style={{flex: 1, backgroundColor: '#F8F8F8', padding: 10}}>
+      {/* Fit goal view */}
       <View
         style={{
           padding: 13,
@@ -110,7 +116,7 @@ const HomeScreen = () => {
           shadowRadius: 2,
         }}>
         <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-        <Image
+          <Image
             style={{width: 40, height: 40, borderRadius: 25}}
             source={{
               uri: 'https://cdn-icons-png.flaticon.com/128/785/785116.png' || 'https://via.placeholder.com/150',
@@ -130,6 +136,8 @@ const HomeScreen = () => {
           <Text style={{marginTop: 8, color: 'gray'}}>Keep yourself fit</Text>
         </View>
       </View>
+
+      {/* Calendar view */}
       <View
         style={{
           padding: 13,
@@ -190,126 +198,13 @@ const HomeScreen = () => {
           </Text>
         </Pressable>
       </View>
-      <View
-        style={{
-          padding: 13,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 20,
-        }}>
-        <Pressable style={{flex: 1}}>
-          <View style={{borderRadius: 10}}>
-            <Image
-              style={{width: 180, height: 120, borderRadius: 10}}
-              source={{
-                uri: 'https://images.pexels.com/photos/976866/pexels-photo-976866.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' || 'https://via.placeholder.com/150',
-              }}
-            />
-          </View>
-          <Pressable
-            style={{
-              backgroundColor: 'white',
-              padding: 12,
-              width: 180,
-              borderRadius: 10,
-            }}>
-            <View>
-              <Text style={{fontSize: 15, fontWeight: '500'}}>Join</Text>
-              <Text style={{fontSize: 15, color: 'gray', marginTop: 7}}>
-                Discover and join new groups
-              </Text>
-            </View>
-          </Pressable>
-        </Pressable>
-        <Pressable style={{flex: 1}}>
-          <View style={{borderRadius: 10}}>
-            <Image
-              style={{width: 180, height: 120, borderRadius: 10}}
-              source={{
-                uri: 'https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' || 'https://via.placeholder.com/150',
-              }}
-            />
-          </View>
-          <Pressable
-            style={{
-              backgroundColor: 'white',
-              padding: 12,
-              width: 180,
-              borderRadius: 10,
-            }}>
-            <View>
-              <Text style={{fontSize: 15, fontWeight: '500'}}>Book</Text>
-              <Text style={{fontSize: 15, color: 'gray', marginTop: 7}}>
-                Reserve your spot at nearby venues
-              </Text>
-            </View>
-          </Pressable>
-        </Pressable>
-      </View>
-      <View style={{padding: 13}}>
-        <View
-          style={{
-            padding: 10,
-            backgroundColor: 'white',
-            borderRadius: 10,
-            flexDirection: 'row',
-            gap: 10,
-          }}>
-          <View
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              backgroundColor: '#29AB87',
-              padding: 10,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <AntDesign name="addusergroup" size={24} color="green" />
-          </View>
-          <View>
-            <Text style={{fontWeight: 'bold'}}>Groups</Text>
-            <Text style={{color: 'gray', marginTop: 10}}>
-              Join groups to meet people like you
-            </Text>
-          </View>
-        </View>
 
-        <View
-          style={{
-            padding: 10,
-            backgroundColor: 'white',
-            borderRadius: 10,
-            flexDirection: 'row',
-            gap: 10,
-            marginTop: 15,
-          }}>
-          <View
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              backgroundColor: 'yellow',
-              padding: 10,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Ionicons name="mic-circle-outline" size={24} color="green" />
-          </View>
-          <View>
-            <Text style={{fontWeight: 'bold'}}>Activities</Text>
-            <Text style={{color: 'gray', marginTop: 10}}>
-              ... eventmate hosted events
-            </Text>
-          </View>
-        </View>
-      </View>
-
+      {/* Spotlight section */}
       <View style={{padding: 13}}>
         <View style={{padding: 10, backgroundColor: 'white', borderRadius: 10}}>
           <Text style={{fontSize: 15, fontWeight: '500'}}>SpotLight</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {data?.map((item, index) => (
+            {data?.map((item) => (
               <ImageBackground
                 key={item.id}
                 imageStyle={{borderRadius: 10}}
@@ -326,26 +221,29 @@ const HomeScreen = () => {
         </View>
       </View>
 
-      <View>
-        <View style={{marginLeft: 'auto', marginRight: 'auto'}}>
-        <Image
-            style={{width: 120, height: 70, resizeMode: 'contain'}}
-            source={{
-              uri: 'https://images.pexels.com/photos/1337380/pexels-photo-1337380.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' || 'https://via.placeholder.com/150',
-            }}
-          />
-        </View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
-          <View>
-            <Text style={{width: 70, textAlign: 'center'}}>EventMate</Text>
-          </View>
-          <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
-        </View>
-        <Text style={{color: 'gray', textAlign: 'center', marginTop: 5}}>
-          Your event app
-        </Text>
-      </View>
+      {/* Logout Modal */}
+      <Modal
+        visible={isModalVisible}
+        onTouchOutside={() => setModalVisible(false)}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              text="Cancel"
+              onPress={() => setModalVisible(false)}
+            />
+            <ModalButton
+              text="Logout"
+              onPress={() => {
+                clearAuthToken();  // Logout işlemi
+                setModalVisible(false);
+              }}
+            />
+          </ModalFooter>
+        }>
+        <ModalContent>
+          <Text>Are you sure you want to log out?</Text>
+        </ModalContent>
+      </Modal>
     </ScrollView>
   );
 };

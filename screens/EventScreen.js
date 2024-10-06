@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
@@ -20,13 +19,15 @@ import UpComingEvent from '../components/UpComingEvent';
 const EventScreen = () => {
   const [option, setOption] = useState('My Events');
   const [event, setEvent] = useState('Concert');
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const {userId} = useContext(AuthContext);
+  const {userId, isOrganizer} = useContext(AuthContext); // Check if isOrganizer exists
   const navigation = useNavigation();
   const [events, setEvents] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+
   useEffect(() => {
     fetchEvents();
   }, []);
+
   const fetchEvents = async () => {
     try {
       const response = await axios.get('http://10.0.2.2:8000/events');
@@ -37,10 +38,11 @@ const EventScreen = () => {
   };
 
   useEffect(() => {
-    if(userId){
+    if (userId) {
       fetchUpcomingEvents();
     }
   }, [userId]);
+
   const fetchUpcomingEvents = async () => {
     try {
       const response = await axios.get(`http://10.0.2.2:8000/upcoming?userId=${userId}`);
@@ -48,10 +50,10 @@ const EventScreen = () => {
     } catch (error) {
       console.log('Error fetching upcoming events:', error);
     }
-  }
-  console.log('Events', upcomingEvents);
+  };
+
   return (
-    <SafeAreaView style={{flex:1}}>
+    <SafeAreaView style={{flex: 1}}>
       <View style={{padding: 12, backgroundColor: '#223536'}}>
         <View
           style={{
@@ -145,8 +147,7 @@ const EventScreen = () => {
                 marginRight: 10,
                 borderRadius: 8,
                 borderWidth: event == 'Football' ? 0 : 1,
-                backgroundColor:
-                  event == 'Football' ? '#1dbf22' : 'transparent',
+                backgroundColor: event == 'Football' ? '#1dbf22' : 'transparent',
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
@@ -201,9 +202,11 @@ const EventScreen = () => {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
+        {isOrganizer && (
         <Pressable onPress={() => navigation.navigate('Create')}>
           <Text style={{fontWeight: 'bold', color: 'black'}}>Create Event</Text>
         </Pressable>
+      )}
         <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
           <Pressable>
             <Text style={{fontWeight: 'bold', color: 'black'}}>Filter</Text>
