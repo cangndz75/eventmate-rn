@@ -21,6 +21,7 @@ import CreateEvent from '../screens/CreateEvent';
 import TagVenueScreen from '../screens/TagVenueScreen';
 import SelectTimeScreen from '../screens/SelectTimeScreen';
 import EventSetUpScreen from '../screens/EventSetUpScreen';
+import AttendeesScreen from '../screens/AttendeesScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -196,6 +197,11 @@ const StackNavigator = () => {
           options={{
             headerShown: false,
           }}
+        />
+         <Stack.Screen
+          name="Attendees"
+          component={AttendeesScreen}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     );

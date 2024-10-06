@@ -101,8 +101,8 @@ const StartScreen = () => {
               key={user.id}
               coordinate={{latitude: user.latitude, longitude: user.longitude}}>
               <View style={{justifyContent: 'center', alignItems: 'center'}}>
-                <Image
-                  source={{uri: user.image}}
+              <Image
+                  source={{ uri: user.image || 'https://via.placeholder.com/150' }}
                   style={{
                     width: 60,
                     height: 60,
@@ -192,9 +192,9 @@ const StartScreen = () => {
           }}>
           <Image
             source={{
-              uri: 'https://playo-website.gumlet.io/playo-website-v2/logos-icons/new-logo-playo.png',
+              uri: 'https://playo.co/img/logos/logo-green-1.svg' || 'https://via.placeholder.com/150',
             }}
-            style={{width: 120, height: 40, resizeMode: 'contain'}}
+            style={{ width: 120, height: 40, marginTop: 20, resizeMode: 'contain' }}
           />
         </View>
       </SafeAreaView>

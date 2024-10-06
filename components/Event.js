@@ -2,8 +2,11 @@ import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import Feather from 'react-native-vector-icons/Feather';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import {useNavigation} from '@react-navigation/native';
 
 const Event = ({item}) => {
+  const navigation = useNavigation();
+
   return (
     <Pressable
       style={{
@@ -12,7 +15,9 @@ const Event = ({item}) => {
         padding: 14,
         backgroundColor: 'white',
         borderRadius: 10,
-      }}>
+      }}
+      onPress={() => navigation.navigate('Event', {item})} 
+    >
       <View
         style={{
           flexDirection: 'row',
@@ -43,7 +48,8 @@ const Event = ({item}) => {
                 ?.filter(c => c?.name !== item?.organizerName)
                 ?.map(attendee => (
                   <Image
-                    source={{uri: item?.imageUrl}}
+                    key={attendee?._id}
+                    source={{uri: attendee?.imageUrl}}
                     style={{
                       width: 44,
                       height: 44,

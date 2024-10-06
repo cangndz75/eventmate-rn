@@ -40,7 +40,7 @@ const HomeScreen = () => {
             <Image
               style={{width: 30, height: 30, borderRadius: 15}}
               source={{
-                uri: user?.user?.image,
+                uri: user?.user?.image || 'https://via.placeholder.com/150',
               }}
             />
           </Pressable>
@@ -110,10 +110,10 @@ const HomeScreen = () => {
           shadowRadius: 2,
         }}>
         <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-          <Image
+        <Image
             style={{width: 40, height: 40, borderRadius: 25}}
             source={{
-              uri: 'https://cdn-icons-png.flaticon.com/128/785/785116.png',
+              uri: 'https://cdn-icons-png.flaticon.com/128/785/785116.png' || 'https://via.placeholder.com/150',
             }}
           />
         </View>
@@ -202,7 +202,7 @@ const HomeScreen = () => {
             <Image
               style={{width: 180, height: 120, borderRadius: 10}}
               source={{
-                uri: 'https://images.pexels.com/photos/976866/pexels-photo-976866.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                uri: 'https://images.pexels.com/photos/976866/pexels-photo-976866.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' || 'https://via.placeholder.com/150',
               }}
             />
           </View>
@@ -226,7 +226,7 @@ const HomeScreen = () => {
             <Image
               style={{width: 180, height: 120, borderRadius: 10}}
               source={{
-                uri: 'https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                uri: 'https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' || 'https://via.placeholder.com/150',
               }}
             />
           </View>
@@ -320,7 +320,7 @@ const HomeScreen = () => {
                   marginVertical: 15,
                   resizeMode: 'contain',
                 }}
-                source={{uri: item?.image}}></ImageBackground>
+                source={{uri: item?.image}} />
             ))}
           </ScrollView>
         </View>
@@ -328,10 +328,10 @@ const HomeScreen = () => {
 
       <View>
         <View style={{marginLeft: 'auto', marginRight: 'auto'}}>
-          <Image
+        <Image
             style={{width: 120, height: 70, resizeMode: 'contain'}}
             source={{
-              uri: 'https://images.pexels.com/photos/1337380/pexels-photo-1337380.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+              uri: 'https://images.pexels.com/photos/1337380/pexels-photo-1337380.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' || 'https://via.placeholder.com/150',
             }}
           />
         </View>

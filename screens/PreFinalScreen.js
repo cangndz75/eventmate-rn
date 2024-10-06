@@ -57,6 +57,22 @@ const PreFinalScreen = () => {
   
 
   console.log('User Data:', userData);
+  const registerUser = async () => {
+    try {
+      const response = await axios
+        .post('http://10.0.2.2:8000/register', userData)
+        .then(response => {
+          console.log(response);
+          const token = response.data.token;
+          AsyncStorage.setItem('token', token);
+          setToken(token);
+        });
+
+      clearAllScreenData();
+    } catch (error) {
+      console.log('Error', error);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
