@@ -10,7 +10,8 @@ const crypto = require('crypto');
 const User = require('./models/user');
 const Event = require('./models/event');
 const Venue = require('./models/venue');
-const { request } = require('http');
+const Message = require('./models/message');
+const {request} = require('http');
 
 const app = express();
 const port = 8000;
@@ -42,7 +43,10 @@ app.post('/register', async (req, res) => {
 
     const secretKey = crypto.randomBytes(32).toString('hex');
 
-    const token = jwt.sign({userId: newUser._id, isOrganizer: newUser.isOrganizer}, secretKey);
+    const token = jwt.sign(
+      {userId: newUser._id, isOrganizer: newUser.isOrganizer},
+      secretKey,
+    );
 
     res.status(200).json({token});
   } catch (error) {
@@ -53,8 +57,8 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const {email, password} = req.body;
+    const user = await User.findOne({email});
 
     if (!user) {
       return res.status(404).send('User not found');
@@ -66,9 +70,12 @@ app.post('/login', async (req, res) => {
 
     // Burada token'a doğru isOrganizer değerini ekleyelim
     const secretKey = crypto.randomBytes(32).toString('hex');
-    const token = jwt.sign({ userId: user._id, isOrganizer: user.isOrganizer }, secretKey); 
+    const token = jwt.sign(
+      {userId: user._id, isOrganizer: user.isOrganizer},
+      secretKey,
+    );
 
-    res.status(200).json({ token });
+    res.status(200).json({token});
     console.log('User logged in:', user);
     console.log('Token:', token);
     console.log('Is Organizer:', user.isOrganizer);
@@ -416,7 +423,6 @@ app.get('/upcoming', async (req, res) => {
   }
 });
 
-
 app.post('/events/:eventId/request', async (req, res) => {
   try {
     const {userId, comment} = req.body;
@@ -510,24 +516,24 @@ app.get('/events/:eventId/requests', async (req, res) => {
 
 app.get('/event/:eventId/attendees', async (req, res) => {
   try {
-    const { eventId } = req.params;
+    const {eventId} = req.params;
     const event = await Event.findById(eventId).populate('attendees');
 
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     res.status(200).json(event.attendees);
     console.log('Attendees:', event.attendees);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Failed to fetch attendees' });
+    res.status(500).json({message: 'Failed to fetch attendees'});
   }
 });
 
 app.put('/user/:userId/makeOrganizer', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const {userId} = req.params;
     const user = await User.findById(userId);
 
     if (!user) {
@@ -544,10 +550,12 @@ app.put('/user/:userId/makeOrganizer', async (req, res) => {
   }
 });
 
-
 app.put('/updateAllUsersToAddOrganizer', async (req, res) => {
   try {
-    const updatedUsers = await User.updateMany({}, { $set: { isOrganizer: false } });
+    const updatedUsers = await User.updateMany(
+      {},
+      {$set: {isOrganizer: false}},
+    );
     res.status(200).send('All users updated with isOrganizer field');
   } catch (error) {
     console.error('Error updating all users:', error);
@@ -570,7 +578,6 @@ app.post('/accept', async (req, res) => {
 
     event.attendees.push(userId);
 
-
     await Event.findByIdAndUpdate(
       eventId,
       {
@@ -584,6 +591,233 @@ app.post('/accept', async (req, res) => {
     res.status(200).json({message: 'Request accepted', event});
   } catch (error) {
     console.error(error);
+    res.status(500).json({message: 'Server error'});
+  }
+});
+
+app.post('/sendrequest', async (req, res) => {
+  const {senderId, receiverId, message} = req.body;
+
+  // Ensure senderId and receiverId are not empty
+  if (!senderId || !receiverId) {
+    return res.status(400).json({message: 'Sender or Receiver ID is missing'});
+  }
+
+  console.log(
+    `Sender: ${senderId}, Receiver: ${receiverId}, Message: ${message}`,
+  );
+
+  const receiver = await User.findById(receiverId);
+  if (!receiver) {
+    return res.status(404).json({message: 'Receiver not found'});
+  }
+
+  // Add request to the receiver's requests array
+  receiver.requests.push({from: senderId, message});
+  await receiver.save();
+
+  console.log(`Request sent from ${senderId} to ${receiverId}`);
+  res.status(200).json({message: 'Request sent successfully'});
+});
+
+app.get('/getrequests/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    console.log(`Fetching requests for userId: ${userId}`);
+    const user = await User.findById(userId).populate(
+      'requests.from', // Populate request sender details
+      'firstName lastName email image',
+    );
+
+    if (!user) {
+      return res.status(404).json({message: 'User not found'});
+    }
+
+    console.log(`Found requests for user ${userId}:`, user.requests);
+    res.json(user.requests);
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+    res.status(500).json({message: 'Server error'});
+  }
+});
+app.post('/acceptrequest', async (req, res) => {
+  try {
+    const {userId, requestId} = req.body;
+    console.log(
+      `Accepting request for userId: ${userId}, requestId: ${requestId}`,
+    );
+
+    // Find both users
+    const user = await User.findById(userId);
+    const friend = await User.findById(requestId);
+
+    if (!user || !friend) {
+      return res.status(404).json({message: 'User or Friend not found'});
+    }
+
+    // Add each other as friends
+    await User.findByIdAndUpdate(userId, {
+      $push: {friends: requestId},
+      $pull: {requests: {from: requestId}},
+    });
+
+    await User.findByIdAndUpdate(requestId, {
+      $push: {friends: userId},
+    });
+
+    console.log(`Request accepted: ${requestId} is now a friend of ${userId}`);
+    res.status(200).json({message: 'Request accepted'});
+  } catch (error) {
+    console.error('Error accepting request:', error);
+    res.status(500).json({message: 'Server Error'});
+  }
+});
+
+const http = require('http').createServer(app);
+
+const io = require('socket.io')(http);
+
+//{"userId" : "socket ID"}
+
+const userSocketMap = {};
+
+io.on('connection', socket => {
+  console.log('a user is connected', socket.id);
+
+  const userId = socket.handshake.query.userId;
+
+  console.log('userid', userId);
+
+  if (userId !== 'undefined') {
+    userSocketMap[userId] = socket.id;
+  }
+
+  console.log('user socket data', userSocketMap);
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected', socket.id);
+    delete userSocketMap[userId];
+  });
+
+  socket.on('sendMessage', ({senderId, receiverId, message}) => {
+    const receiverSocketId = userSocketMap[receiverId];
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('receiveMessage', {senderId, message});
+    }
+  });
+});
+
+http.listen(3000, () => {
+  console.log('Socket.IO running on port 8000');
+});
+app.post('/sendMessage', async (req, res) => {
+  try {
+    const {senderId, receiverId, message} = req.body;
+
+    const newMessage = new Message({
+      senderId,
+      receiverId,
+      message,
+    });
+
+    await newMessage.save();
+
+    const receiverSocketId = userSocketMap[receiverId];
+
+    if (receiverSocketId) {
+      console.log('emitting receiveMessage event to the receiver', receiverId);
+      io.to(receiverSocketId).emit('newMessage', newMessage);
+    } else {
+      console.log('Receiver socket ID not found');
+    }
+
+    res.status(201).json(newMessage);
+  } catch (error) {
+    console.log('ERROR', error);
+  }
+});
+
+app.get('/messages', async (req, res) => {
+  try {
+    const {senderId, receiverId} = req.query;
+
+    const messages = await Message.find({
+      $or: [
+        {senderId: senderId, receiverId: receiverId},
+        {senderId: receiverId, receiverId: senderId},
+      ],
+    }).populate('senderId', '_id name');
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.log('Error', error);
+  }
+});
+
+app.get('/friends/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    console.log(`Fetching friends for userId: ${userId}`);
+
+    const user = await User.findById(userId).populate(
+      'friends', // Populate friends array
+      'firstName lastName image',
+    );
+
+    if (!user) {
+      return res.status(404).json({message: 'User not found'});
+    }
+
+    console.log(`Found friends for user ${userId}:`, user.friends);
+    return res.status(200).json(user.friends);
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    return res.status(500).json({message: 'Server error'});
+  }
+});
+
+app.delete('/messages/:messageId', async (req, res) => {
+  try {
+    const {messageId} = req.params;
+    await Message.findByIdAndDelete(messageId);
+    res.status(200).json({message: 'Message deleted'});
+  } catch (error) {
+    console.log('Error deleting message:', error);
+    res.status(500).json({message: 'Error deleting message'});
+  }
+});
+
+app.get('/users', async (req, res) => {
+  console.log('Fetching users...'); // Debugging log
+  try {
+    const users = await User.find({}, 'firstName lastName image');
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/rejectrequest', async (req, res) => {
+  try {
+    const {userId, requestId} = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $pull: {requests: {from: requestId}},
+      },
+      {new: true},
+    );
+
+    if (!user) {
+      return res.status(404).json({message: 'User not found'});
+    }
+
+    res.status(200).json({message: 'Request rejected and removed'});
+  } catch (error) {
+    console.log('Error rejecting request:', error);
     res.status(500).json({message: 'Server error'});
   }
 });

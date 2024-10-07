@@ -610,6 +610,7 @@ const EventSetUpScreen = () => {
       </SafeAreaView>
 
       <Pressable
+        onPress={() => navigation.navigate('Chats', {eventId})}
         style={{
           backgroundColor: '#07bc0c',
           marginTop: 'auto',

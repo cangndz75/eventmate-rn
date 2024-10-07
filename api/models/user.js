@@ -54,10 +54,35 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    isOrganizer:{
+    isOrganizer: {
       type: Boolean,
       default: false,
-    }
+    },
+    requests: [
+      {
+        from: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        message: {
+          type: String,
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ['pending', 'accepted', 'rejected'],
+          default: 'pending',
+        },
+      },
+    ],
+    friends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    
   },
   {
     timestamps: true,

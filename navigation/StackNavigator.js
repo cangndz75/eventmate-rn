@@ -24,7 +24,10 @@ import EventSetUpScreen from '../screens/EventSetUpScreen';
 import AttendeesScreen from '../screens/AttendeesScreen';
 import ManageRequests from '../screens/ManageRequest';
 import ProfileDetailScreen from '../screens/ProfileDetail';
-
+import ChatsScreen from '../screens/ChatsScreen';
+import RequestChatRoom from '../screens/RequestChatRoom';
+import ChatRoom from '../screens/ChatRoom';
+import PeopleScreen from '../screens/PeopleScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -82,6 +85,21 @@ const StackNavigator = () => {
         <Tab.Screen
           name="PROFILE"
           component={ProfileDetailScreen}
+          options={{
+            tabBarActiveTintColor: 'green',
+            headerShown: false,
+            tabBarIcon: ({focused}) => (
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={24}
+                color={focused ? 'green' : 'gray'}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Chats"
+          component={ChatsScreen}
           options={{
             tabBarActiveTintColor: 'green',
             headerShown: false,
@@ -200,7 +218,7 @@ const StackNavigator = () => {
             headerShown: false,
           }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="Attendees"
           component={AttendeesScreen}
           options={{headerShown: false}}
@@ -211,6 +229,14 @@ const StackNavigator = () => {
           component={ManageRequests}
           options={{headerShown: false}}
         />
+        <Stack.Screen
+          name="People"
+          component={PeopleScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen name="Request" component={RequestChatRoom} />
+        <Stack.Screen name="ChatRoom" component={ChatRoom} />
+        <Stack.Screen name="Chats" component={ChatsScreen} />
       </Stack.Navigator>
     );
   }
