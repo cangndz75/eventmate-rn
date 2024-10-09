@@ -58,6 +58,12 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    favorites:[
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Event',
+      },
+    ],
     requests: [
       {
         from: {

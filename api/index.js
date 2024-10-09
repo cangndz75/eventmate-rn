@@ -821,3 +821,56 @@ app.post('/rejectrequest', async (req, res) => {
     res.status(500).json({message: 'Server error'});
   }
 });
+
+app.post('/favorites', async (req, res) => {
+  try {
+    const { userId, eventId } = req.body;
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the event is already in favorites
+    const eventIndex = user.favorites.indexOf(eventId);
+
+    if (eventIndex === -1) {
+      // Add the event to favorites
+      user.favorites.push(eventId);
+      await user.save();
+      return res.status(200).json({ message: 'Event added to favorites' });
+    } else {
+      // Remove the event from favorites
+      user.favorites.splice(eventIndex, 1);
+      await user.save();
+      return res.status(200).json({ message: 'Event removed from favorites' });
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.get('/favorites/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Populate 'favorites' field with event details from 'Event' model
+    const user = await User.findById(userId).populate({
+      path: 'favorites',
+      model: 'Event', // Make sure 'Event' is the correct name of your model
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return populated favorites (event details included)
+    res.status(200).json(user.favorites);
+    console.log('Favorites:', user.favorites);
+  } catch (error) {
+    console.error('Error fetching favorites:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});

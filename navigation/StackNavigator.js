@@ -28,6 +28,7 @@ import ChatsScreen from '../screens/ChatsScreen';
 import RequestChatRoom from '../screens/RequestChatRoom';
 import ChatRoom from '../screens/ChatRoom';
 import PeopleScreen from '../screens/PeopleScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -100,6 +101,21 @@ const StackNavigator = () => {
         <Tab.Screen
           name="Chats"
           component={ChatsScreen}
+          options={{
+            tabBarActiveTintColor: 'green',
+            headerShown: false,
+            tabBarIcon: ({focused}) => (
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={24}
+                color={focused ? 'green' : 'gray'}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="FAVORITES"
+          component={FavoritesScreen}
           options={{
             tabBarActiveTintColor: 'green',
             headerShown: false,

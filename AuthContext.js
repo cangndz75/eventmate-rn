@@ -10,6 +10,7 @@ const AuthProvider = ({ children }) => {
   const [isOrganizer, setIsOrganizer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
   const isLoggedIn = async () => {
     try {
@@ -59,7 +60,9 @@ const AuthProvider = ({ children }) => {
         setToken,
         userId,
         setUserId,
-        isOrganizer,  // Organizator bilgisi paylaşılıyor
+        isOrganizer,
+        favorites,
+        setFavorites,
         upcomingEvents,
         setUpcomingEvents,
       }}
