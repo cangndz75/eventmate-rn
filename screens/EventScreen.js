@@ -131,6 +131,28 @@ const EventScreen = () => {
             </ScrollView>
           </View>
         </View>
+        {isOrganizer && (
+        <Pressable
+          onPress={() => navigation.navigate('Create')}
+          style={{
+            backgroundColor: '#07bc0c',
+            marginTop: 'auto',
+            marginBottom: 30,
+            padding: 12,
+            marginHorizontal: 10,
+            borderRadius: 4,
+          }}>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: 'white',
+              fontSize: 15,
+              fontWeight: '500',
+            }}>
+            Create Event
+          </Text>
+        </Pressable>
+      )}
 
         {/* Event List */}
         <View style={{ padding: 12 }}>
@@ -167,6 +189,7 @@ const EventScreen = () => {
             shadowOpacity: 0.1,
             shadowRadius: 4,
             elevation: 5,
+            elevation: 5,
             marginBottom: 20, // Spacer for "Invite Friends" section
           }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -194,7 +217,6 @@ const EventScreen = () => {
           </View>
         </View>
 
-        {/* Invite friends section */}
         <View
           style={{
             margin: 15,

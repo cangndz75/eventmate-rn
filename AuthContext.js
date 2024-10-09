@@ -1,4 +1,4 @@
-import jwtDecode from 'jwt-decode'; // jwt-decode paketi import edilmeli
+import jwtDecode from 'jwt-decode'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState, createContext } from 'react';
 
