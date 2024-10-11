@@ -1,6 +1,5 @@
 import {
   KeyboardAvoidingView,
-  StyleSheet,
   Text,
   View,
   SafeAreaView,
@@ -19,7 +18,7 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  const { setToken, setUserId, setIsOrganizer } = useContext(AuthContext);
+  const {setToken, setUserId, setIsOrganizer} = useContext(AuthContext);
   const [token, setTokenState] = useState(null);
 
   useEffect(() => {
@@ -29,73 +28,46 @@ const LoginScreen = () => {
   }, [token, navigation]);
 
   const handleLogin = () => {
-    const user = {
-      email: email,
-      password: password,
-    };
-  
+    const user = {email, password};
     axios
       .post('http://10.0.2.2:8000/login', user)
       .then(response => {
-        const token = response.data.token;
-        console.log('token', token);
-  
-        // Token'ı AsyncStorage'a kaydet
+        const {token, isOrganizer} = response.data;
         AsyncStorage.setItem('token', token);
         setToken(token);
-        setTokenState(token);
-  
-        // jwt_decode ile token'ı decode et
-        const decodedData = jwt_decode(token);
-  
-        const userIdFromToken = decodedData?.userId;
-        const isUserOrganizer = decodedData?.isOrganizer;
-  
-        setUserId(userIdFromToken);
-        setIsOrganizer(isUserOrganizer);
+        setUserId(response.data.userId);
+        setIsOrganizer(isOrganizer);
       })
-      .catch(error => {
-        console.error('Login error:', error);
-      });
+      .catch(error => console.error('Login error:', error));
   };
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <View style={{padding: 10, alignItems: 'center'}}>
         <KeyboardAvoidingView>
-          <View
-            style={{
-              marginTop: 80,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
+          <View style={{marginTop: 80, alignItems: 'center'}}>
             <Text style={{fontSize: 20, fontWeight: '500'}}>
               Login to your account
             </Text>
           </View>
-
           <View style={{marginTop: 50}}>
             <View>
               <Text style={{fontSize: 18, fontWeight: '600', color: 'gray'}}>
                 Email
               </Text>
-              <View>
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholderTextColor="#BEBEBE"
-                  style={{
-                    width: 340,
-                    marginTop: 15,
-                    borderBottomColor: '#BEBEBE',
-                    borderBottomWidth: 1,
-                    paddingBottom: 10,
-                    fontFamily: 'GeezaPro-Bold',
-                    fontSize: email ? 15 : 15,
-                  }}
-                  placeholder="Enter your email"
-                />
-              </View>
-
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email"
+                placeholderTextColor="#BEBEBE"
+                style={{
+                  width: 340,
+                  marginTop: 15,
+                  borderBottomColor: '#BEBEBE',
+                  borderBottomWidth: 1,
+                  paddingBottom: 10,
+                  fontSize: 15,
+                }}
+              />
               <Text
                 style={{
                   fontSize: 18,
@@ -105,26 +77,22 @@ const LoginScreen = () => {
                 }}>
                 Password
               </Text>
-              <View>
-                <TextInput
-                  secureTextEntry={true}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholderTextColor="#BEBEBE"
-                  style={{
-                    width: 340,
-                    marginTop: 15,
-                    borderBottomColor: '#BEBEBE',
-                    borderBottomWidth: 1,
-                    paddingBottom: 10,
-                    fontFamily: 'GeezaPro-Bold',
-                    fontSize: email ? 15 : 15,
-                  }}
-                  placeholder="Enter your password"
-                />
-              </View>
+              <TextInput
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                placeholderTextColor="#BEBEBE"
+                style={{
+                  width: 340,
+                  marginTop: 15,
+                  borderBottomColor: '#BEBEBE',
+                  borderBottomWidth: 1,
+                  paddingBottom: 10,
+                  fontSize: 15,
+                }}
+              />
             </View>
-
             <Pressable
               onPress={handleLogin}
               style={{
@@ -146,7 +114,6 @@ const LoginScreen = () => {
                 Login
               </Text>
             </Pressable>
-
             <Pressable onPress={() => navigation.navigate('Register')}>
               <Text
                 style={{
@@ -159,13 +126,7 @@ const LoginScreen = () => {
               </Text>
             </Pressable>
           </View>
-
-          <View
-            style={{
-              marginTop: 50,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
+          <View style={{marginTop: 50, alignItems: 'center'}}>
             <Image
               style={{width: 110, height: 60, resizeMode: 'contain'}}
               source={{
@@ -180,5 +141,3 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
-
-const styles = StyleSheet.create({});

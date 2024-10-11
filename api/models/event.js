@@ -16,7 +16,7 @@ const eventSchema = new Schema({
     required: true,
   },
   date: {
-    type: String,
+    type: Date,
     required: true,
   },
   time: {
@@ -61,6 +61,11 @@ const eventSchema = new Schema({
       comment: {
         type: String,
       },
+      status: {
+        type: String,
+        enum: ['pending', 'accepted', 'rejected'],
+        default: 'pending',
+      },
     },
   ],
   isBooked: {
@@ -99,6 +104,8 @@ const eventSchema = new Schema({
     type: Number,
     default: 0,
   },
+}, {
+  timestamps: true,
 });
 
 module.exports = mongoose.model('Event', eventSchema);
