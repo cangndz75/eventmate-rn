@@ -1,13 +1,13 @@
-import jwtDecode from 'jwt-decode'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState, createContext } from 'react';
+import {useEffect, useState, createContext} from 'react';
+import jwt_decode from 'jwt-decode';
 
 const AuthContext = createContext();
 
-const AuthProvider = ({ children }) => {
+const AuthProvider = ({children}) => {
   const [token, setToken] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [isOrganizer, setIsOrganizer] = useState(false);
+  const [role, setRole] = useState('user');
   const [isLoading, setIsLoading] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -27,21 +27,15 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const decodeToken = (token) => {
+  const decodeToken = token => {
     try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const decodedData = JSON.parse(atob(base64));
-  
-      console.log('Decoded token:', decodedData);
-  
+      const decodedData = jwt_decode(token);
       const userIdFromToken = decodedData?.userId;
-      const isUserOrganizer = decodedData?.isOrganizer;
-  
+      const userRole = decodedData?.role;
+
       if (userIdFromToken) {
         setUserId(userIdFromToken);
-        setIsOrganizer(isUserOrganizer);
-        console.log('Decoded isOrganizer:', isUserOrganizer);
+        setRole(userRole);
       }
     } catch (error) {
       console.error('Error decoding token:', error);
@@ -59,17 +53,15 @@ const AuthProvider = ({ children }) => {
         isLoading,
         setToken,
         userId,
-        setUserId,
-        isOrganizer,
+        role,
         favorites,
         setFavorites,
         upcomingEvents,
         setUpcomingEvents,
-      }}
-    >
+      }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export { AuthContext, AuthProvider };
+export {AuthContext, AuthProvider};

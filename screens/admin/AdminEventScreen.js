@@ -12,10 +12,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
-import {AuthContext} from '../AuthContext';
-import UpComingEvent from '../components/UpComingEvent';
+import {AuthContext} from '../../AuthContext';
+import UpComingEvent from '../../components/UpComingEvent';
 
-const EventScreen = () => {
+const AdminEventScreen = () => {
+  const [option, setOption] = useState('My Events');
   const {userId, user} = useContext(AuthContext);
   const navigation = useNavigation();
   const [events, setEvents] = useState([]);
@@ -115,6 +116,24 @@ const EventScreen = () => {
             </ScrollView>
           </View>
         </View>
+        <Pressable
+          onPress={() => navigation.navigate('Create')}
+          style={{
+            backgroundColor: '#07bc0c',
+            padding: 12,
+            margin: 10,
+            borderRadius: 4,
+          }}>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: 'white',
+              fontSize: 15,
+              fontWeight: '500',
+            }}>
+            Create Event
+          </Text>
+        </Pressable>
         <View style={{padding: 12}}>
           <View
             style={{
@@ -143,4 +162,4 @@ const EventScreen = () => {
   );
 };
 
-export default EventScreen;
+export default AdminEventScreen;

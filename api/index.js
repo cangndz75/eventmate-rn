@@ -1,17 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const moment = require('moment');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
-const crypto = require('crypto');
 
 const User = require('./models/user');
 const Event = require('./models/event');
 const Venue = require('./models/venue');
 const Message = require('./models/message');
-const {request} = require('http');
 
 const app = express();
 const port = 8000;
@@ -35,17 +33,22 @@ app.listen(port, () => {
 
 app.post('/register', async (req, res) => {
   try {
-    const userData = req.body;
-    userData.isOrganizer = false;
-    const newUser = new User(userData);
+    const {email, password, firstName, lastName, role} = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      role,
+    });
 
     await newUser.save();
 
-    const secretKey = crypto.randomBytes(32).toString('hex');
-
     const token = jwt.sign(
-      {userId: newUser._id, isOrganizer: newUser.isOrganizer},
-      secretKey,
+      {userId: newUser._id, role: newUser.role},
+      process.env.JWT_SECRET_KEY,
+      {expiresIn: '1h'},
     );
 
     res.status(200).json({token});
@@ -60,38 +63,30 @@ app.post('/login', async (req, res) => {
     const {email, password} = req.body;
     const user = await User.findOne({email});
 
-    if (!user) {
-      return res.status(404).send('User not found');
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).send('Invalid email or password');
     }
 
-    if (user.password !== password) {
-      return res.status(401).send('Invalid password');
-    }
-
-    // Burada token'a doğru isOrganizer değerini ekleyelim
-    const secretKey = crypto.randomBytes(32).toString('hex');
     const token = jwt.sign(
-      {userId: user._id, isOrganizer: user.isOrganizer},
-      secretKey,
+      {userId: user._id, role: user.role},
+      process.env.JWT_SECRET_KEY,
+      {expiresIn: '1h'},
     );
 
-    res.status(200).json({token});
-    console.log('User logged in:', user);
-    console.log('Token:', token);
-    console.log('Is Organizer:', user.isOrganizer);
+    res.status(200).json({token, role: user.role});
   } catch (error) {
-    console.log(error);
+    console.error('Login error:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
 app.get('/user/:userId', async (req, res) => {
   try {
     const {userId} = req.params;
-
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(500).json({message: 'User not found'});
+      return res.status(404).json({message: 'User not found'});
     }
 
     return res.status(200).json({user});
@@ -824,12 +819,12 @@ app.post('/rejectrequest', async (req, res) => {
 
 app.post('/favorites', async (req, res) => {
   try {
-    const { userId, eventId } = req.body;
+    const {userId, eventId} = req.body;
 
     // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
     // Check if the event is already in favorites
@@ -839,22 +834,22 @@ app.post('/favorites', async (req, res) => {
       // Add the event to favorites
       user.favorites.push(eventId);
       await user.save();
-      return res.status(200).json({ message: 'Event added to favorites' });
+      return res.status(200).json({message: 'Event added to favorites'});
     } else {
       // Remove the event from favorites
       user.favorites.splice(eventIndex, 1);
       await user.save();
-      return res.status(200).json({ message: 'Event removed from favorites' });
+      return res.status(200).json({message: 'Event removed from favorites'});
     }
   } catch (error) {
     console.error('Error toggling favorite:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
 app.get('/favorites/:userId', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const {userId} = req.params;
 
     // Populate 'favorites' field with event details from 'Event' model
     const user = await User.findById(userId).populate({
@@ -863,7 +858,7 @@ app.get('/favorites/:userId', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
     // Return populated favorites (event details included)
@@ -871,6 +866,6 @@ app.get('/favorites/:userId', async (req, res) => {
     console.log('Favorites:', user.favorites);
   } catch (error) {
     console.error('Error fetching favorites:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });

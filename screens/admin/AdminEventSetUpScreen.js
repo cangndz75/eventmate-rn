@@ -19,7 +19,7 @@ import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 
-const EventSetUpScreen = () => {
+const AdminEventSetUpScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {userId} = useContext(AuthContext);
@@ -543,4 +543,4 @@ const EventSetUpScreen = () => {
   );
 };
 
-export default EventSetUpScreen;
+export default AdminEventSetUpScreen;

@@ -4,6 +4,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EventScreen from '../screens/EventScreen';
+import AdminEventScreen from '../screens/admin/AdminEventScreen';
 import BookScreen from '../screens/BookScreen';
 import {NavigationContainer} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -29,11 +30,11 @@ import RequestChatRoom from '../screens/RequestChatRoom';
 import ChatRoom from '../screens/ChatRoom';
 import PeopleScreen from '../screens/PeopleScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
+
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
-
-  const {token} = useContext(AuthContext);
+  const {token, isOrganizer} = useContext(AuthContext);
 
   function BottomTabs() {
     return (
@@ -43,7 +44,6 @@ const StackNavigator = () => {
           component={HomeScreen}
           options={{
             tabBarActiveTintColor: 'green',
-            //headerShown: false,
             tabBarIcon: ({focused}) => (
               <Ionicons
                 name={focused ? 'home' : 'home-outline'}
@@ -55,7 +55,7 @@ const StackNavigator = () => {
         />
         <Tab.Screen
           name="EVENT"
-          component={EventScreen}
+          component={isOrganizer ? AdminEventScreen : EventScreen}
           options={{
             tabBarActiveTintColor: 'green',
             headerShown: false,
@@ -106,7 +106,7 @@ const StackNavigator = () => {
             headerShown: false,
             tabBarIcon: ({focused}) => (
               <Ionicons
-                name={focused ? 'person' : 'person-outline'}
+                name={focused ? 'chatbox' : 'chatbox-outline'}
                 size={24}
                 color={focused ? 'green' : 'gray'}
               />
@@ -121,7 +121,7 @@ const StackNavigator = () => {
             headerShown: false,
             tabBarIcon: ({focused}) => (
               <Ionicons
-                name={focused ? 'person' : 'person-outline'}
+                name={focused ? 'heart' : 'heart-outline'}
                 size={24}
                 color={focused ? 'green' : 'gray'}
               />
@@ -132,68 +132,45 @@ const StackNavigator = () => {
     );
   }
 
-  const AuthStack = () => {
-    return (
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Start"
-          component={StartScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Password"
-          component={PasswordScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        {/* <Stack.Screen
-          name="Otp"
-          component={OtpScreen}
-          options={{
-            headerShown: false,
-          }}
-        /> */}
-        <Stack.Screen
-          name="Name"
-          component={NameScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Image"
-          component={SelectImage}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="PreFinal"
-          component={PreFinalScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack.Navigator>
-    );
-  };
+  const AuthStack = () => (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Start"
+        component={StartScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Password"
+        component={PasswordScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Name"
+        component={NameScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Image"
+        component={SelectImage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="PreFinal"
+        component={PreFinalScreen}
+        options={{headerShown: false}}
+      />
+    </Stack.Navigator>
+  );
 
   function MainStack() {
     return (
@@ -201,38 +178,28 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Main"
           component={BottomTabs}
-          options={{
-            headerShown: false,
-          }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Venue"
           component={VenueInfoScreen}
-          options={{
-            headerShown: false,
-          }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Create"
           component={CreateEvent}
-          options={{
-            headerShown: false,
-          }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="TagVenue"
           component={TagVenueScreen}
-          options={{
-            headerShown: false,
-          }}
+          options={{headerShown: false}}
         />
         <Stack.Screen name="Time" component={SelectTimeScreen} />
         <Stack.Screen
           name="Event"
           component={EventSetUpScreen}
-          options={{
-            headerShown: false,
-          }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Attendees"
@@ -259,7 +226,7 @@ const StackNavigator = () => {
 
   return (
     <NavigationContainer>
-      {token === null || token === '' ? <AuthStack /> : <MainStack />}
+      {token ? <MainStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };
