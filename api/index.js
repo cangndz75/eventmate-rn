@@ -12,7 +12,7 @@ const moment = require('moment');
 const app = express();
 const port = process.env.PORT || 8000;
 const generateRoute = require('./routes/generateRoute');
-const axios = require('axios'); 
+const axios = require('axios');
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -90,7 +90,7 @@ app.get('/recent-participants', async (req, res) => {
       .limit(5);
     res.status(200).json(participants);
   } catch (error) {
-    console.error('Error fetching recent participants:', error);
+    console.error('Error fetching recent participants1:', error);
     res.status(500).json({message: 'Internal Server Error'});
   }
 });
@@ -313,30 +313,29 @@ app.get('/venues', async (req, res) => {
 });
 
 app.post('/generate', authenticateToken, async (req, res) => {
-  const { eventName } = req.body;  
+  const {eventName} = req.body;
 
-  console.log('Received eventName:', eventName); 
+  console.log('Received eventName:', eventName);
 
   if (!eventName) {
-    return res.status(400).json({ message: 'Event name is required' });
+    return res.status(400).json({message: 'Event name is required'});
   }
 
   try {
     const prompt = `Generate a detailed description for the event: ${eventName}.`;
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generate`,
-      { prompt },
-      { headers: { Authorization: `Bearer ${process.env.GOOGLE_API_KEY}` } }
+      {prompt},
+      {headers: {Authorization: `Bearer ${process.env.GOOGLE_API_KEY}`}},
     );
 
     const generatedText = response.data.choices[0].text.trim();
-    res.json({ response: generatedText });
+    res.json({response: generatedText});
   } catch (error) {
     console.error('Error generating content:', error.message);
-    res.status(500).json({ message: 'Failed to generate content' });
+    res.status(500).json({message: 'Failed to generate content'});
   }
 });
-
 
 app.post('/createevent', authenticateToken, async (req, res) => {
   const {
@@ -899,6 +898,23 @@ app.get('/favorites/:userId', async (req, res) => {
     console.log('Favorites:', user.favorites);
   } catch (error) {
     console.error('Error fetching favorites:', error);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+});
+
+app.get('/venues/:venueId', async (req, res) => {
+  const {venueId} = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(venueId)) {
+    return res.status(400).json({message: 'Invalid Venue ID'});
+  }
+
+  try {
+    const venue = await Venue.findById(venueId).populate('eventsAvailable');
+    if (!venue) return res.status(404).json({message: 'Venue not found'});
+    res.status(200).json(venue);
+  } catch (error) {
+    console.error('Error fetching venue:', error.message);
     res.status(500).json({message: 'Internal Server Error'});
   }
 });

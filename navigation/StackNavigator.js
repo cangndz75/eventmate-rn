@@ -182,7 +182,7 @@ const StackNavigator = () => {
         options={{headerShown: false}}
       />
       <Stack.Screen
-        name="Venue"
+        name="VenueInfo"
         component={VenueInfoScreen}
         options={{headerShown: false}}
       />
