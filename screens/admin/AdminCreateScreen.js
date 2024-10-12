@@ -1,424 +1,291 @@
+import React, {useContext, useState} from 'react';
 import {
   Alert,
-  Platform,
-  Pressable,
   SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   View,
+  Image,
+  TouchableOpacity,
 } from 'react-native';
-import React, {useContext, useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Entypo from 'react-native-vector-icons/Entypo';
 import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {BottomModal, SlideAnimation, ModalContent} from 'react-native-modals';
-import moment from 'moment';
-import {AuthContext} from '../../AuthContext';
+import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {BottomModal, ModalContent} from 'react-native-modals';
+import moment from 'moment';
+import {AuthContext} from '../../AuthContext';
+import {useNavigation} from '@react-navigation/native';
 
 const AdminCreateScreen = () => {
   const [event, setEvent] = useState('');
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState('');
   const [area, setArea] = useState('');
   const [date, setDate] = useState('');
   const [timeInterval, setTimeInterval] = useState('');
-  const [noOfParticipants, setNoOfParticipants] = useState(0);
+  const [noOfParticipants, setNoOfParticipants] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [images, setImages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [timeModalVisible, setTimeModalVisible] = useState(false);
+
   const navigation = useNavigation();
-  const route = useRoute();
-  const [taggedVenue] = useState(null);
   const {userId} = useContext(AuthContext);
-  console.log(userId);
+  const eventTypes = ['Concert', 'Football', 'Theater', 'Dance', 'Other'];
 
-  useEffect(() => {
-    const {timeInterval, taggedVenue} = route?.params || {};
-    if (timeInterval) setTimeInterval(timeInterval);
-    if (taggedVenue) setArea(taggedVenue);
-  }, [route?.params]);
-
-  const eventTypes = ['concert', 'football', 'theater', 'dance', 'other'];
-
-  const toggleEventType = type => {
-    setSelectedType(type);
-  };
-  const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({message: 'No token provided'});
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
-      if (err) {
-        console.error('Token verification error:', err.message);
-        return res.status(403).json({message: 'Invalid token'});
-      }
-      req.user = user;
-      next();
+  const openImagePicker = () => {
+    launchImageLibrary({mediaType: 'photo', selectionLimit: 3}, response => {
+      if (response.assets) setImages(response.assets);
     });
   };
-  const generateDates = () => {
-    const dates = [];
-    for (let i = 1; i <= 30; i++) {
-      const date = moment().add(i, 'days');
-      dates.push({
-        id: i.toString(),
-        displayDate: i === 1 ? 'Tomorrow' : date.format('Do MMMM'),
-        dayOfWeek: date.format('ddd'),
-        actualDate: date.format('YYYY-MM-DD'),  // Correct format
-      });
-    }
-    return dates;
-  };
-  
-  const dates = generateDates();
 
-  const selectDate = date => {
-    setModalVisible(false);
-    setDate(date);
+  const generateContent = async field => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!event)
+        return Alert.alert('Error', 'Please enter an event name first.');
+
+      const response = await axios.post(
+        'http://10.0.2.2:8000/generate',
+        {eventName: event},
+        {headers: {Authorization: `Bearer ${token.replace(/"/g, '')}`}},
+      );
+
+      if (response.status === 200) {
+        const generatedContent = response.data.response.trim();
+        field === 'description'
+          ? setDescription(generatedContent)
+          : setTags(generatedContent);
+      } else {
+        Alert.alert('Error', 'Failed to generate content. Try again.');
+      }
+    } catch (error) {
+      console.error('Error generating content:', error.message);
+      Alert.alert('Error', 'Failed to generate content. Try again.');
+    }
   };
 
   const createEvent = async () => {
+    if (
+      !event ||
+      !area ||
+      !date ||
+      !timeInterval ||
+      !selectedType ||
+      !noOfParticipants
+    ) {
+      return Alert.alert('Error', 'All fields are required.');
+    }
+
     try {
-      if (!userId) {
-        Alert.alert('Error', 'User is not authenticated.');
-        return;
-      }
-
-      if (
-        !event ||
-        !area ||
-        !date ||
-        !timeInterval ||
-        !selectedType ||
-        !noOfParticipants
-      ) {
-        Alert.alert('Error', 'All fields are required.');
-        return;
-      }
-
-      const participantsCount = parseInt(noOfParticipants, 10);
-      if (isNaN(participantsCount) || participantsCount <= 0) {
-        Alert.alert('Error', 'Please enter a valid number for participants.');
-        return;
-      }
-
       const eventData = {
         title: event,
+        description,
+        tags: tags.split(',').map(tag => tag.trim()),
         location: area,
         date,
         time: timeInterval,
         eventType: selectedType.toLowerCase(),
-        totalParticipants: participantsCount,
+        totalParticipants: parseInt(noOfParticipants, 10),
         organizer: userId,
       };
 
       const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Error', 'Authentication token is missing.');
-        return;
-      }
-
-      const formattedToken = token.replace(/"/g, '');
-      console.log('Token:', formattedToken); 
       const response = await axios.post(
         'http://10.0.2.2:8000/createevent',
         eventData,
-        {
-          headers: {
-            Authorization: `Bearer ${formattedToken}`,
-          },
-        },
+        {headers: {Authorization: `Bearer ${token.replace(/"/g, '')}`}},
       );
 
       if (response.status === 200) {
-        Alert.alert('Success!', 'Event created successfully!', [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('AdminEvents', {refresh: true}),
-          },
+        Alert.alert('Success', 'Event created successfully!', [
+          {text: 'OK', onPress: () => navigation.navigate('AdminEvents')},
         ]);
-        setEvent('');
-        setArea('');
-        setDate('');
-        setTimeInterval('');
-        setNoOfParticipants('');
-      } else {
-        Alert.alert('Error', 'Unexpected response. Please try again.');
       }
     } catch (error) {
-      console.error(
-        'Failed to create event:',
-        error.response?.data || error.message,
-      );
-      Alert.alert(
-        'Error',
-        error.response?.data?.message ||
-          'Failed to create event. Please try again.',
-      );
+      Alert.alert('Error', 'Failed to create event. Try again.');
     }
   };
 
   return (
-    <>
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: 'white',
-          paddingTop: Platform.OS === 'android' ? 35 : 0,
-        }}>
-        <ScrollView>
-          <View style={{marginHorizontal: 10}}>
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </View>
-          <View style={{padding: 10}}>
-            <Text style={{color: 'black', fontWeight: 'bold', fontSize: 25}}>
-              Create Event
-            </Text>
-            <Pressable
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 20,
-                marginTop: 15,
-                marginVertical: 15,
-              }}>
-              <MaterialIcons name="add-a-photo" size={24} color="black" />
-              <View style={{flex: 1}}>
-                <Text style={{fontSize: 17, fontWeight: '500', color: 'black'}}>
-                  Event
-                </Text>
-                <TextInput
-                  value={event}
-                  onChangeText={setEvent}
-                  style={{marginTop: 7, fontSize: 15, color: 'black'}}
-                  placeholder="Enter event name"
-                  placeholderTextColor="gray"
-                />
-              </View>
-              <AntDesign name="right" size={24} color="black" />
-            </Pressable>
-
-            <Text
-              style={{
-                fontSize: 17,
-                fontWeight: '500',
-                color: 'black',
-                marginBottom: 10,
-              }}>
-              Event Type
-            </Text>
-            <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 20}}>
-              {eventTypes.map(type => (
-                <Pressable
-                  key={type}
-                  onPress={() => toggleEventType(type)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 10,
-                    backgroundColor:
-                      selectedType === type ? '#4CAF50' : '#F0F0F0',
-                    borderRadius: 10,
-                    marginBottom: 10,
-                  }}>
-                  <FontAwesome
-                    name={
-                      selectedType === type ? 'check-circle' : 'circle-thin'
-                    }
-                    size={24}
-                    color={selectedType === type ? 'white' : 'gray'}
-                  />
-                  <Text
-                    style={{
-                      marginLeft: 15,
-                      fontSize: 16,
-                      fontWeight: '500',
-                      color: selectedType === type ? 'white' : 'black',
-                    }}>
-                    {type}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            <Pressable
-              onPress={() => navigation.navigate('TagVenue')}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 20,
-                marginTop: 15,
-                marginVertical: 15,
-              }}>
-              <Entypo name="location" size={24} color="black" />
-              <View style={{flex: 1}}>
-                <Text style={{fontSize: 17, fontWeight: '500', color: 'black'}}>
-                  Event Location
-                </Text>
-                <TextInput
-                  value={area ? area : taggedVenue}
-                  onChangeText={setArea}
-                  style={{marginTop: 7, fontSize: 15, color: 'black'}}
-                  placeholder="Enter event area"
-                  placeholderTextColor="gray"
-                />
-              </View>
-              <AntDesign name="right" size={24} color="black" />
-            </Pressable>
-            <Pressable
-              onPress={() => setModalVisible(true)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 20,
-                marginTop: 15,
-                marginVertical: 15,
-              }}>
-              <Feather name="calendar" size={24} color="black" />
-              <View style={{flex: 1}}>
-                <Text style={{fontSize: 17, fontWeight: '500', color: 'black'}}>
-                  Date
-                </Text>
-                <TextInput
-                  editable={false}
-                  value={date}
-                  onChangeText={setDate}
-                  style={{marginTop: 7, fontSize: 15, color: 'black'}}
-                  placeholderTextColor={date ? 'black' : 'gray'}
-                  placeholder={date ? date : 'Pick a day'}
-                />
-              </View>
-              <AntDesign name="right" size={24} color="black" />
-            </Pressable>
-            <Pressable
-              onPress={() => navigation.navigate('Time')}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 20,
-                marginTop: 15,
-                marginVertical: 15,
-              }}>
-              <AntDesign name="clockcircleo" size={24} color="black" />
-              <View style={{flex: 1}}>
-                <Text style={{fontSize: 17, fontWeight: '500', color: 'black'}}>
-                  Time
-                </Text>
-                <TextInput
-                  editable={false}
-                  value={timeInterval}
-                  onChangeText={setTimeInterval}
-                  style={{marginTop: 7, fontSize: 15, color: 'black'}}
-                  placeholderTextColor={timeInterval ? 'black' : 'gray'}
-                  placeholder={timeInterval ? timeInterval : 'Pick Exact Time'}
-                />
-              </View>
-              <AntDesign name="right" size={24} color="black" />
-            </Pressable>
-            <Text style={{marginTop: 20, fontSize: 16, color: 'black'}}>
-              Total Participants
-            </Text>
-            <View
-              style={{
-                padding: 10,
-                backgroundColor: '#F0F0F0',
-                marginTop: 10,
-                borderRadius: 6,
-              }}>
-              <View style={{marginVertical: 5}}>
-                <View>
-                  <TextInput
-                    value={noOfParticipants}
-                    onChangeText={setNoOfParticipants}
-                    style={{
-                      padding: 10,
-                      backgroundColor: 'white',
-                      borderColor: '#D0D0D0',
-                      borderWidth: 1,
-                      borderRadius: 4,
-                    }}
-                    placeholder="Total Participants (including you)"
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-
-      <Pressable
-        onPress={createEvent}
-        style={{
-          backgroundColor: '#07bc0c',
-          marginTop: 'auto',
-          marginBottom: 30,
-          padding: 12,
-          marginHorizontal: 10,
-          borderRadius: 4,
-        }}>
-        <Text
+    <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
+      <ScrollView contentContainerStyle={{padding: 20}}>
+        <View
           style={{
-            textAlign: 'center',
-            color: 'white',
-            fontSize: 15,
-            fontWeight: '500',
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 20,
           }}>
-          Create Event
-        </Text>
-      </Pressable>
+          <Ionicons
+            name="arrow-back"
+            size={28}
+            onPress={() => navigation.goBack()}
+          />
+          <Text style={{fontSize: 28, fontWeight: 'bold', marginLeft: 10}}>
+            Create Event
+          </Text>
+        </View>
 
-      <BottomModal
-        visible={modalVisible}
-        onTouchOutside={() => setModalVisible(false)}
-        swipeDirection={['up', 'down']}
-        modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}
-        onBackdropPress={() => setModalVisible(false)}
-        swipeThreshold={200}
-        onHardwareBackPress={() => setModalVisible(false)}>
-        <ModalContent
-          style={{width: '100%', height: 400, backgroundColor: 'white'}}>
-          <View>
-            <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 15}}>
-              Choose Date
-            </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                justifyContent: 'space-between',
-              }}>
-              {dates.map(item => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => selectDate(item.actualDate)}
-                  style={{
-                    padding: 10,
-                    marginBottom: 10,
-                    borderRadius: 10,
-                    borderColor: '#E0E0E0',
-                    borderWidth: 1,
-                    width: '30%',
-                    alignItems: 'center',
-                  }}>
-                  <Text>{item.displayDate}</Text>
-                  <Text style={{color: 'gray', marginTop: 7}}>
-                    {item.dayOfWeek}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        </ModalContent>
-      </BottomModal>
-    </>
+        <TouchableOpacity onPress={openImagePicker} style={buttonStyle}>
+          <Feather name="image" size={24} color="#4a4a4a" />
+          <Text style={{marginTop: 5, color: '#4a4a4a'}}>Upload Photos</Text>
+        </TouchableOpacity>
+
+        <ScrollView horizontal style={{marginBottom: 10}}>
+          {images.map((image, index) => (
+            <Image key={index} source={{uri: image.uri}} style={imageStyle} />
+          ))}
+        </ScrollView>
+
+        <TextInput
+          placeholder="Event Name"
+          value={event}
+          onChangeText={setEvent}
+          style={inputStyle}
+        />
+
+        <TextInput
+          placeholder="Event Description"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          style={[inputStyle, {height: 150}]}
+        />
+        <TouchableOpacity
+          onPress={() => generateContent('description')}
+          style={generateButtonStyle}>
+          <Text style={buttonTextStyle}>Generate Description</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          placeholder="Tags (comma-separated)"
+          value={tags}
+          onChangeText={setTags}
+          style={inputStyle}
+        />
+        <TouchableOpacity
+          onPress={() => generateContent('tags')}
+          style={generateButtonStyle}>
+          <Text style={buttonTextStyle}>Generate Tags</Text>
+        </TouchableOpacity>
+
+        <Text style={{marginBottom: 10}}>Event Type</Text>
+        <View
+          style={{flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20}}>
+          {eventTypes.map(type => (
+            <TouchableOpacity
+              key={type}
+              onPress={() => setSelectedType(type)}
+              style={[
+                typeButtonStyle,
+                selectedType === type && {backgroundColor: '#4CAF50'},
+              ]}>
+              <Text style={{color: selectedType === type ? 'white' : 'black'}}>
+                {type}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          style={datePickerStyle}>
+          <Feather name="calendar" size={24} color="#4a4a4a" />
+          <Text style={dateTextStyle}>{date || 'Select a Date'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setTimeModalVisible(true)}
+          style={datePickerStyle}>
+          <AntDesign name="clockcircleo" size={24} color="#4a4a4a" />
+          <Text style={dateTextStyle}>{timeInterval || 'Select a Time'}</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          placeholder="Total Participants"
+          keyboardType="number-pad"
+          value={noOfParticipants}
+          onChangeText={setNoOfParticipants}
+          style={inputStyle}
+        />
+
+        <TouchableOpacity onPress={createEvent} style={createButtonStyle}>
+          <Text style={buttonTextStyle}>Create Event</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
+};
+
+const inputStyle = {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 10,
+  padding: 15,
+  marginBottom: 10,
+};
+
+const buttonStyle = {
+  backgroundColor: '#f0f0f0',
+  padding: 15,
+  borderRadius: 10,
+  alignItems: 'center',
+  marginBottom: 10,
+};
+
+const generateButtonStyle = {
+  backgroundColor: '#1E90FF',
+  paddingVertical: 15,
+  borderRadius: 10,
+  marginBottom: 10,
+};
+
+const buttonTextStyle = {
+  color: 'white',
+  textAlign: 'center',
+  fontSize: 16,
+};
+
+const typeButtonStyle = {
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  backgroundColor: '#eee',
+  borderRadius: 10,
+  marginRight: 10,
+  marginBottom: 10,
+};
+
+const datePickerStyle = {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#f0f0f0',
+  padding: 15,
+  borderRadius: 10,
+  marginVertical: 10,
+};
+
+const dateTextStyle = {
+  fontSize: 16,
+  color: '#7d7d7d',
+  marginLeft: 10,
+};
+
+const imageStyle = {
+  width: 80,
+  height: 80,
+  marginRight: 10,
+  borderRadius: 10,
+};
+
+const createButtonStyle = {
+  backgroundColor: '#07bc0c',
+  paddingVertical: 15,
+  borderRadius: 10,
+  marginTop: 20,
 };
 
 export default AdminCreateScreen;
