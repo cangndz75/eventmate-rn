@@ -22,7 +22,7 @@ import TagVenueScreen from '../screens/TagVenueScreen';
 import SelectTimeScreen from '../screens/SelectTimeScreen';
 import EventSetUpScreen from '../screens/EventSetUpScreen';
 import AttendeesScreen from '../screens/AttendeesScreen';
-import ManageRequests from '../screens/ManageRequest';
+import ManageRequests from '../screens/admin/ManageRequest';
 import ProfileDetailScreen from '../screens/ProfileDetail';
 import ChatsScreen from '../screens/ChatsScreen';
 import RequestChatRoom from '../screens/RequestChatRoom';
@@ -31,6 +31,7 @@ import PeopleScreen from '../screens/PeopleScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import AdminCreateScreen from '../screens/admin/AdminCreateScreen';
 import HomeScreen from '../screens/HomeScreen';
+import AdminEventSetUpScreen from '../screens/admin/AdminEventSetUpScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -175,65 +176,70 @@ const StackNavigator = () => {
   function MainStack() {
     return (
       <Stack.Navigator>
+      <Stack.Screen
+        name="Main"
+        component={BottomTabs}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Venue"
+        component={VenueInfoScreen}
+        options={{headerShown: false}}
+      />
+      {role === 'organizer' && (
+        <>
         <Stack.Screen
-          name="Main"
-          component={BottomTabs}
+          name="AdminCreate"
+          component={AdminCreateScreen}
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="Venue"
-          component={VenueInfoScreen}
-          options={{headerShown: false}}
-        />
-        {role === 'organizer' && (
-          <Stack.Screen
-            name="AdminCreate"
-            component={AdminCreateScreen}
-            options={{headerShown: false}}
-          />
-        )}
-        {role === 'organizer' && (
-          <Stack.Screen
-            name="AdminEvents"
-            component={AdminEventScreen}
-            options={{headerShown: false}}
-          />
-        )}
-        <Stack.Screen
-          name="TagVenue"
-          component={TagVenueScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen name="Time" component={SelectTimeScreen} />
-        <Stack.Screen
-          name="EventSetup"
-          component={EventSetUpScreen}
+          name="AdminEvents"
+          component={AdminEventScreen}
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="Attendees"
-          component={AttendeesScreen}
+          name="AdminEventSetUp"
+          component={AdminEventSetUpScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
-        <Stack.Screen
-          name="ManageRequests"
-          component={ManageRequests}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="People"
-          component={PeopleScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen name="Request" component={RequestChatRoom} />
-        <Stack.Screen name="ChatRoom" component={ChatRoom} />
-        <Stack.Screen name="Chats" component={ChatsScreen} />
-        <Stack.Screen
-          name="AdminDashboard"
-          component={AdminDashboard}
-          options={{headerShown: false}}
-        />
+        </>
+      )}
+      <Stack.Screen
+        name="TagVenue"
+        component={TagVenueScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen name="Time" component={SelectTimeScreen} />
+      <Stack.Screen
+        name="EventSetup"
+        component={EventSetUpScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Attendees"
+        component={AttendeesScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+      <Stack.Screen
+        name="ManageRequest"
+        component={ManageRequests}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="People"
+        component={PeopleScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen name="Request" component={RequestChatRoom} />
+      <Stack.Screen name="ChatRoom" component={ChatRoom} />
+      <Stack.Screen name="Chats" component={ChatsScreen} />
+      <Stack.Screen
+        name="AdminDashboard"
+        component={AdminDashboard}
+        options={{headerShown: false}}
+      />
       </Stack.Navigator>
     );
   }

@@ -18,8 +18,8 @@ const AdminEventScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    console.log('AuthContext userId:', userId); // Check userId value
-    console.log('AuthContext role:', role); // Check role value
+    console.log('AuthContext userId:', userId); 
+    console.log('AuthContext role:', role); 
 
     if (userId && role === 'organizer') {
       fetchOrganizerEvents();
@@ -28,13 +28,13 @@ const AdminEventScreen = () => {
 
   const fetchOrganizerEvents = async () => {
     try {
-      console.log('userId:', userId, 'role:', role); // Debug userId and role
+      console.log('userId:', userId, 'role:', role); 
 
       const response = await axios.get(`http://10.0.2.2:8000/events`, {
         params: {userId, role},
       });
 
-      console.log('Response Data:', response.data); // Debug response data
+      console.log('Response Data:', response.data);
       setEvents(response.data);
     } catch (error) {
       console.log('Error fetching organizer events:', error);

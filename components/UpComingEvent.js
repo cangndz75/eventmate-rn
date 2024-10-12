@@ -1,15 +1,22 @@
 import {Image, Pressable, Text, View} from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import {AuthContext} from '../AuthContext'; 
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
+  const {role} = useContext(AuthContext); 
 
   if (!item) return null;
 
   return (
     <Pressable
-      onPress={() => navigation.navigate('Event', {item})}
+      onPress={() =>
+        navigation.navigate(
+          role === 'organizer' ? 'AdminEventSetUp' : 'EventSetup',
+          {item},
+        )
+      }
       style={{
         backgroundColor: '#fff',
         padding: 16,
