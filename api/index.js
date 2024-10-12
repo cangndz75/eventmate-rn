@@ -12,6 +12,7 @@ const moment = require('moment');
 const app = express();
 const port = process.env.PORT || 8000;
 const generateRoute = require('./routes/generateRoute');
+const axios = require('axios'); 
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -475,38 +476,38 @@ app.post('/events/:eventId/request', async (req, res) => {
   }
 });
 
-app.get('/events/:eventId/requests', async (req, res) => {
-  try {
-    const {eventId} = req.params;
-    const event = await Event.findById(eventId).populate({
-      path: 'requests.userId',
-      select:
-        'email firstName lastName image image skill noOfEvents eventPals events badges level points',
-    });
-    if (!event) {
-      return res.status(404).send('Event not found');
-    }
-    const requestsWithUserInfo = event?.requests?.map(request => ({
-      userId: request.userId._id,
-      email: request.userId.email,
-      firstName: request.userId.firstName || '',
-      lastName: request.userId.lastName || '',
-      image: request.userId.image || '',
-      skill: request.userId.skill || '',
-      noOfEvents: request.userId.noOfEvents || 0,
-      eventPals: request.userId.eventPals || [],
-      events: request.userId.events || [],
-      badges: request.userId.badges || [],
-      level: request.userId.level || 0,
-      points: request.userId.points || 0,
-      comment: request.comment || '',
-    }));
-    res.json(requestsWithUserInfo);
-  } catch (error) {
-    console.log('Error:', error);
-    res.status(500).send('Error fetching events');
-  }
-});
+// app.get('/events/:eventId/requests', async (req, res) => {
+//   try {
+//     const {eventId} = req.params;
+//     const event = await Event.findById(eventId).populate({
+//       path: 'requests.userId',
+//       select:
+//         'email firstName lastName image image skill noOfEvents eventPals events badges level points',
+//     });
+//     if (!event) {
+//       return res.status(404).send('Event not found');
+//     }
+//     const requestsWithUserInfo = event?.requests?.map(request => ({
+//       userId: request.userId._id,
+//       email: request.userId.email,
+//       firstName: request.userId.firstName || '',
+//       lastName: request.userId.lastName || '',
+//       image: request.userId.image || '',
+//       skill: request.userId.skill || '',
+//       noOfEvents: request.userId.noOfEvents || 0,
+//       eventPals: request.userId.eventPals || [],
+//       events: request.userId.events || [],
+//       badges: request.userId.badges || [],
+//       level: request.userId.level || 0,
+//       points: request.userId.points || 0,
+//       comment: request.comment || '',
+//     }));
+//     res.json(requestsWithUserInfo);
+//   } catch (error) {
+//     console.log('Error:', error);
+//     res.status(500).send('Error fetching events');
+//   }
+// });
 
 app.get('/events/:eventId/requests', async (req, res) => {
   try {
@@ -885,17 +886,15 @@ app.get('/favorites/:userId', async (req, res) => {
   try {
     const {userId} = req.params;
 
-    // Populate 'favorites' field with event details from 'Event' model
     const user = await User.findById(userId).populate({
       path: 'favorites',
-      model: 'Event', // Make sure 'Event' is the correct name of your model
+      model: 'Event',
     });
 
     if (!user) {
       return res.status(404).json({message: 'User not found'});
     }
 
-    // Return populated favorites (event details included)
     res.status(200).json(user.favorites);
     console.log('Favorites:', user.favorites);
   } catch (error) {

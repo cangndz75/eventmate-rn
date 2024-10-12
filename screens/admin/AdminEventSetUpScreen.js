@@ -17,7 +17,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
-import {AuthContext} from '../AuthContext';
+import {AuthContext} from '../../AuthContext';
 
 const AdminEventSetUpScreen = () => {
   const navigation = useNavigation();
@@ -33,7 +33,6 @@ const AdminEventSetUpScreen = () => {
 
   useEffect(() => {
     fetchAttendees();
-    fetchOrganizer();
     checkRequestStatus();
   }, []);
 
@@ -50,18 +49,6 @@ const AdminEventSetUpScreen = () => {
       setAttendees(response.data);
     } catch (error) {
       console.error('Failed to fetch attendees:', error);
-    }
-  };
-
-  const fetchOrganizer = async () => {
-    if (!eventId) return;
-    try {
-      const response = await axios.get(
-        `http://10.0.2.2:8000/event/${eventId}/organizer`,
-      );
-      setOrganizer(response.data);
-    } catch (error) {
-      console.error('Failed to fetch organizer:', error);
     }
   };
 
