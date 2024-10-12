@@ -1,111 +1,29 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const eventSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
-  },
-  eventType: {
-    type: String,
-    enum: ['concert', 'football', 'theater', 'dance', 'other'],
-    required: true,
-  },
-  location: {
-    type: String,
-    required: true,
-  },
-  date: {
-    type: Date,
-    required: true,
-  },
-  time: {
-    type: String,
-    required: true,
-  },
-  activityAccess: {
-    type: String,
-    default: 'public',
-  },
-  totalParticipants: {
-    type: Number,
-    required: true,
-  },
-  instruction: {
-    type: String,
-  },
-  organizer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  attendees: [
-    {
+const eventSchema = new Schema(
+  {
+    title: {type: String, required: true},
+    eventType: {
+      type: String,
+      enum: ['concert', 'football', 'theater', 'dance', 'other'],
+      required: true,
+    },
+    location: {type: String, required: true},
+    date: {type: Date, required: true},
+    time: {type: String, required: true},
+    totalParticipants: {type: Number, required: true},
+    description: {type: String},
+    tags: [String],
+    images: [String],
+    organizer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
     },
-  ],
-  queries: [
-    {
-      question: String,
-      answer: String,
-    },
-  ],
-  requests: [
-    {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
-      comment: {
-        type: String,
-      },
-      status: {
-        type: String,
-        enum: ['pending', 'accepted', 'rejected'],
-        default: 'pending',
-      },
-    },
-  ],
-  isBooked: {
-    type: Boolean,
-    default: false,
+    attendees: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
   },
-  isFull: {
-    type: Boolean,
-    default: false,
-  },
-  ratings: [
-    {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
-      rating: {
-        type: Number,
-        min: 1,
-        max: 5,
-        required: true,
-      },
-      comment: String,
-      ratedAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
-  averageRating: {
-    type: Number,
-    default: 0,
-  },
-  pointsAwarded: {
-    type: Number,
-    default: 0,
-  },
-}, {
-  timestamps: true,
-});
+  {timestamps: true},
+);
 
 module.exports = mongoose.model('Event', eventSchema);

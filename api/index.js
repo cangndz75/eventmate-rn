@@ -11,10 +11,12 @@ const Venue = require('./models/venue');
 const moment = require('moment');
 const app = express();
 const port = process.env.PORT || 8000;
+const generateRoute = require('./routes/generateRoute');
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+app.use('/generate', generateRoute);
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -309,39 +311,70 @@ app.get('/venues', async (req, res) => {
   }
 });
 
-app.post('/createevent', async (req, res) => {
-  try {
-    const {
-      title,
-      eventType,
-      date,
-      time,
-      location,
-      organizer,
-      totalParticipants,
-    } = req.body;
-    if (
-      !title ||
-      !eventType ||
-      !date ||
-      !time ||
-      !location ||
-      !organizer ||
-      !totalParticipants
-    ) {
-      return res.status(400).json({message: 'All fields are required.'});
-    }
+app.post('/generate', authenticateToken, async (req, res) => {
+  const { eventName } = req.body;  
 
+  console.log('Received eventName:', eventName); 
+
+  if (!eventName) {
+    return res.status(400).json({ message: 'Event name is required' });
+  }
+
+  try {
+    const prompt = `Generate a detailed description for the event: ${eventName}.`;
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generate`,
+      { prompt },
+      { headers: { Authorization: `Bearer ${process.env.GOOGLE_API_KEY}` } }
+    );
+
+    const generatedText = response.data.choices[0].text.trim();
+    res.json({ response: generatedText });
+  } catch (error) {
+    console.error('Error generating content:', error.message);
+    res.status(500).json({ message: 'Failed to generate content' });
+  }
+});
+
+
+app.post('/createevent', authenticateToken, async (req, res) => {
+  const {
+    title,
+    description,
+    tags,
+    location,
+    date,
+    time,
+    eventType,
+    totalParticipants,
+    organizer,
+  } = req.body;
+
+  if (
+    !title ||
+    !location ||
+    !date ||
+    !time ||
+    !eventType ||
+    !totalParticipants ||
+    !organizer
+  ) {
+    return res.status(400).json({message: 'All fields are required.'});
+  }
+
+  try {
     const newEvent = new Event({
       title,
-      eventType,
+      description,
+      tags,
+      location,
       date,
       time,
-      location,
-      organizer,
+      eventType,
       totalParticipants,
-      attendees: [organizer],
+      organizer,
     });
+
     await newEvent.save();
 
     const user = await User.findById(organizer);
@@ -353,18 +386,16 @@ app.post('/createevent', async (req, res) => {
     res.status(200).json(newEvent);
   } catch (error) {
     console.error('Error creating event:', error.message);
-    res.status(500).json({
-      message: error.message || 'Failed to create event. Please try again.',
-    });
+    res.status(500).json({message: 'Failed to create event.'});
   }
 });
 
 app.get('/events', async (req, res) => {
-  const { organizerId, role } = req.query;
+  const {organizerId, role} = req.query;
 
   let filter = {};
   if (role === 'organizer' && organizerId) {
-    filter = { organizer: mongoose.Types.ObjectId(organizerId) };
+    filter = {organizer: mongoose.Types.ObjectId(organizerId)};
   }
 
   try {
@@ -374,10 +405,9 @@ app.get('/events', async (req, res) => {
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
-    res.status(400).json({ message: 'Failed to fetch events' });
+    res.status(400).json({message: 'Failed to fetch events'});
   }
 });
-
 
 app.get('/upcoming', async (req, res) => {
   try {
