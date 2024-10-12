@@ -18,11 +18,11 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {BottomModal, SlideAnimation, ModalContent} from 'react-native-modals';
 import moment from 'moment';
-import {AuthContext} from '../AuthContext';
+import {AuthContext} from '../../AuthContext';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const CreateEvent = () => {
+const AdminCreateScreen = () => {
   const [event, setEvent] = useState('');
   const [area, setArea] = useState('');
   const [date, setDate] = useState('');
@@ -38,153 +38,132 @@ const CreateEvent = () => {
 
   useEffect(() => {
     const {timeInterval, taggedVenue} = route?.params || {};
-    console.log('Tagged Venue:', taggedVenue);
     if (timeInterval) setTimeInterval(timeInterval);
-    if (taggedVenue) {
-      setArea(taggedVenue);
-    }
+    if (taggedVenue) setArea(taggedVenue);
   }, [route?.params]);
 
   const eventTypes = ['concert', 'football', 'theater', 'dance', 'other'];
 
   const toggleEventType = type => {
-    console.log('Selected Type: ', type);
     setSelectedType(type);
   };
-
   const authenticateToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
-    console.log('Received Token:', token);
-    if (!token) return res.status(401).send('No token provided');
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({message: 'No token provided'});
+    }
 
     jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
       if (err) {
-        console.log('Token verification error:', err);
-        return res.status(403).send('Invalid token');
+        console.error('Token verification error:', err.message);
+        return res.status(403).json({message: 'Invalid token'});
       }
       req.user = user;
       next();
     });
   };
-
   const generateDates = () => {
     const dates = [];
     for (let i = 1; i <= 30; i++) {
       const date = moment().add(i, 'days');
-      let displayDate;
-      if (i === 0) {
-        displayDate = 'Today';
-      } else if (i === 1) {
-        displayDate = 'Tomorrow';
-      } else if (i === 2) {
-        displayDate = 'Day After';
-      } else {
-        displayDate = date.format('Do MMMM');
-      }
       dates.push({
         id: i.toString(),
-        displayDate,
+        displayDate: i === 1 ? 'Tomorrow' : date.format('Do MMMM'),
         dayOfWeek: date.format('ddd'),
-        actualDate: date.format('Do MMMM'),
+        actualDate: date.format('YYYY-MM-DD'),  // Correct format
       });
     }
     return dates;
   };
+  
   const dates = generateDates();
 
   const selectDate = date => {
     setModalVisible(false);
     setDate(date);
   };
-  console.log('Event: ', event);
-  console.log('Area: ', area);
-  console.log('Date: ', date);
-  console.log('Time Interval: ', timeInterval);
-  console.log('Selected Type: ', selectedType);
-  console.log('User ID: ', userId);
 
-  const createEvent = async (req, res, next) => {
-    authenticateToken(req, res, async () => {
-      try {
-        if (!userId) {
-          Alert.alert('Error', 'User is not authenticated.');
-          return;
-        }
-
-        if (
-          !event ||
-          !area ||
-          !date ||
-          !timeInterval ||
-          !selectedType ||
-          !noOfParticipants
-        ) {
-          Alert.alert('Error', 'All fields are required.');
-          return;
-        }
-
-        const participantsCount = parseInt(noOfParticipants, 10);
-        if (isNaN(participantsCount) || participantsCount <= 0) {
-          Alert.alert('Error', 'Please enter a valid number for participants.');
-          return;
-        }
-
-        const eventData = {
-          title: event,
-          location: area,
-          date,
-          time: timeInterval,
-          eventType: selectedType.toLowerCase(),
-          totalParticipants: participantsCount,
-          organizer: userId,
-        };
-
-        const token = await AsyncStorage.getItem('token');
-        console.log('Token:', token); // Log token for debugging
-
-        if (!token) {
-          Alert.alert('Error', 'Authentication token is missing.');
-          return;
-        }
-
-        const response = await axios.post(
-          'http://10.0.2.2:8000/createevent',
-          eventData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (response.status === 200) {
-          Alert.alert('Success!', 'Event created successfully!', [
-            {
-              text: 'OK',
-              onPress: () => navigation.navigate('Event', {refresh: true}),
-            },
-          ]);
-
-          setEvent('');
-          setArea('');
-          setDate('');
-          setTimeInterval('');
-          setNoOfParticipants('');
-        } else {
-          Alert.alert('Error', 'Unexpected response. Please try again.');
-        }
-      } catch (error) {
-        console.error(
-          'Failed to create event:',
-          error?.response?.data || error,
-        );
-        Alert.alert(
-          'Error',
-          error?.response?.data?.message ||
-            'Failed to create event. Please try again.',
-        );
+  const createEvent = async () => {
+    try {
+      if (!userId) {
+        Alert.alert('Error', 'User is not authenticated.');
+        return;
       }
-    });
+
+      if (
+        !event ||
+        !area ||
+        !date ||
+        !timeInterval ||
+        !selectedType ||
+        !noOfParticipants
+      ) {
+        Alert.alert('Error', 'All fields are required.');
+        return;
+      }
+
+      const participantsCount = parseInt(noOfParticipants, 10);
+      if (isNaN(participantsCount) || participantsCount <= 0) {
+        Alert.alert('Error', 'Please enter a valid number for participants.');
+        return;
+      }
+
+      const eventData = {
+        title: event,
+        location: area,
+        date,
+        time: timeInterval,
+        eventType: selectedType.toLowerCase(),
+        totalParticipants: participantsCount,
+        organizer: userId,
+      };
+
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Error', 'Authentication token is missing.');
+        return;
+      }
+
+      const formattedToken = token.replace(/"/g, '');
+      console.log('Token:', formattedToken); 
+      const response = await axios.post(
+        'http://10.0.2.2:8000/createevent',
+        eventData,
+        {
+          headers: {
+            Authorization: `Bearer ${formattedToken}`,
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        Alert.alert('Success!', 'Event created successfully!', [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('AdminEvents', {refresh: true}),
+          },
+        ]);
+        setEvent('');
+        setArea('');
+        setDate('');
+        setTimeInterval('');
+        setNoOfParticipants('');
+      } else {
+        Alert.alert('Error', 'Unexpected response. Please try again.');
+      }
+    } catch (error) {
+      console.error(
+        'Failed to create event:',
+        error.response?.data || error.message,
+      );
+      Alert.alert(
+        'Error',
+        error.response?.data?.message ||
+          'Failed to create event. Please try again.',
+      );
+    }
   };
 
   return (
@@ -442,4 +421,4 @@ const CreateEvent = () => {
   );
 };
 
-export default CreateEvent;
+export default AdminCreateScreen;

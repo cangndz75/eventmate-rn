@@ -1,18 +1,16 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 require('dotenv').config();
-
 const User = require('./models/user');
 const Event = require('./models/event');
-const Venue = require('./models/venue');
 const Message = require('./models/message');
-
+const Venue = require('./models/venue');
+const moment = require('moment');
 const app = express();
-const port = 8000;
+const port = process.env.PORT || 8000;
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -20,29 +18,31 @@ app.use(bodyParser.json());
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('Connected to database');
-  })
-  .catch(error => {
-    console.log('Connection failed', error);
-  });
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(error => console.log('Connection error:', error));
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(401).json({message: 'No token provided'});
+
+  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+    if (err) return res.status(403).json({message: 'Invalid token'});
+    req.user = user;
+    next();
+  });
+};
 
 app.post('/register', async (req, res) => {
   try {
-    const {email, password, firstName, lastName, role} = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const {email, password, firstName, lastName, role, image} = req.body;
     const newUser = new User({
       email,
-      password: hashedPassword,
+      password,
       firstName,
       lastName,
       role,
+      image,
     });
-
     await newUser.save();
 
     const token = jwt.sign(
@@ -51,10 +51,10 @@ app.post('/register', async (req, res) => {
       {expiresIn: '1h'},
     );
 
-    res.status(200).json({token});
+    res.status(201).json({token, role: newUser.role});
   } catch (error) {
     console.error('Error during registration:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
@@ -63,8 +63,8 @@ app.post('/login', async (req, res) => {
     const {email, password} = req.body;
     const user = await User.findOne({email});
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).send('Invalid email or password');
+    if (!user || user.password !== password) {
+      return res.status(401).json({message: 'Invalid credentials'});
     }
 
     const token = jwt.sign(
@@ -76,8 +76,24 @@ app.post('/login', async (req, res) => {
     res.status(200).json({token, role: user.role});
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).json({message: 'Internal Server Error'});
   }
+});
+
+app.get('/recent-participants', async (req, res) => {
+  try {
+    const participants = await User.find({}, 'image firstName')
+      .sort({createdAt: -1})
+      .limit(5);
+    res.status(200).json(participants);
+  } catch (error) {
+    console.error('Error fetching recent participants:', error);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 app.get('/user/:userId', async (req, res) => {
@@ -304,8 +320,18 @@ app.post('/createevent', async (req, res) => {
       organizer,
       totalParticipants,
     } = req.body;
+    if (
+      !title ||
+      !eventType ||
+      !date ||
+      !time ||
+      !location ||
+      !organizer ||
+      !totalParticipants
+    ) {
+      return res.status(400).json({message: 'All fields are required.'});
+    }
 
-    // Yeni bir event oluşturuluyor
     const newEvent = new Event({
       title,
       eventType,
@@ -316,64 +342,42 @@ app.post('/createevent', async (req, res) => {
       totalParticipants,
       attendees: [organizer],
     });
-
-    const savedEvent = await newEvent.save();
+    await newEvent.save();
 
     const user = await User.findById(organizer);
     if (user) {
-      user.events.push(savedEvent._id);
+      user.events.push(newEvent._id);
       await user.save();
     }
 
-    res.status(200).json(savedEvent);
+    res.status(200).json(newEvent);
   } catch (error) {
-    console.error('Error creating event:', error);
-    res.status(500).send('Internal Server Error');
+    console.error('Error creating event:', error.message);
+    res.status(500).json({
+      message: error.message || 'Failed to create event. Please try again.',
+    });
   }
 });
 
 app.get('/events', async (req, res) => {
+  const { organizerId, role } = req.query;
+
+  let filter = {};
+  if (role === 'organizer' && organizerId) {
+    filter = { organizer: mongoose.Types.ObjectId(organizerId) };
+  }
+
   try {
-    const events = await Event.find({})
+    const events = await Event.find(filter)
       .populate('organizer')
       .populate('attendees', 'image firstName lastName');
-    const currentDate = moment();
-    const filteredEvents = events?.filter(event => {
-      const eventData = moment(event.date, 'Do MMMM');
-      const eventTime = event.time.split(' - ')[0];
-      const eventDateTime = moment(
-        `${event.date} ${eventTime}`,
-        'Do MMMM HH:mm',
-      );
-      return eventDateTime.isAfter(currentDate);
-    });
-    const formattedEvents = filteredEvents.map(event => ({
-      _id: event._id,
-      title: event.title,
-      eventType: event.eventType,
-      location: event.location,
-      date: event.date,
-      time: event.time,
-      attendees: event.attendees.map(attendee => ({
-        _id: attendee._id,
-        imageUrl: attendee.image,
-        name: `${attendee.firstName} ${attendee.lastName}`,
-      })),
-      totalParticipants: event.totalParticipants,
-      queries: event.queries,
-      request: event.request,
-      isBooked: event.isBooked,
-      organizerId: event.organizer._id,
-      organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
-      organizerUrl: event.organizer.image,
-      isFull: event.isFull,
-    }));
-    res.json(formattedEvents);
+    res.status(200).json(events);
   } catch (error) {
-    console.log('Error:', error);
-    res.status(500).send('Error fetching events');
+    console.error('Error fetching events:', error);
+    res.status(400).json({ message: 'Failed to fetch events' });
   }
 });
+
 
 app.get('/upcoming', async (req, res) => {
   try {

@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -16,40 +17,37 @@ import {AuthContext} from '../AuthContext';
 import UpComingEvent from '../components/UpComingEvent';
 
 const EventScreen = () => {
-  const {userId, user} = useContext(AuthContext);
+  const {userId, role, user} = useContext(AuthContext);
   const navigation = useNavigation();
   const [events, setEvents] = useState([]);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [userId, role]);
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get('http://10.0.2.2:8000/events');
+      let url = 'http://10.0.2.2:8000/events';
+      if (role === 'organizer') {
+        url += `?organizerId=${userId}&role=organizer`;
+      }
+      const response = await axios.get(url);
       setEvents(response.data);
     } catch (error) {
       console.log('Error fetching events:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchUpcomingEvents();
-    }
-  }, [userId]);
-
-  const fetchUpcomingEvents = async () => {
-    try {
-      const response = await axios.get(
-        `http://10.0.2.2:8000/upcoming?userId=${userId}`,
-      );
-      setUpcomingEvents(response.data);
-    } catch (error) {
-      console.log('Error fetching upcoming events:', error);
-    }
-  };
+  if (loading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color="#07bc0c" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#f0f0f5'}}>
@@ -63,7 +61,7 @@ const EventScreen = () => {
             }}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>
-                Can Gündüz
+                {user?.firstName || 'User'}
               </Text>
               <MaterialIcons
                 name="keyboard-arrow-down"
@@ -80,6 +78,7 @@ const EventScreen = () => {
               />
             </View>
           </View>
+
           <View style={{marginTop: 15}}>
             <View
               style={{
@@ -95,6 +94,7 @@ const EventScreen = () => {
               </Text>
             </View>
           </View>
+
           <View style={{flexDirection: 'row', marginVertical: 20}}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {['Sports', 'Music', 'Food'].map((category, index) => (
@@ -115,26 +115,17 @@ const EventScreen = () => {
             </ScrollView>
           </View>
         </View>
+
         <View style={{padding: 12}}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <Text style={{fontSize: 16, fontWeight: '700', color: '#333'}}>
-              Upcoming Events
-            </Text>
-            <Pressable>
-              <Text style={{color: '#ff6b6b', fontWeight: '600'}}>See All</Text>
-            </Pressable>
-          </View>
+          <Text style={{fontSize: 16, fontWeight: '700', color: '#333'}}>
+            {role === 'organizer' ? 'My Events' : 'All Events'}
+          </Text>
+
           <FlatList
-            horizontal
-            data={upcomingEvents}
+            data={events}
             renderItem={({item}) => <UpComingEvent item={item} />}
             keyExtractor={item => item._id}
-            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={{paddingVertical: 10}}
           />
         </View>

@@ -37,7 +37,7 @@ const TagVenueScreen = () => {
   }, [taggedVenue, navigation]);
 
   const handleSelectVenue = venue => {
-    navigation.navigate('Create', {taggedVenue: venue});
+    navigation.navigate('AdminCreate', {taggedVenue: venue});
   };
   return (
     <SafeAreaView>
