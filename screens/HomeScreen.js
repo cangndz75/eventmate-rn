@@ -168,7 +168,7 @@ const HomeScreen = () => {
                 style={{position: 'absolute', top: 10, right: 10}}>
                 <Ionicons
                   name={
-                    favorites.includes(popularEvent._id)
+                    favorites && favorites.includes(popularEvent._id)
                       ? 'heart'
                       : 'heart-outline'
                   }
@@ -253,10 +253,12 @@ const HomeScreen = () => {
                 style={{position: 'absolute', top: 10, right: 10}}>
                 <Ionicons
                   name={
-                    favorites.includes(item._id) ? 'heart' : 'heart-outline'
+                    favorites && favorites.includes(item._id)
+                      ? 'heart'
+                      : 'heart-outline'
                   }
                   size={24}
-                  color={favorites.includes(item._id) ? 'red' : 'gray'}
+                  color={favorites && favorites.includes(item._id) ? 'red' : 'gray'}
                 />
               </TouchableOpacity>
             </Pressable>

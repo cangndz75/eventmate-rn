@@ -1,19 +1,19 @@
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import React, { useEffect, useContext, useState } from 'react';
+import {Pressable, SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useContext, useState} from 'react';
 import axios from 'axios';
-import { AuthContext } from '../AuthContext';  // Ensure the path to AuthContext is correct
-import { getRegistrationProgress } from '../registrationUtils';
+import {AuthContext} from '../AuthContext'; // Ensure the path to AuthContext is correct
+import {getRegistrationProgress} from '../registrationUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 const PreFinalScreen = () => {
-  const { token, setToken } = useContext(AuthContext);
+  const {token, setToken} = useContext(AuthContext);
   const [userData, setUserData] = useState({});
   const navigation = useNavigation();
 
   useEffect(() => {
     if (token) {
-      navigation.replace('MainStack', { screen: 'Main' });
+      navigation.replace('MainStack', {screen: 'Main'});
     }
   }, [token]);
 
@@ -29,7 +29,7 @@ const PreFinalScreen = () => {
       for (const screenName of screens) {
         const screenData = await getRegistrationProgress(screenName);
         if (screenData) {
-          userData = { ...userData, ...screenData };
+          userData = {...userData, ...screenData};
         }
       }
 
@@ -54,29 +54,37 @@ const PreFinalScreen = () => {
     }
   };
 
-  
-
   console.log('User Data:', userData);
   const registerUser = async () => {
     try {
-      const response = await axios
-        .post('http://10.0.2.2:8000/register', userData)
-        .then(response => {
-          console.log(response);
-          const token = response.data.token;
-          AsyncStorage.setItem('token', token);
-          setToken(token);
-        });
+      console.log('User Data:', userData);
+      const response = await axios.post(
+        'http://10.0.2.2:8000/register',
+        userData,
+      );
 
-      clearAllScreenData();
+      if (response.data.token) {
+        const token = response.data.token;
+        await AsyncStorage.setItem('token', token);
+        setToken(token);
+        clearAllScreenData();
+        navigation.replace('MainStack', {screen: 'Main'});
+      }
     } catch (error) {
-      console.log('Error', error);
+      console.log(
+        'Error during registration:',
+        error.response?.data || error.message,
+      );
+      Alert.alert(
+        'Registration failed',
+        error.response?.data?.message || 'Something went wrong',
+      );
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-      <View style={{ marginTop: 80 }}>
+    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
+      <View style={{marginTop: 80}}>
         <Text style={styles.heading}>All set to register</Text>
         <Text style={styles.heading}>Setting up your profile for you</Text>
       </View>

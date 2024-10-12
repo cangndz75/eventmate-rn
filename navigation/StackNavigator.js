@@ -1,10 +1,9 @@
 import React, {useContext} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import HomeScreen from '../screens/HomeScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import EventScreen from '../screens/EventScreen';
-import AdminEventScreen from '../screens/admin/AdminEventScreen';
+import AdminDashboard from '../screens/admin/AdminDashboard';
+import AdminEventScreen from '../screens/admin/AdminEventScreen'; // Import the new screen
 import BookScreen from '../screens/BookScreen';
 import {NavigationContainer} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -30,19 +29,22 @@ import RequestChatRoom from '../screens/RequestChatRoom';
 import ChatRoom from '../screens/ChatRoom';
 import PeopleScreen from '../screens/PeopleScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
+import AdminCreateScreen from '../screens/admin/AdminCreateScreen';
+import HomeScreen from '../screens/HomeScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
-  const {token, isOrganizer} = useContext(AuthContext);
+  const {token, role} = useContext(AuthContext);
 
   function BottomTabs() {
     return (
       <Tab.Navigator>
         <Tab.Screen
-          name="HOME"
-          component={HomeScreen}
+          name="Home"
+          component={role === 'organizer' ? AdminDashboard : HomeScreen}
           options={{
+            headerShown: false,
             tabBarActiveTintColor: 'green',
             tabBarIcon: ({focused}) => (
               <Ionicons
@@ -55,10 +57,9 @@ const StackNavigator = () => {
         />
         <Tab.Screen
           name="EVENT"
-          component={isOrganizer ? AdminEventScreen : EventScreen}
+          component={role === 'organizer' ? AdminEventScreen : EventScreen}
           options={{
             tabBarActiveTintColor: 'green',
-            headerShown: false,
             tabBarIcon: ({focused}) => (
               <AntDesign
                 name={focused ? 'calendar' : 'calendar'}
@@ -69,11 +70,10 @@ const StackNavigator = () => {
           }}
         />
         <Tab.Screen
-          name="BOOK"
+          name="Book"
           component={BookScreen}
           options={{
             tabBarActiveTintColor: 'green',
-            headerShown: false,
             tabBarIcon: ({focused}) => (
               <Ionicons
                 name={focused ? 'book' : 'book-outline'}
@@ -84,11 +84,10 @@ const StackNavigator = () => {
           }}
         />
         <Tab.Screen
-          name="PROFILE"
+          name="Profile"
           component={ProfileDetailScreen}
           options={{
             tabBarActiveTintColor: 'green',
-            headerShown: false,
             tabBarIcon: ({focused}) => (
               <Ionicons
                 name={focused ? 'person' : 'person-outline'}
@@ -103,7 +102,6 @@ const StackNavigator = () => {
           component={ChatsScreen}
           options={{
             tabBarActiveTintColor: 'green',
-            headerShown: false,
             tabBarIcon: ({focused}) => (
               <Ionicons
                 name={focused ? 'chatbox' : 'chatbox-outline'}
@@ -113,21 +111,22 @@ const StackNavigator = () => {
             ),
           }}
         />
-        <Tab.Screen
-          name="FAVORITES"
-          component={FavoritesScreen}
-          options={{
-            tabBarActiveTintColor: 'green',
-            headerShown: false,
-            tabBarIcon: ({focused}) => (
-              <Ionicons
-                name={focused ? 'heart' : 'heart-outline'}
-                size={24}
-                color={focused ? 'green' : 'gray'}
-              />
-            ),
-          }}
-        />
+        {role !== 'organizer' && (
+          <Tab.Screen
+            name="Favorites"
+            component={FavoritesScreen}
+            options={{
+              tabBarActiveTintColor: 'green',
+              tabBarIcon: ({focused}) => (
+                <Ionicons
+                  name={focused ? 'heart' : 'heart-outline'}
+                  size={24}
+                  color={focused ? 'green' : 'gray'}
+                />
+              ),
+            }}
+          />
+        )}
       </Tab.Navigator>
     );
   }
@@ -169,6 +168,7 @@ const StackNavigator = () => {
         component={PreFinalScreen}
         options={{headerShown: false}}
       />
+      <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
     </Stack.Navigator>
   );
 
@@ -185,11 +185,20 @@ const StackNavigator = () => {
           component={VenueInfoScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen
-          name="Create"
-          component={CreateEvent}
-          options={{headerShown: false}}
-        />
+        {role === 'organizer' && (
+          <Stack.Screen
+            name="AdminCreate"
+            component={AdminCreateScreen}
+            options={{headerShown: false}}
+          />
+        )}
+        {role === 'organizer' && (
+          <Stack.Screen
+            name="AdminEvents"
+            component={AdminEventScreen}
+            options={{headerShown: false}}
+          />
+        )}
         <Stack.Screen
           name="TagVenue"
           component={TagVenueScreen}
@@ -197,7 +206,7 @@ const StackNavigator = () => {
         />
         <Stack.Screen name="Time" component={SelectTimeScreen} />
         <Stack.Screen
-          name="Event"
+          name="EventSetup"
           component={EventSetUpScreen}
           options={{headerShown: false}}
         />
@@ -208,7 +217,7 @@ const StackNavigator = () => {
         />
         <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
         <Stack.Screen
-          name="Manage"
+          name="ManageRequests"
           component={ManageRequests}
           options={{headerShown: false}}
         />
@@ -220,6 +229,11 @@ const StackNavigator = () => {
         <Stack.Screen name="Request" component={RequestChatRoom} />
         <Stack.Screen name="ChatRoom" component={ChatRoom} />
         <Stack.Screen name="Chats" component={ChatsScreen} />
+        <Stack.Screen
+          name="AdminDashboard"
+          component={AdminDashboard}
+          options={{headerShown: false}}
+        />
       </Stack.Navigator>
     );
   }

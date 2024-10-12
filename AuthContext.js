@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useEffect, useState, createContext} from 'react';
-import jwt_decode from 'jwt-decode';
 
 const AuthContext = createContext();
 
@@ -9,8 +8,6 @@ const AuthProvider = ({children}) => {
   const [userId, setUserId] = useState(null);
   const [role, setRole] = useState('user');
   const [isLoading, setIsLoading] = useState(false);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [favorites, setFavorites] = useState([]);
 
   const isLoggedIn = async () => {
     try {
@@ -29,7 +26,10 @@ const AuthProvider = ({children}) => {
 
   const decodeToken = token => {
     try {
-      const decodedData = jwt_decode(token);
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const decodedData = JSON.parse(atob(base64));
+
       const userIdFromToken = decodedData?.userId;
       const userRole = decodedData?.role;
 
@@ -54,10 +54,8 @@ const AuthProvider = ({children}) => {
         setToken,
         userId,
         role,
-        favorites,
-        setFavorites,
-        upcomingEvents,
-        setUpcomingEvents,
+        setRole,
+        setUserId,
       }}>
       {children}
     </AuthContext.Provider>

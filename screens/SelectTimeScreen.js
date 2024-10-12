@@ -45,10 +45,9 @@ const SelectTimeScreen = () => {
     ];
 
     const selectTime = (item) => {
-        setSelectedTimeId(item.id);  // Set the selected time slot's id
+        setSelectedTimeId(item.id); 
     
-        // Navigate to "Create" screen with the selected timings
-        navigation.navigate('Create', { timeInterval: item.timings });
+        navigation.navigate('AdminCreate', { timeInterval: item.timings });
     };
 
     useLayoutEffect(() => {
@@ -110,7 +109,7 @@ const SelectTimeScreen = () => {
             const formattedEndTime = formatTime(endTime);
             const timeInterval = `${formattedStartTime} - ${formattedEndTime}`;
             
-            navigation.navigate('Create', { timeInterval });
+            navigation.navigate('AdminCreate', { timeInterval });
         }
     };
 
