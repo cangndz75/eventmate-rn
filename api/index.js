@@ -454,26 +454,32 @@ app.get('/upcoming', async (req, res) => {
 
 app.post('/events/:eventId/request', async (req, res) => {
   try {
-    const {userId, comment} = req.body;
-    const {eventId} = req.params;
+    const { userId, comment } = req.body;
+    const { eventId } = req.params;
+
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).send('Event not found');
+      return res.status(404).json({ message: 'Event not found' });
     }
-    const existingRequest = event?.requests.find(
-      request => request.userId.toString() === userId,
+
+    const existingRequest = event.requests.find(
+      request => request.userId.toString() === userId
     );
+
     if (existingRequest) {
-      return res.status(400).send('Request already exists');
+      return res.status(400).json({ message: 'Request already sent' });
     }
-    event.requests.push({userId, comment});
+
+    event.requests.push({ userId, comment });
     await event.save();
-    res.status(200).send('Request sent successfully');
-  } catch (error) {
-    console.log('Error:', error);
-    res.status(500).send('Error fetching events');
+
+    res.status(200).json({ message: 'Request sent successfully' });
+  } catch (err) {
+    console.error('Error processing join request:', err);
+    res.status(500).json({ message: 'Failed to send request' });
   }
 });
+
 
 // app.get('/events/:eventId/requests', async (req, res) => {
 //   try {
@@ -915,6 +921,26 @@ app.get('/venues/:venueId', async (req, res) => {
     res.status(200).json(venue);
   } catch (error) {
     console.error('Error fetching venue:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+});
+
+app.get('/event/:eventId/organizer', async (req, res) => {
+  try {
+    const {eventId} = req.params;
+
+    const event = await Event.findById(eventId).populate(
+      'organizer',
+      'firstName lastName image',
+    );
+    if (!event) {
+      return res.status(404).json({message: 'Event not found'});
+    }
+
+    const organizer = event.organizer;
+    res.status(200).json(organizer);
+  } catch (error) {
+    console.error('Error fetching organizer:', error);
     res.status(500).json({message: 'Internal Server Error'});
   }
 });

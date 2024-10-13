@@ -52,58 +52,6 @@ const AdminEventSetUpScreen = () => {
     }
   };
 
-  const checkRequestStatus = async () => {
-    try {
-      const response = await axios.get(
-        `http://10.0.2.2:8000/getrequests/${userId}`,
-      );
-      const pending = response.data.some(
-        req => req.eventId === eventId && req.status === 'pending',
-      );
-      setIsRequestPending(pending);
-    } catch (error) {
-      console.error('Error checking request status:', error);
-    }
-  };
-
-  const sendJoinRequest = async () => {
-    try {
-      const response = await axios.post(
-        `http://10.0.2.2:8000/events/${eventId}/request`,
-        {
-          userId,
-          comment,
-        },
-      );
-      if (response.status === 200) {
-        Alert.alert('Request Sent', 'Please wait for the host to accept!');
-        setIsRequestPending(true);
-        setModalVisible(false);
-      }
-    } catch (error) {
-      console.error('Failed to send request:', error);
-    }
-  };
-
-  const cancelJoinRequest = async () => {
-    try {
-      const response = await axios.post(
-        `http://10.0.2.2:8000/events/${eventId}/cancel-request`,
-        {
-          userId,
-        },
-      );
-      if (response.status === 200) {
-        Alert.alert(
-          'Request Cancelled',
-          'Your join request has been cancelled.',
-        );
-        setIsRequestPending(false);
-      }
-    } catch (error) {
-      console.error('Failed to cancel request:', error);
-    }
-  };
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>

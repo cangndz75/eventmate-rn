@@ -64,13 +64,14 @@ const EventSetUpScreen = () => {
       console.error('Failed to fetch organizer:', error);
     }
   };
-
   const checkRequestStatus = async () => {
     try {
       const response = await axios.get(
         `http://10.0.2.2:8000/getrequests/${userId}`,
       );
-      const pending = response.data.some(
+      const requests = response.data;
+      const request = requests.find(req => req.eventId === eventId);
+      const pending = requests.some(
         req => req.eventId === eventId && req.status === 'pending',
       );
       setIsRequestPending(pending);
@@ -79,25 +80,27 @@ const EventSetUpScreen = () => {
     }
   };
 
-  const sendJoinRequest = async () => {
+  const sendJoinRequest = async (eventId) => {
     try {
       const response = await axios.post(
         `http://10.0.2.2:8000/events/${eventId}/request`,
-        {
-          userId,
-          comment,
-        },
+        { userId, comment }
       );
+  
       if (response.status === 200) {
-        Alert.alert('Request Sent', 'Please wait for the host to accept!');
-        setIsRequestPending(true);
-        setModalVisible(false);
+        Alert.alert('Request Sent', 'Please wait for the host to accept!', [
+          { text: 'OK', onPress: () => setModalVisible(false) },
+        ]);
       }
     } catch (error) {
-      console.error('Failed to send request:', error);
+      console.error(
+        'Failed to send request:',
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert('Error', 'Failed to send request');
     }
   };
-
+  
   const cancelJoinRequest = async () => {
     try {
       const response = await axios.post(
@@ -237,12 +240,12 @@ const EventSetUpScreen = () => {
               size={60}
               rounded
               source={{
-                uri: organizer?.imageUrl || 'https://via.placeholder.com/150',
+                uri: organizer?.image || 'https://via.placeholder.com/150',
               }}
             />
             <View style={{marginLeft: 10}}>
               <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-                {organizer?.name || 'World of Music'}
+                {`${organizer?.firstName || ''} ${organizer?.lastName || ''}`}
               </Text>
               <Text style={{color: 'gray'}}>Organizer</Text>
             </View>
@@ -286,257 +289,83 @@ const EventSetUpScreen = () => {
               />
             ))}
           </ScrollView>
-
-          {organizer && (
-            <View style={{marginTop: 20}}>
-              <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-                Organizer Options
-              </Text>
-              <View>
-                <View
-                  style={{
-                    height: 1,
-                    borderWidth: 0.5,
-                    borderColor: '#E0E0E0',
-                    marginVertical: 12,
-                  }}
-                />
-                <Pressable
-                  style={{flexDirection: 'row', alignItems: 'center', gap: 14}}>
-                  <View
-                    style={{
-                      width: 60,
-                      height: 60,
-                      borderWidth: 1,
-                      borderColor: '#E0E0E0',
-                      borderRadius: 30,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <Image
-                      style={{width: 30, height: 30, resizeMode: 'contain'}}
-                      source={{
-                        uri: 'https://cdn-icons-png.flaticon.com/128/343/343303.png',
-                      }}
-                    />
-                  </View>
-
-                  <Text style={{fontSize: 15, fontWeight: '500', flex: 1}}>
-                    Add Co-Host
-                  </Text>
-
-                  <MaterialCommunityIcons
-                    style={{textAlign: 'center'}}
-                    name="chevron-right"
-                    size={24}
-                    color="black"
-                  />
-                </Pressable>
-
-                <View
-                  style={{
-                    height: 1,
-                    borderWidth: 0.5,
-                    borderColor: '#E0E0E0',
-                    marginVertical: 12,
-                  }}
-                />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                  <Pressable>
-                    <Pressable
-                      style={{
-                        width: 60,
-                        height: 60,
-                        borderWidth: 1,
-                        borderColor: '#E0E0E0',
-                        borderRadius: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}>
-                      <Image
-                        style={{width: 30, height: 30, resizeMode: 'contain'}}
-                        source={{
-                          uri: 'https://cdn-icons-png.flaticon.com/128/1474/1474545.png',
-                        }}
-                      />
-                    </Pressable>
-                    <Text
-                      style={{
-                        marginTop: 8,
-                        fontWeight: '500',
-                        textAlign: 'center',
-                      }}>
-                      Add
-                    </Text>
-                  </Pressable>
-
-                  <Pressable>
-                    <Pressable
-                      onPress={() =>
-                        navigation.navigate('Manage', {
-                          requests: requests,
-                          userId: userId,
-                          eventId: route?.params?.item?._id,
-                        })
-                      }
-                      style={{
-                        width: 60,
-                        height: 60,
-                        borderWidth: 1,
-                        borderColor: '#E0E0E0',
-                        borderRadius: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}>
-                      <Image
-                        style={{
-                          width: 30,
-                          height: 30,
-                          resizeMode: 'contain',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}
-                        source={{
-                          uri: 'https://cdn-icons-png.flaticon.com/128/7928/7928637.png',
-                        }}
-                      />
-                    </Pressable>
-                    <Text
-                      style={{
-                        marginTop: 8,
-                        fontWeight: '500',
-                        textAlign: 'center',
-                      }}>
-                      Manage ({requests?.length})
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate('Players', {
-                        players: attendees,
-                      })
-                    }
-                    style={{
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <View
-                      style={{
-                        width: 50,
-                        height: 50,
-                        borderRadius: 25,
-                        padding: 10,
-                        borderColor: '#E0E0E0',
-                        borderWidth: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        marginVertical: 12,
-                      }}>
-                      <MaterialCommunityIcons
-                        style={{textAlign: 'center'}}
-                        name="chevron-right"
-                        size={24}
-                        color="black"
-                      />
-                    </View>
-
-                    <Text
-                      style={{
-                        marginBottom: 12,
-                        fontWeight: '600',
-                        textAlign: 'center',
-                      }}>
-                      All Players
-                    </Text>
-                  </Pressable>
-                </View>
-
-                <View
-                  style={{
-                    height: 1,
-                    borderWidth: 0.5,
-                    borderColor: '#E0E0E0',
-                    marginVertical: 12,
-                  }}
-                />
-
-                <View
-                  style={{flexDirection: 'row', alignItems: 'center', gap: 15}}>
-                  <View
-                    style={{
-                      width: 60,
-                      height: 60,
-                      borderWidth: 1,
-                      borderColor: '#E0E0E0',
-                      borderRadius: 30,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <Image
-                      style={{width: 30, height: 30, resizeMode: 'contain'}}
-                      source={{
-                        uri: 'https://cdn-icons-png.flaticon.com/128/1511/1511847.png',
-                      }}
-                    />
-                  </View>
-
-                  <View>
-                    <Text>Not on EventMate? Invite</Text>
-                    <Text style={{marginTop: 6, color: 'gray', width: '80%'}}>
-                      Earn 100 Karma points by referring your friend.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          )}
         </View>
       </ScrollView>
 
-      <Button
-        title={isRequestPending ? 'Pending' : 'Join Event'}
-        buttonStyle={{
-          backgroundColor: isRequestPending ? '#ccc' : '#5c6bc0',
-          borderRadius: 10,
-        }}
-        containerStyle={{marginHorizontal: 20, marginBottom: 20}}
-        onPress={
-          isRequestPending ? cancelJoinRequest : () => setModalVisible(true)
-        }
-      />
+      <Pressable
+        onPress={() => setModalVisible(!modalVisible)}
+        style={{
+          backgroundColor: '#07bc0c',
+          marginTop: 'auto',
+          marginBottom: 30,
+          padding: 15,
+          marginHorizontal: 10,
+          borderRadius: 4,
+        }}>
+        <Text
+          style={{
+            textAlign: 'center',
+            color: 'white',
+            fontSize: 15,
+            fontWeight: '500',
+          }}>
+          JOIN EVENT
+        </Text>
+      </Pressable>
 
       <BottomModal
-        visible={modalVisible}
+        onBackdropPress={() => setModalVisible(!modalVisible)}
         swipeDirection={['up', 'down']}
-        modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+        swipeThreshold={200}
+        modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}
+        visible={modalVisible}
+        onTouchOutside={() => setModalVisible(!modalVisible)}>
         <ModalContent
-          style={{height: 300, backgroundColor: '#fff', padding: 20}}>
-          <Text style={{fontSize: 16, marginBottom: 10}}>Join Event</Text>
-          <TextInput
-            value={comment}
-            onChangeText={setComment}
-            placeholder="Send a message to the host along with your request!"
-            style={{
-              borderWidth: 1,
-              borderColor: '#ddd',
-              borderRadius: 5,
-              padding: 10,
-              marginBottom: 10,
-              height: 100,
-              textAlignVertical: 'top',
-            }}
-          />
-          <Button
-            title="Send Request"
-            buttonStyle={{backgroundColor: '#5c6bc0', borderRadius: 5}}
-            onPress={sendJoinRequest}
-          />
+          style={{width: '100%', height: 400, backgroundColor: 'white'}}>
+          <View>
+            <Text style={{fontSize: 15, fontWeight: '500', color: 'gray'}}>
+              Join Event
+            </Text>
+
+            <Text style={{marginTop: 25, color: 'gray'}}>
+              Please send the request if you are sure to attend.
+            </Text>
+
+            <View
+              style={{
+                borderColor: '#E0E0E0',
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 10,
+                height: 200,
+                marginTop: 20,
+              }}>
+              <TextInput
+                value={comment}
+                onChangeText={text => setComment(text)}
+                placeholder="Send a message to the host along with your request!"
+              />
+              <Pressable
+                onPress={() => sendJoinRequest(route?.params?.item?._id)}
+                style={{
+                  marginTop: 'auto',
+                  backgroundColor: 'green',
+                  borderRadius: 5,
+                  justifyContent: 'center',
+                  padding: 10,
+                }}>
+                <Text
+                  style={{
+                    color: 'white',
+                    textAlign: 'center',
+                    fontSize: 15,
+                    fontWeight: '500',
+                  }}>
+                  Send Request
+                </Text>
+              </Pressable>
+            </View>
+          </View>
         </ModalContent>
       </BottomModal>
     </SafeAreaView>
