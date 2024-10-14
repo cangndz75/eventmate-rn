@@ -22,8 +22,20 @@ const eventSchema = new Schema(
       required: true,
     },
     attendees: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    requests: [
+      {
+        userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+        comment: {type: String},
+        status: {
+          type: String,
+          enum: ['pending', 'accepted', 'rejected'],
+          default: 'pending',
+        },
+      },
+    ],
   },
   {timestamps: true},
 );
+
 
 module.exports = mongoose.model('Event', eventSchema);

@@ -30,7 +30,7 @@ const AdminDashboard = () => {
       );
       setRecentParticipants(response.data);
     } catch (error) {
-      console.error('Error fetching recent participants:', error);
+      console.error('Error fetching recent participants2:', error);
     }
   };
 

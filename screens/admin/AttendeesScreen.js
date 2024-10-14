@@ -12,7 +12,7 @@ import Entypo from 'react-native-vector-icons/Entypo';
 
 const AttendeesScreen = () => {
   const route = useRoute();
-  const attendees = route?.params?.attendees || []; // Katılımcıları route üzerinden al
+  const attendees = route?.params?.attendees || []; 
 
   return (
     <SafeAreaView>
