@@ -33,7 +33,6 @@ const AdminEventSetUpScreen = () => {
 
   useEffect(() => {
     fetchAttendees();
-    checkRequestStatus();
   }, []);
 
   useEffect(() => {
@@ -51,7 +50,6 @@ const AdminEventSetUpScreen = () => {
       console.error('Failed to fetch attendees:', error);
     }
   };
-
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
@@ -181,11 +179,6 @@ const AdminEventSetUpScreen = () => {
               </Text>
               <Text style={{color: 'gray'}}>Organizer</Text>
             </View>
-            <Button
-              title="Follow"
-              buttonStyle={{backgroundColor: '#5c6bc0', borderRadius: 10}}
-              containerStyle={{marginLeft: 'auto'}}
-            />
           </View>
 
           <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 20}}>
@@ -222,23 +215,67 @@ const AdminEventSetUpScreen = () => {
             ))}
           </ScrollView>
 
-          {organizer && (
-            <View style={{marginTop: 20}}>
-              <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-                Organizer Options
-              </Text>
-              <View>
+          <View style={{marginTop: 20}}>
+            <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+              Organizer Options
+            </Text>
+            <View>
+              <View
+                style={{
+                  height: 1,
+                  borderWidth: 0.5,
+                  borderColor: '#E0E0E0',
+                  marginVertical: 12,
+                }}
+              />
+              <Pressable
+                style={{flexDirection: 'row', alignItems: 'center', gap: 14}}>
                 <View
                   style={{
-                    height: 1,
-                    borderWidth: 0.5,
+                    width: 60,
+                    height: 60,
+                    borderWidth: 1,
                     borderColor: '#E0E0E0',
-                    marginVertical: 12,
-                  }}
+                    borderRadius: 30,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Image
+                    style={{width: 30, height: 30, resizeMode: 'contain'}}
+                    source={{
+                      uri: 'https://cdn-icons-png.flaticon.com/128/343/343303.png',
+                    }}
+                  />
+                </View>
+
+                <Text style={{fontSize: 15, fontWeight: '500', flex: 1}}>
+                  Add Co-Host
+                </Text>
+
+                <MaterialCommunityIcons
+                  style={{textAlign: 'center'}}
+                  name="chevron-right"
+                  size={24}
+                  color="black"
                 />
-                <Pressable
-                  style={{flexDirection: 'row', alignItems: 'center', gap: 14}}>
-                  <View
+              </Pressable>
+
+              <View
+                style={{
+                  height: 1,
+                  borderWidth: 0.5,
+                  borderColor: '#E0E0E0',
+                  marginVertical: 12,
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}>
+                <Pressable>
+                  <Pressable
                     style={{
                       width: 60,
                       height: 60,
@@ -251,229 +288,146 @@ const AdminEventSetUpScreen = () => {
                     <Image
                       style={{width: 30, height: 30, resizeMode: 'contain'}}
                       source={{
-                        uri: 'https://cdn-icons-png.flaticon.com/128/343/343303.png',
+                        uri: 'https://cdn-icons-png.flaticon.com/128/1474/1474545.png',
                       }}
                     />
-                  </View>
-
-                  <Text style={{fontSize: 15, fontWeight: '500', flex: 1}}>
-                    Add Co-Host
+                  </Pressable>
+                  <Text
+                    style={{
+                      marginTop: 8,
+                      fontWeight: '500',
+                      textAlign: 'center',
+                    }}>
+                    Add
                   </Text>
-
-                  <MaterialCommunityIcons
-                    style={{textAlign: 'center'}}
-                    name="chevron-right"
-                    size={24}
-                    color="black"
-                  />
                 </Pressable>
 
-                <View
-                  style={{
-                    height: 1,
-                    borderWidth: 0.5,
-                    borderColor: '#E0E0E0',
-                    marginVertical: 12,
-                  }}
-                />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                  <Pressable>
-                    <Pressable
-                      style={{
-                        width: 60,
-                        height: 60,
-                        borderWidth: 1,
-                        borderColor: '#E0E0E0',
-                        borderRadius: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}>
-                      <Image
-                        style={{width: 30, height: 30, resizeMode: 'contain'}}
-                        source={{
-                          uri: 'https://cdn-icons-png.flaticon.com/128/1474/1474545.png',
-                        }}
-                      />
-                    </Pressable>
-                    <Text
-                      style={{
-                        marginTop: 8,
-                        fontWeight: '500',
-                        textAlign: 'center',
-                      }}>
-                      Add
-                    </Text>
-                  </Pressable>
-
-                  <Pressable>
-                    <Pressable
-                      onPress={() =>
-                        navigation.navigate('Manage', {
-                          requests: requests,
-                          userId: userId,
-                          eventId: route?.params?.item?._id,
-                        })
-                      }
-                      style={{
-                        width: 60,
-                        height: 60,
-                        borderWidth: 1,
-                        borderColor: '#E0E0E0',
-                        borderRadius: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}>
-                      <Image
-                        style={{
-                          width: 30,
-                          height: 30,
-                          resizeMode: 'contain',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}
-                        source={{
-                          uri: 'https://cdn-icons-png.flaticon.com/128/7928/7928637.png',
-                        }}
-                      />
-                    </Pressable>
-                    <Text
-                      style={{
-                        marginTop: 8,
-                        fontWeight: '500',
-                        textAlign: 'center',
-                      }}>
-                      Manage ({requests?.length})
-                    </Text>
-                  </Pressable>
-
+                <Pressable>
                   <Pressable
                     onPress={() =>
-                      navigation.navigate('Players', {
-                        players: attendees,
+                      navigation.navigate('ManageRequest', {
+                        requests: requests,
+                        userId: userId,
+                        eventId: route?.params?.item?._id,
                       })
                     }
                     style={{
+                      width: 60,
+                      height: 60,
+                      borderWidth: 1,
+                      borderColor: '#E0E0E0',
+                      borderRadius: 30,
                       justifyContent: 'center',
                       alignItems: 'center',
                     }}>
-                    <View
+                    <Image
                       style={{
-                        width: 50,
-                        height: 50,
-                        borderRadius: 25,
-                        padding: 10,
-                        borderColor: '#E0E0E0',
-                        borderWidth: 1,
+                        width: 30,
+                        height: 30,
+                        resizeMode: 'contain',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        marginVertical: 12,
-                      }}>
-                      <MaterialCommunityIcons
-                        style={{textAlign: 'center'}}
-                        name="chevron-right"
-                        size={24}
-                        color="black"
-                      />
-                    </View>
+                      }}
+                      source={{
+                        uri: 'https://cdn-icons-png.flaticon.com/128/7928/7928637.png',
+                      }}
+                    />
+                  </Pressable>
+                  <Text
+                    style={{
+                      marginTop: 8,
+                      fontWeight: '500',
+                      textAlign: 'center',
+                    }}>
+                    Manage ({requests?.length})
+                  </Text>
+                </Pressable>
 
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate('Attendees', {
+                      attendees: attendees,
+                    })
+                  }
+                  style={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <View
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                      padding: 10,
+                      borderColor: '#E0E0E0',
+                      borderWidth: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginVertical: 12,
+                    }}>
+                    <MaterialCommunityIcons
+                      style={{textAlign: 'center'}}
+                      name="chevron-right"
+                      size={24}
+                      color="black"
+                    />
+                  </View>
+                  <Pressable
+                    onPress={() =>
+                      navigation.navigate('Attendees', {attendees: attendees})
+                    }>
                     <Text
                       style={{
                         marginBottom: 12,
                         fontWeight: '600',
                         textAlign: 'center',
                       }}>
-                      All Players
+                      All attendees
                     </Text>
                   </Pressable>
-                </View>
+                </Pressable>
+              </View>
 
+              <View
+                style={{
+                  height: 1,
+                  borderWidth: 0.5,
+                  borderColor: '#E0E0E0',
+                  marginVertical: 12,
+                }}
+              />
+
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 15}}>
                 <View
                   style={{
-                    height: 1,
-                    borderWidth: 0.5,
+                    width: 60,
+                    height: 60,
+                    borderWidth: 1,
                     borderColor: '#E0E0E0',
-                    marginVertical: 12,
-                  }}
-                />
+                    borderRadius: 30,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Image
+                    style={{width: 30, height: 30, resizeMode: 'contain'}}
+                    source={{
+                      uri: 'https://cdn-icons-png.flaticon.com/128/1511/1511847.png',
+                    }}
+                  />
+                </View>
 
-                <View
-                  style={{flexDirection: 'row', alignItems: 'center', gap: 15}}>
-                  <View
-                    style={{
-                      width: 60,
-                      height: 60,
-                      borderWidth: 1,
-                      borderColor: '#E0E0E0',
-                      borderRadius: 30,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <Image
-                      style={{width: 30, height: 30, resizeMode: 'contain'}}
-                      source={{
-                        uri: 'https://cdn-icons-png.flaticon.com/128/1511/1511847.png',
-                      }}
-                    />
-                  </View>
-
-                  <View>
-                    <Text>Not on EventMate? Invite</Text>
-                    <Text style={{marginTop: 6, color: 'gray', width: '80%'}}>
-                      Earn 100 Karma points by referring your friend.
-                    </Text>
-                  </View>
+                <View>
+                  <Text>Not on EventMate? Invite</Text>
+                  <Text style={{marginTop: 6, color: 'gray', width: '80%'}}>
+                    Earn 100 Karma points by referring your friend.
+                  </Text>
                 </View>
               </View>
             </View>
-          )}
+          </View>
         </View>
       </ScrollView>
-
-      <Button
-        title={isRequestPending ? 'Pending' : 'Join Event'}
-        buttonStyle={{
-          backgroundColor: isRequestPending ? '#ccc' : '#5c6bc0',
-          borderRadius: 10,
-        }}
-        containerStyle={{marginHorizontal: 20, marginBottom: 20}}
-        onPress={
-          isRequestPending ? cancelJoinRequest : () => setModalVisible(true)
-        }
-      />
-
-      <BottomModal
-        visible={modalVisible}
-        swipeDirection={['up', 'down']}
-        modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
-        <ModalContent
-          style={{height: 300, backgroundColor: '#fff', padding: 20}}>
-          <Text style={{fontSize: 16, marginBottom: 10}}>Join Event</Text>
-          <TextInput
-            value={comment}
-            onChangeText={setComment}
-            placeholder="Send a message to the host along with your request!"
-            style={{
-              borderWidth: 1,
-              borderColor: '#ddd',
-              borderRadius: 5,
-              padding: 10,
-              marginBottom: 10,
-              height: 100,
-              textAlignVertical: 'top',
-            }}
-          />
-          <Button
-            title="Send Request"
-            buttonStyle={{backgroundColor: '#5c6bc0', borderRadius: 5}}
-            onPress={sendJoinRequest}
-          />
-        </ModalContent>
-      </BottomModal>
     </SafeAreaView>
   );
 };

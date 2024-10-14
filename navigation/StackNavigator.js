@@ -21,7 +21,7 @@ import CreateEvent from '../screens/CreateEvent';
 import TagVenueScreen from '../screens/TagVenueScreen';
 import SelectTimeScreen from '../screens/SelectTimeScreen';
 import EventSetUpScreen from '../screens/EventSetUpScreen';
-import AttendeesScreen from '../screens/AttendeesScreen';
+import AttendeesScreen from '../screens/admin/AttendeesScreen';
 import ManageRequests from '../screens/admin/ManageRequest';
 import ProfileDetailScreen from '../screens/ProfileDetail';
 import ChatsScreen from '../screens/ChatsScreen';

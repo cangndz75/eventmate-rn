@@ -1,11 +1,11 @@
 import {Image, Pressable, Text, View} from 'react-native';
 import React, {useContext} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {AuthContext} from '../AuthContext'; 
+import {AuthContext} from '../AuthContext';
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
-  const {role} = useContext(AuthContext); 
+  const {role} = useContext(AuthContext);
 
   if (!item) return null;
 
@@ -42,7 +42,7 @@ const UpComingEvent = ({item}) => {
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
         <Image
           style={{width: 80, height: 80, borderRadius: 12, marginRight: 12}}
-          source={{uri: item?.organizerUrl}}
+          source={{uri: item?.organizerUrl || "https://www.placecage.com/100/100"}}
         />
 
         <View style={{flex: 1}}>
@@ -76,17 +76,29 @@ const UpComingEvent = ({item}) => {
           {item?.time}
         </Text>
 
-        <Pressable
-          style={{
-            backgroundColor: item?.isBooked ? '#56cc79' : '#FF6347',
-            paddingVertical: 8,
-            paddingHorizontal: 20,
-            borderRadius: 10,
-          }}>
-          <Text style={{color: 'white', fontWeight: '600'}}>
-            {item?.isBooked ? 'Booked' : 'Join'}
-          </Text>
-        </Pressable>
+        {role === 'organizer' ? (
+          <Pressable
+            style={{
+              backgroundColor: '#56cc79',
+              paddingVertical: 8,
+              paddingHorizontal: 20,
+              borderRadius: 10,
+            }}>
+            <Text style={{color: 'white', fontWeight: '600'}}>Manage</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={{
+              backgroundColor: item?.isBooked ? '#56cc79' : '#FF6347',
+              paddingVertical: 8,
+              paddingHorizontal: 20,
+              borderRadius: 10,
+            }}>
+            <Text style={{color: 'white', fontWeight: '600'}}>
+              {item?.isBooked ? 'Booked' : 'Join'}
+            </Text>
+          </Pressable>
+        )}
       </View>
     </Pressable>
   );

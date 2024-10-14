@@ -454,32 +454,31 @@ app.get('/upcoming', async (req, res) => {
 
 app.post('/events/:eventId/request', async (req, res) => {
   try {
-    const { userId, comment } = req.body;
-    const { eventId } = req.params;
+    const {userId, comment} = req.body;
+    const {eventId} = req.params;
 
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     const existingRequest = event.requests.find(
-      request => request.userId.toString() === userId
+      request => request.userId.toString() === userId,
     );
 
     if (existingRequest) {
-      return res.status(400).json({ message: 'Request already sent' });
+      return res.status(400).json({message: 'Request already sent'});
     }
 
-    event.requests.push({ userId, comment });
+    event.requests.push({userId, comment});
     await event.save();
 
-    res.status(200).json({ message: 'Request sent successfully' });
+    res.status(200).json({message: 'Request sent successfully'});
   } catch (err) {
     console.error('Error processing join request:', err);
-    res.status(500).json({ message: 'Failed to send request' });
+    res.status(500).json({message: 'Failed to send request'});
   }
 });
-
 
 // app.get('/events/:eventId/requests', async (req, res) => {
 //   try {
@@ -942,5 +941,22 @@ app.get('/event/:eventId/organizer', async (req, res) => {
   } catch (error) {
     console.error('Error fetching organizer:', error);
     res.status(500).json({message: 'Internal Server Error'});
+  }
+});
+
+app.get('/events/:eventId', async (req, res) => {
+  try {
+    const {eventId} = req.params;
+    const event = await Event.findById(eventId).populate(
+      'attendees',
+      'firstName lastName image',
+    );
+    if (!event) {
+      return res.status(404).json({message: 'Event not found'});
+    }
+    res.status(200).json(event);
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    res.status(500).json({message: 'Internal server error'});
   }
 });
