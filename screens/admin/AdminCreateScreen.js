@@ -46,14 +46,19 @@ const AdminCreateScreen = () => {
   useEffect(() => {
     if (route.params?.taggedVenue) {
       setTaggedVenue(route.params.taggedVenue);
+      setLocation(route.params.taggedVenue);
     }
   }, [route.params]);
 
   const openImagePicker = () => {
     launchImageLibrary({mediaType: 'photo', selectionLimit: 3}, response => {
-      if (response.assets) setImages(response.assets);
+      if (response.assets) {
+        const base64Images = response.assets.map(image => image.base64);
+        setImages(base64Images);
+      }
     });
   };
+
   const generateDates = () => {
     const dates = [];
     for (let i = 0; i < 10; i++) {
@@ -110,6 +115,9 @@ const AdminCreateScreen = () => {
       Alert.alert('Error', 'Failed to generate content. Try again.');
     }
   };
+  useEffect(() => {
+    console.log('Selected Images:', images);
+  }, [images]);
   console.log('Event:', event);
   console.log('Location:', taggedVenue);
   console.log('Date:', date);
@@ -128,8 +136,17 @@ const AdminCreateScreen = () => {
     ) {
       return Alert.alert('Error', 'All fields are required.');
     }
-
+  
     try {
+      let token = await AsyncStorage.getItem('token');
+      if (!token) {
+        return Alert.alert(
+          'Error',
+          'Authentication failed. Please login again.',
+        );
+      }
+      token = token.replace(/"/g, '');
+  
       const eventData = {
         title: event,
         description,
@@ -140,31 +157,46 @@ const AdminCreateScreen = () => {
         eventType: selectedType.toLowerCase(),
         totalParticipants: parseInt(noOfParticipants, 10),
         organizer: userId,
+        images,
       };
-
-      const token = await AsyncStorage.getItem('token');
+  
       const response = await axios.post(
         'http://10.0.2.2:8000/createevent',
         eventData,
-        {headers: {Authorization: `Bearer ${token.replace(/"/g, '')}`}},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
       );
-
+  
       if (response.status === 200) {
         Alert.alert('Success', 'Event created successfully!', [
           {text: 'OK', onPress: () => navigation.navigate('AdminEvents')},
         ]);
+      } else {
+        Alert.alert('Error', 'Failed to create event. Please try again.');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to create event1. Try again.');
+      console.error('Event creation error:', error.message);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        Alert.alert('Error', `Failed to create event: ${error.response.data.message}`);
+      } else if (error.request) {
+        console.error('Request data:', error.request);
+        Alert.alert('Error', 'Network error. Please check your connection.');
+      } else {
+        console.error('Error message:', error.message);
+        Alert.alert('Error', `An unexpected error occurred: ${error.message}`);
+      }
     }
   };
-  const totalParticipants = parseInt(noOfParticipants, 10);
-  if (isNaN(totalParticipants) || totalParticipants <= 0) {
-    return Alert.alert('Error', 'Please enter a valid number of participants.');
-  }
+  
 
   const selectDate = selectedDate => {
-    setDate(selectedDate);
+    const formattedDate = moment(selectedDate, 'Do MMMM').format('YYYY-MM-DD');
+    setDate(formattedDate);
     setModalVisible(false);
   };
 

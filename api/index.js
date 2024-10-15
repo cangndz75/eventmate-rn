@@ -25,11 +25,21 @@ mongoose
   .catch(error => console.log('Connection error:', error));
 
 const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) return res.status(401).json({message: 'No token provided'});
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({message: 'No token provided'});
+  }
 
   jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({message: 'Invalid token'});
+    if (err) {
+      console.error('Token verification error:', err.message);
+      if (err.name === 'TokenExpiredError') {
+        return res.status(403).json({message: 'Token expired'});
+      }
+      return res.status(403).json({message: 'Invalid token'});
+    }
     req.user = user;
     next();
   });
@@ -370,7 +380,12 @@ app.post('/createevent', authenticateToken, async (req, res) => {
       organizer,
     });
 
-    await newEvent.save();
+    try {
+      await newEvent.save();
+    } catch (error) {
+      console.error('Error creating event:', error.message);
+      res.status(500).json({message: 'Failed to create event.'});
+    }
 
     const user = await User.findById(organizer);
     if (user) {
