@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   Alert,
   SafeAreaView,
@@ -8,23 +8,25 @@ import {
   View,
   Image,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {BottomModal, ModalContent} from 'react-native-modals';
+import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import moment from 'moment';
 import {AuthContext} from '../../AuthContext';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 const AdminCreateScreen = () => {
   const [event, setEvent] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
-  const [area, setArea] = useState('');
+  const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [timeInterval, setTimeInterval] = useState('');
   const [noOfParticipants, setNoOfParticipants] = useState('');
@@ -32,26 +34,66 @@ const AdminCreateScreen = () => {
   const [images, setImages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [timeModalVisible, setTimeModalVisible] = useState(false);
+  const [taggedVenue, setTaggedVenue] = useState(null);
+  const [times] = useState(['10:00 AM', '12:00 PM', '02:00 PM', '04:00 PM']);
 
   const navigation = useNavigation();
   const {userId} = useContext(AuthContext);
+  const route = useRoute();
+
   const eventTypes = ['Concert', 'Football', 'Theater', 'Dance', 'Other'];
+
+  useEffect(() => {
+    if (route.params?.taggedVenue) {
+      setTaggedVenue(route.params.taggedVenue);
+    }
+  }, [route.params]);
 
   const openImagePicker = () => {
     launchImageLibrary({mediaType: 'photo', selectionLimit: 3}, response => {
       if (response.assets) setImages(response.assets);
     });
   };
+  const generateDates = () => {
+    const dates = [];
+    for (let i = 0; i < 10; i++) {
+      const date = moment().add(i, 'days');
+      let displayDate;
+      if (i === 0) {
+        displayDate = 'Today';
+      } else if (i === 1) {
+        displayDate = 'Tomorrow';
+      } else if (i === 2) {
+        displayDate = 'Day after';
+      } else {
+        displayDate = date.format('Do MMMM');
+      }
+      dates.push({
+        id: i.toString(),
+        displayDate,
+        dayOfWeek: date.format('dddd'),
+        actualDate: date.format('Do MMMM'),
+      });
+    }
+    return dates;
+  };
+  const dates = generateDates();
+
+  console.log('Dates', dates);
 
   const generateContent = async field => {
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!event)
-        return Alert.alert('Error', 'Please enter an event name first.');
+      if (!event || !taggedVenue) {
+        return Alert.alert(
+          'Error',
+          'Please enter both event name and location.',
+        );
+      }
 
       const response = await axios.post(
         'http://10.0.2.2:8000/generate',
-        {eventName: event},
+        {eventName: event, location: taggedVenue},
         {headers: {Authorization: `Bearer ${token.replace(/"/g, '')}`}},
       );
 
@@ -68,15 +110,21 @@ const AdminCreateScreen = () => {
       Alert.alert('Error', 'Failed to generate content. Try again.');
     }
   };
+  console.log('Event:', event);
+  console.log('Location:', taggedVenue);
+  console.log('Date:', date);
+  console.log('Time:', timeInterval);
+  console.log('Type:', selectedType);
+  console.log('Participants:', noOfParticipants);
 
   const createEvent = async () => {
     if (
-      !event ||
-      !area ||
-      !date ||
-      !timeInterval ||
-      !selectedType ||
-      !noOfParticipants
+      !event.trim() ||
+      !taggedVenue.trim() ||
+      !date.trim() ||
+      !timeInterval.trim() ||
+      !selectedType.trim() ||
+      isNaN(parseInt(noOfParticipants, 10))
     ) {
       return Alert.alert('Error', 'All fields are required.');
     }
@@ -86,7 +134,7 @@ const AdminCreateScreen = () => {
         title: event,
         description,
         tags: tags.split(',').map(tag => tag.trim()),
-        location: area,
+        location: taggedVenue,
         date,
         time: timeInterval,
         eventType: selectedType.toLowerCase(),
@@ -107,8 +155,22 @@ const AdminCreateScreen = () => {
         ]);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to create event. Try again.');
+      Alert.alert('Error', 'Failed to create event1. Try again.');
     }
+  };
+  const totalParticipants = parseInt(noOfParticipants, 10);
+  if (isNaN(totalParticipants) || totalParticipants <= 0) {
+    return Alert.alert('Error', 'Please enter a valid number of participants.');
+  }
+
+  const selectDate = selectedDate => {
+    setDate(selectedDate);
+    setModalVisible(false);
+  };
+
+  const selectTime = selectedTime => {
+    setTimeInterval(selectedTime);
+    setTimeModalVisible(false);
   };
 
   return (
@@ -148,48 +210,21 @@ const AdminCreateScreen = () => {
           style={inputStyle}
         />
 
-        <TextInput
-          placeholder="Event Description"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          style={[inputStyle, {height: 150}]}
-        />
-        <TouchableOpacity
-          onPress={() => generateContent('description')}
-          style={generateButtonStyle}>
-          <Text style={buttonTextStyle}>Generate Description</Text>
-        </TouchableOpacity>
-
-        <TextInput
-          placeholder="Tags (comma-separated)"
-          value={tags}
-          onChangeText={setTags}
-          style={inputStyle}
-        />
-        <TouchableOpacity
-          onPress={() => generateContent('tags')}
-          style={generateButtonStyle}>
-          <Text style={buttonTextStyle}>Generate Tags</Text>
-        </TouchableOpacity>
-
-        <Text style={{marginBottom: 10}}>Event Type</Text>
-        <View
-          style={{flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20}}>
-          {eventTypes.map(type => (
-            <TouchableOpacity
-              key={type}
-              onPress={() => setSelectedType(type)}
-              style={[
-                typeButtonStyle,
-                selectedType === type && {backgroundColor: '#4CAF50'},
-              ]}>
-              <Text style={{color: selectedType === type ? 'white' : 'black'}}>
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Pressable
+          onPress={() => navigation.navigate('TagVenue')}
+          style={locationPickerStyle}>
+          <Entypo name="location" size={24} color="gray" />
+          <View style={{flex: 1}}>
+            <Text style={{fontSize: 17, fontWeight: '500'}}>Area</Text>
+            <TextInput
+              value={location || taggedVenue}
+              onChangeText={setLocation}
+              placeholder="Locality or venue name"
+              style={inputStyle}
+            />
+          </View>
+          <AntDesign name="arrowright" size={24} color="gray" />
+        </Pressable>
 
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
@@ -205,6 +240,61 @@ const AdminCreateScreen = () => {
           <Text style={dateTextStyle}>{timeInterval || 'Select a Time'}</Text>
         </TouchableOpacity>
 
+        <BottomModal
+          visible={modalVisible}
+          onTouchOutside={() => setModalVisible(false)}
+          swipeDirection={['up', 'down']}
+          modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+          <ModalContent
+            style={{width: '100%', height: 400, backgroundColor: 'white'}}>
+            <Text
+              style={{textAlign: 'center', fontSize: 16, fontWeight: 'bold'}}>
+              Choose a Date
+            </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between',
+                marginVertical: 20,
+              }}>
+              {dates.map((item, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => selectDate(item.actualDate)}
+                  style={dateOptionStyle}>
+                  <Text>{item.displayDate}</Text>
+                  <Text style={{color: 'gray'}}>{item.dayOfWeek}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </ModalContent>
+        </BottomModal>
+
+        <BottomModal
+          visible={timeModalVisible}
+          onTouchOutside={() => setTimeModalVisible(false)}
+          swipeDirection={['up', 'down']}
+          modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+          <ModalContent
+            style={{width: '100%', height: 300, backgroundColor: 'white'}}>
+            <Text
+              style={{textAlign: 'center', fontSize: 16, fontWeight: 'bold'}}>
+              Choose a Time
+            </Text>
+            <View style={{marginVertical: 20}}>
+              {times.map((time, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => selectTime(time)}
+                  style={timeOptionStyle}>
+                  <Text style={{fontSize: 16}}>{time}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </ModalContent>
+        </BottomModal>
+
         <TextInput
           placeholder="Total Participants"
           keyboardType="number-pad"
@@ -212,6 +302,53 @@ const AdminCreateScreen = () => {
           onChangeText={setNoOfParticipants}
           style={inputStyle}
         />
+
+        <View style={{marginBottom: 10}}>
+          <Text style={{marginBottom: 10}}>Event Type</Text>
+          <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+            {eventTypes.map(type => (
+              <TouchableOpacity
+                key={type}
+                onPress={() => setSelectedType(type)}
+                style={[
+                  typeButtonStyle,
+                  selectedType === type && {backgroundColor: '#4CAF50'},
+                ]}>
+                <Text
+                  style={{color: selectedType === type ? 'white' : 'black'}}>
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <TextInput
+          placeholder="Event Description"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          style={[inputStyle, {height: 100}]}
+        />
+
+        <TouchableOpacity
+          onPress={() => generateContent('description')}
+          style={generateButtonStyle}>
+          <Text style={buttonTextStyle}>Generate Description</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          placeholder="Tags (comma-separated)"
+          value={tags}
+          onChangeText={setTags}
+          style={inputStyle}
+        />
+
+        <TouchableOpacity
+          onPress={() => generateContent('tags')}
+          style={generateButtonStyle}>
+          <Text style={buttonTextStyle}>Generate Tags</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={createEvent} style={createButtonStyle}>
           <Text style={buttonTextStyle}>Create Event</Text>
@@ -268,6 +405,26 @@ const datePickerStyle = {
   marginVertical: 10,
 };
 
+const dateOptionStyle = {
+  padding: 10,
+  borderRadius: 10,
+  borderColor: '#E0E0E0',
+  borderWidth: 1,
+  width: '30%',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginBottom: 10,
+};
+
+const timeOptionStyle = {
+  padding: 15,
+  borderRadius: 10,
+  borderColor: '#E0E0E0',
+  borderWidth: 1,
+  marginBottom: 10,
+  alignItems: 'center',
+};
+
 const dateTextStyle = {
   fontSize: 16,
   color: '#7d7d7d',
@@ -286,6 +443,12 @@ const createButtonStyle = {
   paddingVertical: 15,
   borderRadius: 10,
   marginTop: 20,
+};
+
+const locationPickerStyle = {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginVertical: 10,
 };
 
 export default AdminCreateScreen;

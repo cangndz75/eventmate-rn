@@ -313,24 +313,19 @@ app.get('/venues', async (req, res) => {
 });
 
 app.post('/generate', authenticateToken, async (req, res) => {
-  const {eventName} = req.body;
+  const {eventName, location} = req.body;
 
-  console.log('Received eventName:', eventName);
-
-  if (!eventName) {
-    return res.status(400).json({message: 'Event name is required'});
+  if (!eventName || !location) {
+    return res
+      .status(400)
+      .json({message: 'Event name and location are required'});
   }
 
-  try {
-    const prompt = `Generate a detailed description for the event: ${eventName}.`;
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generate`,
-      {prompt},
-      {headers: {Authorization: `Bearer ${process.env.GOOGLE_API_KEY}`}},
-    );
+  const prompt = `Generate a detailed description for the event: ${eventName} happening at ${location}.`;
 
-    const generatedText = response.data.choices[0].text.trim();
-    res.json({response: generatedText});
+  try {
+    const response = await generateText(prompt);
+    res.status(200).json({response});
   } catch (error) {
     console.error('Error generating content:', error.message);
     res.status(500).json({message: 'Failed to generate content'});

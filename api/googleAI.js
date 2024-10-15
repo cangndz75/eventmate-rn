@@ -1,11 +1,9 @@
-// api/googleAI.js
 const {
   GoogleGenerativeAI,
   HarmCategory,
   HarmBlockThreshold,
 } = require('@google/generative-ai');
 
-// Load API Key from environment variable
 const apiKey = process.env.GOOGLE_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
