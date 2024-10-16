@@ -364,7 +364,7 @@ app.post('/createevent', authenticateToken, async (req, res) => {
     !totalParticipants ||
     !organizer
   ) {
-    return res.status(400).json({message: 'All fields are required.'});
+    return res.status(400).json({ message: 'All fields are required.' });
   }
 
   try {
@@ -380,23 +380,29 @@ app.post('/createevent', authenticateToken, async (req, res) => {
       organizer,
     });
 
-    try {
-      await newEvent.save();
-    } catch (error) {
-      console.error('Error creating event:', error.message);
-      res.status(500).json({message: 'Failed to create event.'});
+    await newEvent.save(); // Save event in the database
+
+    // Find the venue by location name and add the event to its `eventsAvailable` field
+    const venue = await Venue.findOne({ name: location });
+
+    if (!venue) {
+      return res.status(404).json({ message: 'Venue not found.' });
     }
 
+    venue.eventsAvailable.push(newEvent._id); // Add event to venue's events
+    await venue.save(); // Save the updated venue
+
+    // Add the event to the organizer's event list
     const user = await User.findById(organizer);
     if (user) {
       user.events.push(newEvent._id);
       await user.save();
     }
 
-    res.status(200).json(newEvent);
+    res.status(200).json(newEvent); // Return the created event
   } catch (error) {
     console.error('Error creating event:', error.message);
-    res.status(500).json({message: 'Failed to create event.'});
+    res.status(500).json({ message: 'Failed to create event.' });
   }
 });
 
@@ -968,5 +974,32 @@ app.get('/events/:eventId', async (req, res) => {
   } catch (error) {
     console.error('Error fetching event:', error);
     res.status(500).json({message: 'Internal server error'});
+  }
+});
+
+app.post('/venues/:venueId/comments', async (req, res) => {
+  const {venueId} = req.params;
+  const {text, rating} = req.body;
+
+  if (!text || !rating) {
+    return res.status(400).json({message: 'Text and rating are required'});
+  }
+
+  try {
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({message: 'Venue not found'});
+    }
+
+    const newComment = {text, rating, date: new Date()};
+    venue.comments.push(newComment);
+    await venue.save();
+
+    res
+      .status(201)
+      .json({message: 'Comment added successfully', comment: newComment});
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });

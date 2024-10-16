@@ -128,7 +128,7 @@ const AdminCreateScreen = () => {
   const createEvent = async () => {
     if (
       !event.trim() ||
-      !taggedVenue.trim() ||
+      !taggedVenue.trim() || // Ensure a venue is selected
       !date.trim() ||
       !timeInterval.trim() ||
       !selectedType.trim() ||
@@ -136,7 +136,7 @@ const AdminCreateScreen = () => {
     ) {
       return Alert.alert('Error', 'All fields are required.');
     }
-  
+
     try {
       let token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -146,12 +146,12 @@ const AdminCreateScreen = () => {
         );
       }
       token = token.replace(/"/g, '');
-  
+
       const eventData = {
         title: event,
         description,
         tags: tags.split(',').map(tag => tag.trim()),
-        location: taggedVenue,
+        location: taggedVenue, // Send selected venue name
         date,
         time: timeInterval,
         eventType: selectedType.toLowerCase(),
@@ -159,7 +159,7 @@ const AdminCreateScreen = () => {
         organizer: userId,
         images,
       };
-  
+
       const response = await axios.post(
         'http://10.0.2.2:8000/createevent',
         eventData,
@@ -170,7 +170,7 @@ const AdminCreateScreen = () => {
           },
         },
       );
-  
+
       if (response.status === 200) {
         Alert.alert('Success', 'Event created successfully!', [
           {text: 'OK', onPress: () => navigation.navigate('AdminEvents')},
@@ -182,7 +182,10 @@ const AdminCreateScreen = () => {
       console.error('Event creation error:', error.message);
       if (error.response) {
         console.error('Response data:', error.response.data);
-        Alert.alert('Error', `Failed to create event: ${error.response.data.message}`);
+        Alert.alert(
+          'Error',
+          `Failed to create event: ${error.response.data.message}`,
+        );
       } else if (error.request) {
         console.error('Request data:', error.request);
         Alert.alert('Error', 'Network error. Please check your connection.');
@@ -192,7 +195,6 @@ const AdminCreateScreen = () => {
       }
     }
   };
-  
 
   const selectDate = selectedDate => {
     const formattedDate = moment(selectedDate, 'Do MMMM').format('YYYY-MM-DD');

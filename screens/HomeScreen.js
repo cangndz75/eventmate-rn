@@ -20,6 +20,21 @@ const HomeScreen = () => {
   const [eventList, setEventList] = useState([]);
   const [popularEvent, setPopularEvent] = useState(null);
   const [popularOrganizers, setPopularOrganizers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userId) {
+          await fetchEvents();
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [userId]);
 
   const fetchEvents = async () => {
     try {
@@ -30,8 +45,10 @@ const HomeScreen = () => {
         setPopularEvent(events[0]);
       }
       calculatePopularOrganizers(events);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching events:', error.message);
+      setIsLoading(false);
     }
   };
 
@@ -70,11 +87,13 @@ const HomeScreen = () => {
     }
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchEvents();
-    }
-  }, [userId]);
+  if (isLoading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text>Loading events...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={{flex: 1, backgroundColor: '#FFFFFF', padding: 16}}>
@@ -258,7 +277,9 @@ const HomeScreen = () => {
                       : 'heart-outline'
                   }
                   size={24}
-                  color={favorites && favorites.includes(item._id) ? 'red' : 'gray'}
+                  color={
+                    favorites && favorites.includes(item._id) ? 'red' : 'gray'
+                  }
                 />
               </TouchableOpacity>
             </Pressable>

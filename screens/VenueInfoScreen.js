@@ -1,16 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
-  Image,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  Text,
   View,
+  Text,
+  Image,
   ActivityIndicator,
 } from 'react-native';
-import {useRoute} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import axios from 'axios';
 
 const VenueInfoScreen = () => {
   const route = useRoute();
@@ -42,10 +37,7 @@ const VenueInfoScreen = () => {
         <Text>Loading Venue...</Text>
       </View>
     );
-  }
-
-  if (!venue) {
-    return (
+  return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <Text>No venue data found</Text>
       </View>
@@ -94,7 +86,7 @@ const VenueInfoScreen = () => {
           <View
             style={{
               flexDirection: 'row',
-              alignItems: 'center',
+    alignItems: 'center',
               marginVertical: 5,
             }}>
             <MaterialCommunityIcons
