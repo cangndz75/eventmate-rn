@@ -118,9 +118,31 @@ app.get('/user/:userId', async (req, res) => {
       return res.status(404).json({message: 'User not found'});
     }
 
-    return res.status(200).json({user});
+    res.status(200).json({user});
   } catch (error) {
-    res.status(500).json({message: 'Error fetching the user details'});
+    res.status(500).json({message: 'Error fetching user data'});
+  }
+});
+
+app.put('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { firstName, lastName, email, password, phone, country } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, email, password, phone, country },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Failed to update profile' });
   }
 });
 

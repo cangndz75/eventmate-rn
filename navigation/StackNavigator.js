@@ -32,6 +32,7 @@ import FavoritesScreen from '../screens/FavoritesScreen';
 import AdminCreateScreen from '../screens/admin/AdminCreateScreen';
 import HomeScreen from '../screens/HomeScreen';
 import AdminEventSetUpScreen from '../screens/admin/AdminEventSetUpScreen';
+import ProfileEditScreen from '../screens/ProfileEditScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -235,6 +236,7 @@ const StackNavigator = () => {
         <Stack.Screen name="Request" component={RequestChatRoom} />
         <Stack.Screen name="ChatRoom" component={ChatRoom} />
         <Stack.Screen name="Chats" component={ChatsScreen} />
+        <Stack.Screen name="ProfileEditScreen" component={ProfileEditScreen} />
         <Stack.Screen
           name="AdminDashboard"
           component={AdminDashboard}
