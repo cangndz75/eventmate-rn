@@ -8,12 +8,13 @@ import {
   TextInput,
   Text,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import {Button, Avatar} from '@rneui/themed';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+// Removed unused import
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
@@ -28,7 +29,7 @@ const EventSetUpScreen = () => {
   const [attendees, setAttendees] = useState([]);
   const [isRequestPending, setIsRequestPending] = useState(false);
   const [organizer, setOrganizer] = useState(null);
-  const [requests, setRequests] = useState([]);
+  // Removed unused state
   const eventId = route?.params?.item?._id;
 
   useEffect(() => {
@@ -36,6 +37,24 @@ const EventSetUpScreen = () => {
     fetchOrganizer();
     checkRequestStatus();
   }, []);
+
+  useEffect(() => {
+    const checkRequestStatus = async () => {
+      try {
+        const response = await axios.get(
+          `http://10.0.2.2:8000/events/${eventId}/requests`,
+        );
+        const requestExists = response.data.some(
+          request => request.userId === userId,
+        );
+        setIsRequestPending(requestExists);
+      } catch (error) {
+        console.error('Warning: Error checking request status:', error);
+      }
+    };
+
+    checkRequestStatus();
+  }, [eventId, userId]);
 
   useEffect(() => {
     console.log('Organizer state:', organizer);
@@ -49,7 +68,7 @@ const EventSetUpScreen = () => {
       );
       setAttendees(response.data);
     } catch (error) {
-      console.error('Failed to fetch attendees:', error);
+      console.error('Warning: Failed to fetch attendees:', error);
     }
   };
 
@@ -61,7 +80,7 @@ const EventSetUpScreen = () => {
       );
       setOrganizer(response.data);
     } catch (error) {
-      console.error('Failed to fetch organizer:', error);
+      console.error('Warning: Failed to fetch organizer:', error);
     }
   };
   const checkRequestStatus = async () => {
@@ -70,7 +89,7 @@ const EventSetUpScreen = () => {
         `http://10.0.2.2:8000/getrequests/${userId}`,
       );
       const requests = response.data;
-      const request = requests.find(req => req.eventId === eventId);
+      // Removed unused variable
       const pending = requests.some(
         req => req.eventId === eventId && req.status === 'pending',
       );
@@ -80,44 +99,50 @@ const EventSetUpScreen = () => {
     }
   };
 
-  const sendJoinRequest = async (eventId) => {
+  const sendJoinRequest = async () => {
     try {
+      if (!eventId || !userId) {
+        Alert.alert('Error', 'Event or user ID is missing.');
+        return;
+      }
+
       const response = await axios.post(
         `http://10.0.2.2:8000/events/${eventId}/request`,
-        { userId, comment }
+        {userId, comment}, // Kullanıcının mesajını buraya ekledik
       );
-  
+
       if (response.status === 200) {
         Alert.alert('Request Sent', 'Please wait for the host to accept!', [
-          { text: 'OK', onPress: () => setModalVisible(false) },
+          {text: 'OK', onPress: () => setModalVisible(false)},
         ]);
+        setIsRequestPending(true);
       }
     } catch (error) {
       console.error(
-        'Failed to send request:',
-        error.response ? error.response.data : error.message
+        'Warning: Failed to send request:',
+        error.response ? error.response.data : error.message,
       );
       Alert.alert('Error', 'Failed to send request');
     }
   };
-  
-  const cancelJoinRequest = async () => {
+
+  const cancelJoinRequest = async eventId => {
     try {
       const response = await axios.post(
         `http://10.0.2.2:8000/events/${eventId}/cancel-request`,
-        {
-          userId,
-        },
+        {userId},
       );
+
       if (response.status === 200) {
         Alert.alert(
           'Request Cancelled',
           'Your join request has been cancelled.',
+          [{text: 'OK', onPress: () => setIsRequestPending(false)}],
         );
-        setIsRequestPending(false);
       }
     } catch (error) {
-      console.error('Failed to cancel request:', error);
+      console.error('Warning: Failed to cancel request:', error);
+      Alert.alert('Error', 'Failed to cancel request');
     }
   };
 
@@ -292,34 +317,53 @@ const EventSetUpScreen = () => {
         </View>
       </ScrollView>
 
-      <Pressable
-        onPress={() => setModalVisible(!modalVisible)}
-        style={{
-          backgroundColor: '#07bc0c',
-          marginTop: 'auto',
-          marginBottom: 30,
-          padding: 15,
-          marginHorizontal: 10,
-          borderRadius: 4,
-        }}>
-        <Text
+      {isRequestPending ? (
+        <TouchableOpacity
+          onPress={() => cancelJoinRequest(eventId)}
           style={{
-            textAlign: 'center',
-            color: 'white',
-            fontSize: 15,
-            fontWeight: '500',
+            backgroundColor: 'red',
+            padding: 15,
+            margin: 10,
+            borderRadius: 4,
           }}>
-          JOIN EVENT
-        </Text>
-      </Pressable>
+          <Text
+            style={{
+              color: 'white',
+              textAlign: 'center',
+              fontSize: 15,
+              fontWeight: '500',
+            }}>
+            Cancel Request
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          onPress={() => sendJoinRequest(eventId, 'I want to join!')}
+          style={{
+            backgroundColor: 'green',
+            padding: 15,
+            margin: 10,
+            borderRadius: 4,
+          }}>
+          <Text
+            style={{
+              color: 'white',
+              textAlign: 'center',
+              fontSize: 15,
+              fontWeight: '500',
+            }}>
+            Join Event
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <BottomModal
-        onBackdropPress={() => setModalVisible(!modalVisible)}
+        onBackdropPress={() => setModalVisible(false)}
         swipeDirection={['up', 'down']}
         swipeThreshold={200}
         modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}
         visible={modalVisible}
-        onTouchOutside={() => setModalVisible(!modalVisible)}>
+        onTouchOutside={() => setModalVisible(false)}>
         <ModalContent
           style={{width: '100%', height: 400, backgroundColor: 'white'}}>
           <View>
@@ -328,7 +372,7 @@ const EventSetUpScreen = () => {
             </Text>
 
             <Text style={{marginTop: 25, color: 'gray'}}>
-              Please send the request if you are sure to attend.
+              Please enter a message to send with your join request.
             </Text>
 
             <View
@@ -342,11 +386,12 @@ const EventSetUpScreen = () => {
               }}>
               <TextInput
                 value={comment}
-                onChangeText={text => setComment(text)}
+                onChangeText={text => setComment(text)} // Yorumu kaydet
                 placeholder="Send a message to the host along with your request!"
+                style={{height: 100, textAlignVertical: 'top'}}
               />
               <Pressable
-                onPress={() => sendJoinRequest(route?.params?.item?._id)}
+                onPress={sendJoinRequest} // İsteği gönder
                 style={{
                   marginTop: 'auto',
                   backgroundColor: 'green',

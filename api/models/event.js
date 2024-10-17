@@ -10,7 +10,7 @@ const eventSchema = new Schema(
       required: true,
     },
     location: {type: String, required: true},
-    date: {type: Date, required: true},
+    date: {type: String, required: true},
     time: {type: String, required: true},
     totalParticipants: {type: Number, required: true},
     description: {type: String},

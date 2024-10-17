@@ -1,20 +1,51 @@
 import {Image, Pressable, Text, View} from 'react-native';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
   const {role} = useContext(AuthContext);
+  const [eventData, setEventData] = useState(item || null);
+  const [isBooked, setIsBooked] = useState(false);
+  const [loading, setLoading] = useState(true); // Track loading state
 
-  if (!item) return null;
+  useEffect(() => {
+    if (!item) {
+      fetchEventData(); // Fetch event details if not provided as a prop
+    } else {
+      setEventData(item);
+      setIsBooked(item?.isBooked || false);
+      setLoading(false); // Set loading to false once data is set
+    }
+  }, [item]);
+
+  const fetchEventData = async () => {
+    try {
+      const response = await axios.get(
+        `http://10.0.2.2:8000/events/${item?._id}`,
+      );
+      setEventData(response.data);
+    } catch (error) {
+      console.error('Error fetching event data:', error);
+    } finally {
+      setLoading(false); // Ensure loading state is updated
+    }
+  };
+
+  if (loading) {
+    return <Text>Loading...</Text>; // Show loading text while data is being fetched
+  }
+
+  if (!eventData) return null; // Handle case where event data is still not available
 
   return (
     <Pressable
       onPress={() =>
         navigation.navigate(
           role === 'organizer' ? 'AdminEventSetUp' : 'EventSetup',
-          {item},
+          {item: eventData},
         )
       }
       style={{
@@ -36,30 +67,32 @@ const UpComingEvent = ({item}) => {
           color: '#FF6347',
           marginBottom: 8,
         }}>
-        {new Date(item?.date).toDateString()}
+        {new Date(eventData?.date).toDateString()}
       </Text>
 
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
         <Image
           style={{width: 80, height: 80, borderRadius: 12, marginRight: 12}}
-          source={{uri: item?.organizerUrl || "https://www.placecage.com/100/100"}}
+          source={{
+            uri: eventData?.organizerUrl || 'https://www.placecage.com/100/100',
+          }}
         />
 
         <View style={{flex: 1}}>
           <Text style={{fontSize: 18, fontWeight: 'bold', color: '#333'}}>
-            {item?.title}
+            {eventData?.title}
           </Text>
           <Text style={{fontSize: 14, color: '#777', marginVertical: 4}}>
-            {item?.location}
+            {eventData?.location}
           </Text>
           <Text style={{fontSize: 14, color: '#999'}}>
-            Hosted by {item?.organizerName}
+            Hosted by {eventData?.organizerName}
           </Text>
         </View>
 
         <View style={{alignItems: 'center'}}>
           <Text style={{fontSize: 20, fontWeight: 'bold', color: '#FF6347'}}>
-            {item?.attendees?.length}
+            {eventData?.attendees?.length || 0}
           </Text>
           <Text style={{fontSize: 12, color: '#FF6347'}}>Going</Text>
         </View>
@@ -73,11 +106,14 @@ const UpComingEvent = ({item}) => {
           marginTop: 12,
         }}>
         <Text style={{fontSize: 14, fontWeight: '500', color: '#888'}}>
-          {item?.time}
+          {eventData?.time}
         </Text>
 
         {role === 'organizer' ? (
           <Pressable
+            onPress={() =>
+              navigation.navigate('AdminEventSetUp', {item: eventData})
+            }
             style={{
               backgroundColor: '#56cc79',
               paddingVertical: 8,
@@ -88,14 +124,15 @@ const UpComingEvent = ({item}) => {
           </Pressable>
         ) : (
           <Pressable
+            onPress={() => setIsBooked(prev => !prev)}
             style={{
-              backgroundColor: item?.isBooked ? '#56cc79' : '#FF6347',
+              backgroundColor: isBooked ? '#56cc79' : '#FF6347',
               paddingVertical: 8,
               paddingHorizontal: 20,
               borderRadius: 10,
             }}>
             <Text style={{color: 'white', fontWeight: '600'}}>
-              {item?.isBooked ? 'Booked' : 'Join'}
+              {isBooked ? 'Booked' : 'Join'}
             </Text>
           </Pressable>
         )}

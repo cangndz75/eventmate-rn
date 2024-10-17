@@ -355,16 +355,10 @@ app.post('/createevent', authenticateToken, async (req, res) => {
     organizer,
   } = req.body;
 
-  if (
-    !title ||
-    !location ||
-    !date ||
-    !time ||
-    !eventType ||
-    !totalParticipants ||
-    !organizer
-  ) {
-    return res.status(400).json({ message: 'All fields are required.' });
+  if (!title || !location || !eventType || !totalParticipants || !organizer) {
+    return res
+      .status(400)
+      .json({message: 'All fields are required except date.'});
   }
 
   try {
@@ -380,48 +374,29 @@ app.post('/createevent', authenticateToken, async (req, res) => {
       organizer,
     });
 
-    await newEvent.save(); // Save event in the database
+    await newEvent.save();
 
-    // Find the venue by location name and add the event to its `eventsAvailable` field
-    const venue = await Venue.findOne({ name: location });
-
-    if (!venue) {
-      return res.status(404).json({ message: 'Venue not found.' });
-    }
-
-    venue.eventsAvailable.push(newEvent._id); // Add event to venue's events
-    await venue.save(); // Save the updated venue
-
-    // Add the event to the organizer's event list
-    const user = await User.findById(organizer);
-    if (user) {
-      user.events.push(newEvent._id);
-      await user.save();
-    }
-
-    res.status(200).json(newEvent); // Return the created event
+    res.status(200).json(newEvent);
   } catch (error) {
     console.error('Error creating event:', error.message);
-    res.status(500).json({ message: 'Failed to create event.' });
+    res.status(500).json({message: 'Failed to create event.'});
   }
 });
 
 app.get('/events', async (req, res) => {
   const {organizerId, role} = req.query;
 
-  let filter = {};
-  if (role === 'organizer' && organizerId) {
-    filter = {organizer: mongoose.Types.ObjectId(organizerId)};
-  }
-
   try {
-    const events = await Event.find(filter)
-      .populate('organizer')
-      .populate('attendees', 'image firstName lastName');
+    let filter = {};
+    if (role === 'organizer' && organizerId) {
+      filter = {organizer: mongoose.Types.ObjectId(organizerId)};
+    }
+
+    const events = await Event.find(filter).populate('organizer');
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
-    res.status(400).json({message: 'Failed to fetch events'});
+    res.status(500).json({message: 'Failed to fetch events'});
   }
 });
 
@@ -486,13 +461,35 @@ app.post('/events/:eventId/request', async (req, res) => {
       return res.status(400).json({message: 'Request already sent'});
     }
 
-    event.requests.push({userId, comment});
+    event.requests.push({userId, comment, status: 'pending'});
     await event.save();
 
     res.status(200).json({message: 'Request sent successfully'});
   } catch (err) {
     console.error('Error processing join request:', err);
     res.status(500).json({message: 'Failed to send request'});
+  }
+});
+
+app.post('/events/:eventId/cancel-request', async (req, res) => {
+  try {
+    const {userId} = req.body;
+    const {eventId} = req.params;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({message: 'Event not found'});
+    }
+
+    event.requests = event.requests.filter(
+      request => request.userId.toString() !== userId,
+    );
+    await event.save();
+
+    res.status(200).json({message: 'Request cancelled successfully'});
+  } catch (err) {
+    console.error('Error cancelling request:', err);
+    res.status(500).json({message: 'Failed to cancel request'});
   }
 });
 
@@ -532,35 +529,31 @@ app.post('/events/:eventId/request', async (req, res) => {
 app.get('/events/:eventId/requests', async (req, res) => {
   try {
     const {eventId} = req.params;
+
     const event = await Event.findById(eventId).populate({
       path: 'requests.userId',
-      select:
-        'email firstName lastName image image skill noOfEvents eventPals events badges level points',
+      select: 'firstName lastName image email',
     });
 
     if (!event) {
-      return res.status(404).send('Event not found');
+      return res.status(404).json({message: 'Event not found'});
     }
 
-    const requestsWithUserInfo = event?.requests?.map(request => ({
+    const requestsWithUserInfo = event.requests.map(request => ({
+      requestId: request._id,
       userId: request.userId._id,
-      email: request.userId.email,
       firstName: request.userId.firstName,
       lastName: request.userId.lastName,
       image: request.userId.image,
-      skill: request.userId.skill,
-      noOfEvents: request.userId.noOfEvents,
-      eventPals: request.userId.eventPals,
-      events: request.userId.events,
-      badges: request.userId.badges,
-      level: request.userId.level,
-      points: request.userId.points,
+      email: request.userId.email,
       comment: request.comment,
+      status: request.status,
     }));
-    res.json(requestsWithUserInfo);
+
+    res.status(200).json(requestsWithUserInfo);
   } catch (error) {
-    console.log('Error:', error);
-    res.status(500).send('Error fetching events');
+    console.error('Error fetching requests:', error);
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
@@ -645,10 +638,31 @@ app.post('/accept', async (req, res) => {
   }
 });
 
+app.post('/reject', async (req, res) => {
+  try {
+    const {requestId, eventId} = req.body;
+
+    const event = await Event.findOneAndUpdate(
+      {_id: eventId, 'requests._id': requestId},
+      {$set: {'requests.$.status': 'rejected'}},
+      {new: true},
+    );
+
+    if (!event) {
+      return res.status(404).json({message: 'Request or Event not found'});
+    }
+
+    console.log(`Request rejected: ${requestId}`);
+    res.status(200).json({message: 'Request rejected'});
+  } catch (error) {
+    console.error('Error rejecting request:', error);
+    res.status(500).json({message: 'Server Error'});
+  }
+});
+
 app.post('/sendrequest', async (req, res) => {
   const {senderId, receiverId, message} = req.body;
 
-  // Ensure senderId and receiverId are not empty
   if (!senderId || !receiverId) {
     return res.status(400).json({message: 'Sender or Receiver ID is missing'});
   }
@@ -662,7 +676,6 @@ app.post('/sendrequest', async (req, res) => {
     return res.status(404).json({message: 'Receiver not found'});
   }
 
-  // Add request to the receiver's requests array
   receiver.requests.push({from: senderId, message});
   await receiver.save();
 
@@ -697,7 +710,6 @@ app.post('/acceptrequest', async (req, res) => {
       `Accepting request for userId: ${userId}, requestId: ${requestId}`,
     );
 
-    // Find both users
     const user = await User.findById(userId);
     const friend = await User.findById(requestId);
 
@@ -705,7 +717,6 @@ app.post('/acceptrequest', async (req, res) => {
       return res.status(404).json({message: 'User or Friend not found'});
     }
 
-    // Add each other as friends
     await User.findByIdAndUpdate(userId, {
       $push: {friends: requestId},
       $pull: {requests: {from: requestId}},
@@ -927,18 +938,55 @@ app.get('/venues/:venueId', async (req, res) => {
   const {venueId} = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(venueId)) {
-    return res.status(400).json({message: 'Invalid Venue ID'});
+    return res.status(400).json({ message: 'Invalid Venue ID' });
+  }
+
+  try {
+    const venue = await Venue.findById(venueId).populate({
+      path: 'eventsAvailable',
+      model: 'Event',
+      select: 'title eventType location date time price', 
+    });
+
+    if (!venue) {
+      return res.status(404).json({ message: 'Venue not found' });
+    }
+
+    res.status(200).json(venue);
+  } catch (error) {
+    console.error('Error fetching venue:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.get('/venues/:venueId/events', async (req, res) => {
+  const { venueId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(venueId)) {
+    return res.status(400).json({ message: 'Invalid Venue ID' });
   }
 
   try {
     const venue = await Venue.findById(venueId).populate('eventsAvailable');
-    if (!venue) return res.status(404).json({message: 'Venue not found'});
-    res.status(200).json(venue);
+    if (!venue) return res.status(404).json({ message: 'Venue not found' });
+
+    const events = venue.eventsAvailable.map(event => ({
+      _id: event._id,
+      title: event.title,
+      eventType: event.eventType,
+      price: event.price,
+      location: event.location,
+      date: event.date,
+      time: event.time,
+    }));
+
+    res.status(200).json(events);
   } catch (error) {
-    console.error('Error fetching venue:', error.message);
-    res.status(500).json({message: 'Internal Server Error'});
+    console.error('Error fetching events:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
 
 app.get('/event/:eventId/organizer', async (req, res) => {
   try {
