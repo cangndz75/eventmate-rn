@@ -7,6 +7,7 @@ import {
   Pressable,
   ImageBackground,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,44 +17,41 @@ import {AuthContext} from '../AuthContext';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const {userId, favorites, setFavorites} = useContext(AuthContext);
+  const {favorites, setFavorites} = useContext(AuthContext);
   const [eventList, setEventList] = useState([]);
   const [popularEvent, setPopularEvent] = useState(null);
   const [popularOrganizers, setPopularOrganizers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (userId) {
-          await fetchEvents();
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, [userId]);
+    fetchEvents();
+  }, []);
 
   const fetchEvents = async () => {
     try {
-      const eventListResponse = await axios.get('http://10.0.2.2:8000/events');
+      const token = await AsyncStorage.getItem('token');
+      const eventListResponse = await axios.get('http://10.0.2.2:8000/events', {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+
       const events = eventListResponse.data;
       setEventList(events);
+
       if (events.length > 0) {
         setPopularEvent(events[0]);
       }
+
       calculatePopularOrganizers(events);
-      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching events:', error.message);
+    } finally {
       setIsLoading(false);
     }
   };
 
   const calculatePopularOrganizers = events => {
     const organizerMap = {};
+
     events.forEach(event => {
       if (organizerMap[event.organizerId]) {
         organizerMap[event.organizerId].count += 1;
@@ -65,9 +63,11 @@ const HomeScreen = () => {
         };
       }
     });
+
     const sortedOrganizers = Object.values(organizerMap).sort(
       (a, b) => b.count - a.count,
     );
+
     setPopularOrganizers(sortedOrganizers.slice(0, 3));
   };
 
@@ -76,11 +76,12 @@ const HomeScreen = () => {
       const storedFavorites = await AsyncStorage.getItem('favorites');
       const favoritesArray = storedFavorites ? JSON.parse(storedFavorites) : [];
       const isFavorite = favoritesArray.includes(eventId);
-      let updatedFavorites = isFavorite
+
+      const updatedFavorites = isFavorite
         ? favoritesArray.filter(id => id !== eventId)
         : [...favoritesArray, eventId];
+
       await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-      await axios.post('http://10.0.2.2:8000/favorites', {userId, eventId});
       setFavorites(updatedFavorites);
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -90,6 +91,7 @@ const HomeScreen = () => {
   if (isLoading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color="#5c6bc0" />
         <Text>Loading events...</Text>
       </View>
     );
@@ -107,34 +109,6 @@ const HomeScreen = () => {
         <TouchableOpacity>
           <Ionicons name="notifications-outline" size={24} color="#333" />
         </TouchableOpacity>
-      </View>
-
-      <View style={{marginBottom: 20}}>
-        <Text style={{fontSize: 18, fontWeight: '700', marginBottom: 10}}>
-          Categories
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {['Music Festival', 'Sport Events', 'Fashion Shows', 'Book Fair'].map(
-            (category, index) => (
-              <View
-                key={index}
-                style={{
-                  backgroundColor: '#F5F5F5',
-                  borderRadius: 10,
-                  padding: 20,
-                  marginRight: 15,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 120,
-                  height: 100,
-                }}>
-                <Text style={{fontSize: 14, fontWeight: '600'}}>
-                  {category}
-                </Text>
-              </View>
-            ),
-          )}
-        </ScrollView>
       </View>
 
       <View style={{marginBottom: 20}}>
@@ -242,30 +216,6 @@ const HomeScreen = () => {
                     {item.location}
                   </Text>
                 </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 8,
-                  }}>
-                  {item.attendees.slice(0, 3).map((attendee, index) => (
-                    <Image
-                      key={index}
-                      source={{uri: attendee.imageUrl}}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 12,
-                        marginLeft: index === 0 ? 0 : -8,
-                        borderWidth: 2,
-                        borderColor: '#fff',
-                      }}
-                    />
-                  ))}
-                  <Text style={{marginLeft: 10, color: '#777', fontSize: 12}}>
-                    +{item.attendees.length} Going
-                  </Text>
-                </View>
               </View>
               <TouchableOpacity
                 onPress={() => toggleFavorite(item._id)}
@@ -283,52 +233,6 @@ const HomeScreen = () => {
                 />
               </TouchableOpacity>
             </Pressable>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={{marginBottom: 20}}>
-        <Text style={{fontSize: 18, fontWeight: '700', marginBottom: 10}}>
-          Popular Organizers 🎤
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {popularOrganizers.map((organizer, index) => (
-            <View
-              key={index}
-              style={{
-                width: 180,
-                marginRight: 16,
-                backgroundColor: '#FFFFFF',
-                borderRadius: 15,
-                padding: 10,
-                shadowColor: '#000',
-                shadowOffset: {width: 0, height: 2},
-                shadowOpacity: 0.1,
-                shadowRadius: 3,
-                elevation: 5,
-              }}>
-              <Image
-                source={{uri: organizer.profileImage}}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  alignSelf: 'center',
-                }}
-              />
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  textAlign: 'center',
-                  marginVertical: 5,
-                }}>
-                {organizer.name}
-              </Text>
-              <Text style={{textAlign: 'center', color: '#777', fontSize: 12}}>
-                {organizer.count} Events
-              </Text>
-            </View>
           ))}
         </ScrollView>
       </View>

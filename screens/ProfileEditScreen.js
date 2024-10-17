@@ -71,90 +71,94 @@ const ProfileEditScreen = () => {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
       <ScrollView contentContainerStyle={{padding: 20}}>
-        <View style={{alignItems: 'center', marginBottom: 20}}>
-          <Image
-            source={{uri: userData.image || 'https://via.placeholder.com/100'}}
-            style={{width: 100, height: 100, borderRadius: 50}}
-          />
-          <TouchableOpacity
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              right: 10,
-              backgroundColor: '#5c6bc0',
-              borderRadius: 15,
-              padding: 5,
-            }}>
-            <Ionicons name="pencil" size={16} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        {userData && (
+          <>
+            <View style={{alignItems: 'center', marginBottom: 20}}>
+              <Image
+                source={{uri: userData.image || 'https://via.placeholder.com/100'}}
+                style={{width: 100, height: 100, borderRadius: 50}}
+              />
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 10,
+                  backgroundColor: '#5c6bc0',
+                  borderRadius: 15,
+                  padding: 5,
+                }}>
+                <Ionicons name="pencil" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={userData.firstName}
-            onChangeText={text => setUserData({...userData, firstName: text})}
-            style={styles.input}
-            placeholder="First Name"
-          />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={userData.firstName}
+                onChangeText={text => setUserData({...userData, firstName: text})}
+                style={styles.input}
+                placeholder="First Name"
+              />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={userData.lastName}
-            onChangeText={text => setUserData({...userData, lastName: text})}
-            style={styles.input}
-            placeholder="Last Name"
-          />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={userData.lastName}
+                onChangeText={text => setUserData({...userData, lastName: text})}
+                style={styles.input}
+                placeholder="Last Name"
+              />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={userData.email}
-            onChangeText={text => setUserData({...userData, email: text})}
-            style={styles.input}
-            placeholder="Email"
-          />
-          <Ionicons name="mail-outline" size={20} color="#555" />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={userData.email}
+                onChangeText={text => setUserData({...userData, email: text})}
+                style={styles.input}
+                placeholder="Email"
+              />
+              <Ionicons name="mail-outline" size={20} color="#555" />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={userData.password}
-            onChangeText={text => setUserData({...userData, password: text})}
-            style={styles.input}
-            secureTextEntry={true}
-            placeholder="Password"
-          />
-          <MaterialIcons name="lock-outline" size={20} color="#555" />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={userData.password}
+                onChangeText={text => setUserData({...userData, password: text})}
+                style={styles.input}
+                secureTextEntry={true}
+                placeholder="Password"
+              />
+              <MaterialIcons name="lock-outline" size={20} color="#555" />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={userData.phone || ''}
-            onChangeText={text => setUserData({...userData, phone: text})}
-            style={styles.input}
-            placeholder="Phone"
-          />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={userData.phone || ''}
+                onChangeText={text => setUserData({...userData, phone: text})}
+                style={styles.input}
+                placeholder="Phone"
+              />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={userData.country || ''}
-            onChangeText={text => setUserData({...userData, country: text})}
-            style={styles.input}
-            placeholder="Country"
-          />
-          <Ionicons name="chevron-down" size={20} color="#555" />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={userData.country || ''}
+                onChangeText={text => setUserData({...userData, country: text})}
+                style={styles.input}
+                placeholder="Country"
+              />
+              <Ionicons name="chevron-down" size={20} color="#555" />
+            </View>
 
-        <TouchableOpacity
-          onPress={handleUpdate}
-          style={styles.updateButton}
-          disabled={isUpdating}>
-          <Text style={styles.updateButtonText}>
-            {isUpdating ? 'Updating...' : 'Update Profile'}
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleUpdate}
+              style={styles.updateButton}
+              disabled={isUpdating}>
+              <Text style={styles.updateButtonText}>
+                {isUpdating ? 'Updating...' : 'Update Profile'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

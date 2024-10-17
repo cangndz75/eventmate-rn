@@ -20,45 +20,35 @@ const LoginScreen = () => {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Please enter both email and password');
-      return;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      Alert.alert('Please enter a valid email address');
-      return;
-    }
-
     try {
       setIsLoading(true);
       const response = await axios.post('http://10.0.2.2:8000/login', {
         email,
         password,
       });
-
-      const {token, role} = response.data;
+  
+      const { token, role, userId } = response.data;
       await AsyncStorage.setItem('token', token);
       setToken(token);
-      setRole(role);
-
+      setUserId(userId);
+  
       Alert.alert('Login Successful');
-
-      if (role === 'organizer') {
-        navigation.navigate('AdminDashboard');
-      } else {
-        navigation.navigate('Home');
-      }
+  
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
       Alert.alert(
         'Login failed',
-        error.response?.data?.message || 'Something went wrong',
+        error.response?.data?.message || 'Something went wrong'
       );
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <View style={{flex: 1, justifyContent: 'center', padding: 20}}>

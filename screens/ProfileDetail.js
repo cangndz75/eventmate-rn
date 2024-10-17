@@ -7,7 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import React, {useContext, useState, useCallback} from 'react';
+import React, {useContext, useState, useCallback, useEffect} from 'react';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,31 +23,49 @@ const ProfileDetailScreen = () => {
   const [visible, setVisible] = useState(false);
   const {userId, token, setToken, setUserId} = useContext(AuthContext);
 
-  // Fetch user data function
+  useEffect(() => {
+    if (!userId) {
+      console.error('User ID is undefined');
+      navigation.replace('Start'); // Redirect to Start screen if userId is undefined
+    }
+  }, [userId, navigation]);
+
   const fetchUser = async () => {
     try {
       console.log('Fetching data for user:', userId);
+      if (!userId) {
+        throw new Error('User ID is undefined');
+      }
       const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
       setUser(response.data);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      if (error.response) {
+        console.error('Error fetching user data:', error.response.data);
+        console.error('Status code:', error.response.status);
+        console.error('Headers:', error.response.headers);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      } else {
+        console.error('Error setting up request:', error.message);
+      }
+      console.error('Error config:', error.config);
     }
   };
 
-  // Ensure the data refreshes whenever the user navigates to this screen
   useFocusEffect(
     useCallback(() => {
-      fetchUser(); // Fetch data when the screen is focused
+      if (userId) {
+        fetchUser();
+      }
     }, [userId]),
   );
 
-  // Clear authentication token on logout
   const clearAuthToken = async () => {
     try {
       await AsyncStorage.removeItem('token');
       setToken('');
       setUserId('');
-      navigation.replace('Start'); // Redirect to the Start screen
+      navigation.replace('Start'); 
     } catch (error) {
       console.log('Error during logout:', error);
     }
