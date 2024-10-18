@@ -1,17 +1,17 @@
-import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
   SafeAreaView,
-  Image,
-  Pressable,
   ScrollView,
   FlatList,
   ActivityIndicator,
+  Pressable,
+  TextInput,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
+import {useContext, useEffect, useState} from 'react';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import UpComingEvent from '../components/UpComingEvent';
@@ -20,7 +20,11 @@ const EventScreen = () => {
   const {userId, role, user} = useContext(AuthContext);
   const navigation = useNavigation();
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+
+  const categories = ['All', 'Sports', 'Music', 'Football'];
 
   useEffect(() => {
     fetchEvents();
@@ -35,11 +39,18 @@ const EventScreen = () => {
       const response = await axios.get(url);
       setEvents(response.data);
     } catch (error) {
-      console.log('Error fetching events:', error);
+      console.error('Error fetching events:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const filteredEvents = events.filter(
+    event =>
+      (selectedCategory === 'All' ||
+        event.eventType === selectedCategory.toLowerCase()) &&
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   if (loading) {
     return (
@@ -56,8 +67,8 @@ const EventScreen = () => {
           <View
             style={{
               flexDirection: 'row',
-              alignItems: 'center',
               justifyContent: 'space-between',
+              alignItems: 'center',
             }}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>
@@ -72,47 +83,49 @@ const EventScreen = () => {
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Ionicons name="chatbox-outline" size={24} color="white" />
               <Ionicons name="notifications-outline" size={24} color="white" />
-              <Image
-                style={{width: 30, height: 30, borderRadius: 15}}
-                source={{uri: user?.image || 'https://via.placeholder.com/150'}}
-              />
             </View>
           </View>
 
-          <View style={{marginTop: 15}}>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: 'white',
-                borderRadius: 8,
-                padding: 10,
-                alignItems: 'center',
-              }}>
-              <Ionicons name="search-outline" size={20} color="gray" />
-              <Text style={{color: 'gray', marginLeft: 10, fontSize: 16}}>
-                Search events
-              </Text>
-            </View>
+          <View
+            style={{
+              marginTop: 15,
+              backgroundColor: 'white',
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+            }}>
+            <Ionicons name="search-outline" size={20} color="gray" />
+            <TextInput
+              placeholder="Search events"
+              style={{flex: 1, marginLeft: 10, fontSize: 16}}
+              value={searchQuery}
+              onChangeText={text => setSearchQuery(text)}
+            />
           </View>
 
-          <View style={{flexDirection: 'row', marginVertical: 20}}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {['Sports', 'Music', 'Food'].map((category, index) => (
-                <Pressable
-                  key={index}
+          <View style={{marginVertical: 15, flexDirection: 'row'}}>
+            {categories.map((category, index) => (
+              <Pressable
+                key={index}
+                onPress={() => setSelectedCategory(category)}
+                style={{
+                  backgroundColor:
+                    selectedCategory === category ? '#ff6b6b' : '#ddd',
+                  borderRadius: 20,
+                  paddingHorizontal: 15,
+                  paddingVertical: 8,
+                  marginRight: 10,
+                }}>
+                <Text
                   style={{
-                    backgroundColor: '#ff6b6b',
-                    borderRadius: 20,
-                    paddingHorizontal: 15,
-                    paddingVertical: 8,
-                    marginRight: 10,
+                    color: selectedCategory === category ? 'white' : '#000',
                   }}>
-                  <Text style={{color: 'white', fontWeight: '600'}}>
-                    {category}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+                  {category}
+                </Text>
+              </Pressable>
+            ))}
           </View>
         </View>
 
@@ -121,13 +134,28 @@ const EventScreen = () => {
             {role === 'organizer' ? 'My Events' : 'All Events'}
           </Text>
 
-          <FlatList
-            data={events}
-            renderItem={({item}) => <UpComingEvent item={item} />}
-            keyExtractor={item => item._id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{paddingVertical: 10}}
-          />
+          {filteredEvents.length === 0 ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginTop: 50,
+              }}>
+              <Ionicons name="calendar-outline" size={48} color="#888" />
+              <Text style={{fontSize: 18, color: '#888', marginTop: 8}}>
+                No Events
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredEvents}
+              renderItem={({item}) => <UpComingEvent item={item} />}
+              keyExtractor={item => item._id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{paddingVertical: 10}}
+            />
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

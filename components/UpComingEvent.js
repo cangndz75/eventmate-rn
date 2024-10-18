@@ -1,23 +1,24 @@
-import {Image, Pressable, Text, View} from 'react-native';
+import {Image, Pressable, Text, View, ActivityIndicator} from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
   const {role} = useContext(AuthContext);
   const [eventData, setEventData] = useState(item || null);
   const [isBooked, setIsBooked] = useState(false);
-  const [loading, setLoading] = useState(true); // Track loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!item) {
-      fetchEventData(); // Fetch event details if not provided as a prop
+      fetchEventData();
     } else {
       setEventData(item);
       setIsBooked(item?.isBooked || false);
-      setLoading(false); // Set loading to false once data is set
+      setLoading(false);
     }
   }, [item]);
 
@@ -30,15 +31,28 @@ const UpComingEvent = ({item}) => {
     } catch (error) {
       console.error('Error fetching event data:', error);
     } finally {
-      setLoading(false); // Ensure loading state is updated
+      setLoading(false);
     }
   };
 
   if (loading) {
-    return <Text>Loading...</Text>; // Show loading text while data is being fetched
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color="#07bc0c" />
+      </View>
+    );
   }
 
-  if (!eventData) return null; // Handle case where event data is still not available
+  if (!eventData) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Ionicons name="calendar-outline" size={48} color="#888" />
+        <Text style={{fontSize: 18, color: '#888', marginTop: 8}}>
+          No Events
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <Pressable

@@ -14,7 +14,6 @@ import {Button, Avatar} from '@rneui/themed';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-// Removed unused import
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
@@ -29,7 +28,6 @@ const EventSetUpScreen = () => {
   const [attendees, setAttendees] = useState([]);
   const [isRequestPending, setIsRequestPending] = useState(false);
   const [organizer, setOrganizer] = useState(null);
-  // Removed unused state
   const eventId = route?.params?.item?._id;
 
   useEffect(() => {
@@ -50,6 +48,7 @@ const EventSetUpScreen = () => {
         setIsRequestPending(requestExists);
       } catch (error) {
         console.error('Warning: Error checking request status:', error);
+        Alert.alert('Error', 'Failed to check request status. Please try again later.');
       }
     };
 
@@ -69,6 +68,7 @@ const EventSetUpScreen = () => {
       setAttendees(response.data);
     } catch (error) {
       console.error('Warning: Failed to fetch attendees:', error);
+      Alert.alert('Error', 'Failed to fetch attendees. Please try again later.');
     }
   };
 
@@ -81,21 +81,23 @@ const EventSetUpScreen = () => {
       setOrganizer(response.data);
     } catch (error) {
       console.error('Warning: Failed to fetch organizer:', error);
+      Alert.alert('Error', 'Failed to fetch organizer. Please try again later.');
     }
   };
+
   const checkRequestStatus = async () => {
     try {
       const response = await axios.get(
         `http://10.0.2.2:8000/getrequests/${userId}`,
       );
       const requests = response.data;
-      // Removed unused variable
       const pending = requests.some(
         req => req.eventId === eventId && req.status === 'pending',
       );
       setIsRequestPending(pending);
     } catch (error) {
       console.error('Error checking request status:', error);
+      Alert.alert('Error', 'Failed to check request status. Please try again later.');
     }
   };
 
@@ -108,7 +110,7 @@ const EventSetUpScreen = () => {
 
       const response = await axios.post(
         `http://10.0.2.2:8000/events/${eventId}/request`,
-        {userId, comment}, // Kullanıcının mesajını buraya ekledik
+        {userId, comment},
       );
 
       if (response.status === 200) {
@@ -122,7 +124,7 @@ const EventSetUpScreen = () => {
         'Warning: Failed to send request:',
         error.response ? error.response.data : error.message,
       );
-      Alert.alert('Error', 'Failed to send request');
+      Alert.alert('Error', 'Failed to send request. Please try again later.');
     }
   };
 
@@ -142,7 +144,7 @@ const EventSetUpScreen = () => {
       }
     } catch (error) {
       console.error('Warning: Failed to cancel request:', error);
-      Alert.alert('Error', 'Failed to cancel request');
+      Alert.alert('Error', 'Failed to cancel request. Please try again later.');
     }
   };
 
@@ -386,12 +388,12 @@ const EventSetUpScreen = () => {
               }}>
               <TextInput
                 value={comment}
-                onChangeText={text => setComment(text)} // Yorumu kaydet
+                onChangeText={text => setComment(text)}
                 placeholder="Send a message to the host along with your request!"
                 style={{height: 100, textAlignVertical: 'top'}}
               />
               <Pressable
-                onPress={sendJoinRequest} // İsteği gönder
+                onPress={sendJoinRequest}
                 style={{
                   marginTop: 'auto',
                   backgroundColor: 'green',
