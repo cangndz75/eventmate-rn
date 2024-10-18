@@ -26,7 +26,7 @@ const ProfileDetailScreen = () => {
   useEffect(() => {
     if (!userId) {
       console.error('User ID is undefined');
-      navigation.replace('Start'); // Redirect to Start screen if userId is undefined
+      navigation.replace('Login');
     }
   }, [userId, navigation]);
 
