@@ -392,7 +392,7 @@ app.post('/generate', authenticateToken, async (req, res) => {
 });
 
 app.post('/createevent', authenticateToken, async (req, res) => {
-  console.log('Received event data:', req.body); // Debugging log
+  console.log('Received event data:', req.body); 
 
   const {
     title, description, tags, location, date, time, eventType,

@@ -130,15 +130,18 @@ const AdminCreateScreen = () => {
 
   const refreshToken = async () => {
     try {
-      const refreshToken = await AsyncStorage.getItem('refreshToken');
-      if (!refreshToken) {
+      const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
+      if (!storedRefreshToken) {
         throw new Error('No refresh token found');
       }
   
-      const response = await axios.post('http://10.0.2.2:8000/refresh', { token: refreshToken });
+      const response = await axios.post('http://10.0.2.2:8000/refresh', {
+        token: storedRefreshToken.replace(/"/g, ''),
+      });
   
       if (response.status === 200) {
         const newToken = response.data.token;
+        console.log('New token:', newToken);
         await AsyncStorage.setItem('token', JSON.stringify(newToken));
         return newToken;
       } else {
@@ -146,8 +149,6 @@ const AdminCreateScreen = () => {
       }
     } catch (error) {
       console.error('Token refresh error:', error.message);
-      Alert.alert('Error', 'Session expired. Please login again.');
-      navigation.replace('Login');  
       throw error;
     }
   };
@@ -155,6 +156,10 @@ const AdminCreateScreen = () => {
   
   const createEvent = async () => {
     try {
+      if (!event || !taggedVenue || !selectedType || !noOfParticipants || !userId) {
+        return Alert.alert('Error', 'Please fill in all required fields.');
+      }
+  
       let token = await AsyncStorage.getItem('token');
       if (!token) {
         return Alert.alert('Error', 'Authentication failed. Please login again.');
@@ -163,16 +168,16 @@ const AdminCreateScreen = () => {
   
       const eventData = {
         title: event,
-        description,
-        tags: tags.split(',').map(tag => tag.trim()),
+        description: description || '', // Optional field
+        tags: tags ? tags.split(',').map(tag => tag.trim()) : [], // Optional field
         location: taggedVenue,
-        date,
-        time: timeInterval,
+        date: date || '', // Optional field
+        time: timeInterval || '', // Optional field
         eventType: selectedType.toLowerCase(),
         totalParticipants: parseInt(noOfParticipants, 10),
         organizer: userId,
-        images,
-        isPaid,
+        images: images || [],
+        isPaid: isPaid,
         price: isPaid ? parseFloat(price) : 0,
       };
   
@@ -211,6 +216,8 @@ const AdminCreateScreen = () => {
       }
     }
   };
+  
+  
   
   
   

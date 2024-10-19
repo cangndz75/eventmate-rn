@@ -88,7 +88,7 @@ const UpComingEvent = ({item}) => {
         <Image
           style={{width: 80, height: 80, borderRadius: 12, marginRight: 12}}
           source={{
-            uri: eventData?.organizerUrl || 'https://via.placeholder.com/100',
+            uri: eventData?.images?.[0] || 'https://via.placeholder.com/100',
           }}
           onError={e => console.log('Image loading failed', e.nativeEvent)}
         />
