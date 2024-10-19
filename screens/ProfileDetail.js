@@ -123,14 +123,14 @@ const ProfileDetailScreen = () => {
                   {user?.user?.eventPals?.length}
                 </Text>
                 <Text style={{color: 'gray', marginTop: 6, fontSize: 13}}>
-                  PLAYPALS
+                  FRIENDS
                 </Text>
               </View>
 
               <View>
                 <Text style={{textAlign: 'center'}}>60</Text>
                 <Text style={{color: 'gray', marginTop: 6, fontSize: 13}}>
-                  KARMA
+                  POINTS
                 </Text>
               </View>
             </View>

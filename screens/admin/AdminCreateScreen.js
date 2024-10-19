@@ -232,9 +232,15 @@ const AdminCreateScreen = () => {
         </TouchableOpacity>
 
         <ScrollView horizontal style={{marginBottom: 10}}>
-          {images.map((image, index) => (
-            <Image key={index} source={{uri: image.uri}} style={imageStyle} />
-          ))}
+          {images.map((image, index) =>
+            image ? (
+              <Image
+                key={index}
+                source={{uri: image.uri || 'https://via.placeholder.com/150'}}
+                style={imageStyle}
+              />
+            ) : null,
+          )}
         </ScrollView>
 
         <TextInput

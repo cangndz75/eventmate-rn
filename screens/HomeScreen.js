@@ -182,7 +182,7 @@ const HomeScreen = () => {
           {eventList.map(item => (
             <Pressable
               key={item._id}
-              onPress={() => navigation.navigate('Event', {item})}
+              onPress={() => navigation.navigate('EventSetUp', {item})}
               style={{
                 width: 180,
                 marginRight: 16,

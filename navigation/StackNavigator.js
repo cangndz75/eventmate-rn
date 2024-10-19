@@ -233,6 +233,8 @@ const StackNavigator = () => {
           component={PeopleScreen}
           options={{headerShown: false}}
         />
+        <Stack.Screen name="Event" component={EventScreen} />
+        <Stack.Screen name="EventSetUp" component={EventSetUpScreen} />
         <Stack.Screen name="Request" component={RequestChatRoom} />
         <Stack.Screen name="ChatRoom" component={ChatRoom} />
         <Stack.Screen name="Chats" component={ChatsScreen} />

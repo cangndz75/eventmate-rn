@@ -406,21 +406,23 @@ app.post('/createevent', authenticateToken, async (req, res) => {
 });
 
 app.get('/events', async (req, res) => {
-  const {organizerId, role} = req.query;
+  const { organizerId, role } = req.query;
 
   try {
     let filter = {};
+
     if (role === 'organizer' && organizerId) {
-      filter = {organizer: mongoose.Types.ObjectId(organizerId)};
+      filter = { organizer: mongoose.Types.ObjectId(organizerId) };
     }
 
     const events = await Event.find(filter).populate('organizer');
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
-    res.status(500).json({message: 'Failed to fetch events'});
+    res.status(500).json({ message: 'Failed to fetch events' });
   }
 });
+
 
 app.get('/upcoming', async (req, res) => {
   try {
@@ -467,31 +469,32 @@ app.get('/upcoming', async (req, res) => {
 
 app.post('/events/:eventId/request', async (req, res) => {
   try {
-    const {userId, comment} = req.body;
-    const {eventId} = req.params;
+    const { userId, comment } = req.body;
+    const { eventId } = req.params;
 
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
     }
 
     const existingRequest = event.requests.find(
-      request => request.userId.toString() === userId,
+      request => request.userId.toString() === userId
     );
 
     if (existingRequest) {
-      return res.status(400).json({message: 'Request already sent'});
+      return res.status(400).json({ message: 'Request already sent' });
     }
 
-    event.requests.push({userId, comment, status: 'pending'});
+    event.requests.push({ userId, comment, status: 'pending' });
     await event.save();
 
-    res.status(200).json({message: 'Request sent successfully'});
+    res.status(200).json({ message: 'Request sent successfully' });
   } catch (err) {
     console.error('Error processing join request:', err);
-    res.status(500).json({message: 'Failed to send request'});
+    res.status(500).json({ message: 'Failed to send request' });
   }
 });
+
 
 app.post('/events/:eventId/cancel-request', async (req, res) => {
   try {
@@ -550,15 +553,14 @@ app.post('/events/:eventId/cancel-request', async (req, res) => {
 
 app.get('/events/:eventId/requests', async (req, res) => {
   try {
-    const {eventId} = req.params;
-
+    const { eventId } = req.params;
     const event = await Event.findById(eventId).populate({
       path: 'requests.userId',
       select: 'firstName lastName image email',
     });
 
     if (!event) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
     }
 
     const requestsWithUserInfo = event.requests.map(request => ({
@@ -575,7 +577,7 @@ app.get('/events/:eventId/requests', async (req, res) => {
     res.status(200).json(requestsWithUserInfo);
   } catch (error) {
     console.error('Error fetching requests:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -629,36 +631,34 @@ app.put('/updateAllUsersToAddOrganizer', async (req, res) => {
 });
 
 app.post('/accept', async (req, res) => {
-  const {eventId, userId} = req.body;
-
-  console.log('user', userId);
-
-  console.log('heyy', eventId);
+  const { eventId, userId } = req.body;
 
   try {
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
     event.attendees.push(userId);
+    event.requests = event.requests.filter(req => req.userId.toString() !== userId);
 
-    await Event.findByIdAndUpdate(
-      eventId,
-      {
-        $pull: {requests: {userId: userId}},
-      },
-      {new: true},
-    );
+    user.events.push(eventId);
 
     await event.save();
+    await user.save();
 
-    res.status(200).json({message: 'Request accepted', event});
+    res.status(200).json({ message: 'Request accepted', event });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({message: 'Server error'});
+    console.error('Error accepting request:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 app.post('/reject', async (req, res) => {
   try {
