@@ -18,6 +18,7 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EventSetUpScreen = () => {
   const navigation = useNavigation();
@@ -57,6 +58,25 @@ const EventSetUpScreen = () => {
     }
   };
 
+  const saveRequestStatus = async (status) => {
+    try {
+      await AsyncStorage.setItem(`requestStatus-${eventId}`, status);
+    } catch (error) {
+      console.error('Failed to save request status:', error);
+    }
+  };
+  
+  const loadRequestStatus = async () => {
+    try {
+      const status = await AsyncStorage.getItem(`requestStatus-${eventId}`);
+      if (status) {
+        setRequestStatus(status);
+      }
+    } catch (error) {
+      console.error('Failed to load request status:', error);
+    }
+  };
+  
   const checkRequestStatus = async () => {
     try {
       const response = await axios.get(
@@ -95,6 +115,7 @@ const EventSetUpScreen = () => {
         comment,
       });
       setRequestStatus('pending');
+      await saveRequestStatus('pending');  
       setModalVisible(false);
       Alert.alert('Request Sent', 'Your join request is pending approval.');
     } catch (error) {
@@ -104,6 +125,7 @@ const EventSetUpScreen = () => {
       );
     }
   };
+  
   
   const cancelJoinRequest = async () => {
     try {
@@ -187,6 +209,7 @@ const EventSetUpScreen = () => {
         return null;
     }
   };
+  
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
       <ScrollView>

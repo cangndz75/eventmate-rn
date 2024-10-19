@@ -13,11 +13,14 @@ const app = express();
 const port = process.env.PORT || 8000;
 const generateRoute = require('./routes/generateRoute');
 const axios = require('axios');
+const refreshTokens= [];
+const path = require('path');
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use('/generate', generateRoute);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -44,6 +47,30 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+app.post('/refresh', async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.status(400).json({ message: 'Refresh token is required' });
+  }
+
+  try {
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+      if (err) return res.status(403).json({ message: 'Invalid refresh token' });
+
+      const newAccessToken = jwt.sign(
+        { userId: user.userId, role: user.role },
+        process.env.JWT_SECRET_KEY,
+        { expiresIn: '1h' }
+      );
+
+      res.status(200).json({ token: newAccessToken });
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 
 app.post('/register', async (req, res) => {
   try {
@@ -365,22 +392,15 @@ app.post('/generate', authenticateToken, async (req, res) => {
 });
 
 app.post('/createevent', authenticateToken, async (req, res) => {
+  console.log('Received event data:', req.body); // Debugging log
+
   const {
-    title,
-    description,
-    tags,
-    location,
-    date,
-    time,
-    eventType,
-    totalParticipants,
-    organizer,
+    title, description, tags, location, date, time, eventType,
+    totalParticipants, organizer, images, isPaid, price
   } = req.body;
 
   if (!title || !location || !eventType || !totalParticipants || !organizer) {
-    return res
-      .status(400)
-      .json({message: 'All fields are required except date.'});
+    return res.status(400).json({ message: 'All fields are required except date.' });
   }
 
   try {
@@ -394,16 +414,20 @@ app.post('/createevent', authenticateToken, async (req, res) => {
       eventType,
       totalParticipants,
       organizer,
+      images,
+      isPaid,
+      price: isPaid ? price : null,
     });
 
     await newEvent.save();
-
     res.status(200).json(newEvent);
   } catch (error) {
     console.error('Error creating event:', error.message);
-    res.status(500).json({message: 'Failed to create event.'});
+    res.status(500).json({ message: 'Failed to create event.' });
   }
 });
+
+
 
 app.get('/events', async (req, res) => {
   const { organizerId, role } = req.query;
@@ -633,29 +657,41 @@ app.put('/updateAllUsersToAddOrganizer', async (req, res) => {
 app.post('/accept', async (req, res) => {
   const { eventId, userId } = req.body;
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId).session(session);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      throw new Error(`Event not found with ID: ${eventId}`);
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).session(session);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      throw new Error(`User not found with ID: ${userId}`);
     }
 
-    event.attendees.push(userId);
+    if (!event.attendees.includes(userId)) {
+      event.attendees.push(userId);
+    }
+
     event.requests = event.requests.filter(req => req.userId.toString() !== userId);
 
-    user.events.push(eventId);
+    if (!user.events.includes(eventId)) {
+      user.events.push(eventId);
+    }
 
-    await event.save();
-    await user.save();
+    await event.save({ session });
+    await user.save({ session });
 
+    await session.commitTransaction();
     res.status(200).json({ message: 'Request accepted', event });
   } catch (error) {
+    await session.abortTransaction();
     console.error('Error accepting request:', error);
     res.status(500).json({ message: 'Server error' });
+  } finally {
+    session.endSession();
   }
 });
 

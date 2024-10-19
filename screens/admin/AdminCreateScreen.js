@@ -21,6 +21,7 @@ import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import moment from 'moment';
 import {AuthContext} from '../../AuthContext';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {Switch} from 'react-native-paper';
 
 const AdminCreateScreen = () => {
   const [event, setEvent] = useState('');
@@ -36,6 +37,8 @@ const AdminCreateScreen = () => {
   const [timeModalVisible, setTimeModalVisible] = useState(false);
   const [taggedVenue, setTaggedVenue] = useState(null);
   const [times] = useState(['10:00 AM', '12:00 PM', '02:00 PM', '04:00 PM']);
+  const [isPaid, setIsPaid] = useState(false);
+  const [price, setPrice] = useState('');
 
   const navigation = useNavigation();
   const {userId} = useContext(AuthContext);
@@ -53,8 +56,8 @@ const AdminCreateScreen = () => {
   const openImagePicker = () => {
     launchImageLibrary({mediaType: 'photo', selectionLimit: 3}, response => {
       if (response.assets) {
-        const base64Images = response.assets.map(image => image.base64);
-        setImages(base64Images);
+        const imageUris = response.assets.map(image => image.uri);
+        setImages(imageUris);
       }
     });
   };
@@ -125,41 +128,56 @@ const AdminCreateScreen = () => {
   console.log('Type:', selectedType);
   console.log('Participants:', noOfParticipants);
 
-  const createEvent = async () => {
-    if (
-      !event.trim() ||
-      !taggedVenue.trim() || // Ensure a venue is selected
-      !date.trim() ||
-      !timeInterval.trim() ||
-      !selectedType.trim() ||
-      isNaN(parseInt(noOfParticipants, 10))
-    ) {
-      return Alert.alert('Error', 'All fields are required.');
+  const refreshToken = async () => {
+    try {
+      const refreshToken = await AsyncStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        throw new Error('No refresh token found');
+      }
+  
+      const response = await axios.post('http://10.0.2.2:8000/refresh', { token: refreshToken });
+  
+      if (response.status === 200) {
+        const newToken = response.data.token;
+        await AsyncStorage.setItem('token', JSON.stringify(newToken));
+        return newToken;
+      } else {
+        throw new Error('Failed to refresh token');
+      }
+    } catch (error) {
+      console.error('Token refresh error:', error.message);
+      Alert.alert('Error', 'Session expired. Please login again.');
+      navigation.replace('Login');  
+      throw error;
     }
-
+  };
+  
+  
+  const createEvent = async () => {
     try {
       let token = await AsyncStorage.getItem('token');
       if (!token) {
-        return Alert.alert(
-          'Error',
-          'Authentication failed. Please login again.',
-        );
+        return Alert.alert('Error', 'Authentication failed. Please login again.');
       }
       token = token.replace(/"/g, '');
-
+  
       const eventData = {
         title: event,
         description,
         tags: tags.split(',').map(tag => tag.trim()),
-        location: taggedVenue, // Send selected venue name
+        location: taggedVenue,
         date,
         time: timeInterval,
         eventType: selectedType.toLowerCase(),
         totalParticipants: parseInt(noOfParticipants, 10),
         organizer: userId,
         images,
+        isPaid,
+        price: isPaid ? parseFloat(price) : 0,
       };
-
+  
+      console.log('Sending event data:', eventData);
+  
       const response = await axios.post(
         'http://10.0.2.2:8000/createevent',
         eventData,
@@ -168,12 +186,14 @@ const AdminCreateScreen = () => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
-
+  
+      console.log('Event creation response:', response.data);
+  
       if (response.status === 200) {
         Alert.alert('Success', 'Event created successfully!', [
-          {text: 'OK', onPress: () => navigation.navigate('AdminEvents')},
+          { text: 'OK', onPress: () => navigation.navigate('AdminEvents') },
         ]);
       } else {
         Alert.alert('Error', 'Failed to create event. Please try again.');
@@ -184,18 +204,16 @@ const AdminCreateScreen = () => {
         console.error('Response data:', error.response.data);
         Alert.alert(
           'Error',
-          `Failed to create event: ${error.response.data.message}`,
+          `Failed to create event: ${error.response.data.message}`
         );
-      } else if (error.request) {
-        console.error('Request data:', error.request);
-        Alert.alert('Error', 'Network error. Please check your connection.');
       } else {
-        console.error('Error message:', error.message);
-        Alert.alert('Error', `An unexpected error occurred: ${error.message}`);
+        Alert.alert('Error', 'An unexpected error occurred. Please try again.');
       }
     }
   };
-
+  
+  
+  
   const selectDate = selectedDate => {
     const formattedDate = moment(selectedDate, 'Do MMMM').format('YYYY-MM-DD');
     setDate(formattedDate);
@@ -232,15 +250,13 @@ const AdminCreateScreen = () => {
         </TouchableOpacity>
 
         <ScrollView horizontal style={{marginBottom: 10}}>
-          {images.map((image, index) =>
-            image ? (
-              <Image
-                key={index}
-                source={{uri: image.uri || 'https://via.placeholder.com/150'}}
-                style={imageStyle}
-              />
-            ) : null,
-          )}
+          {images.map((uri, index) => (
+            <Image
+              key={index}
+              source={{uri}}
+              style={{width: 80, height: 80, marginRight: 10, borderRadius: 10}}
+            />
+          ))}
         </ScrollView>
 
         <TextInput
@@ -389,6 +405,39 @@ const AdminCreateScreen = () => {
           style={generateButtonStyle}>
           <Text style={buttonTextStyle}>Generate Tags</Text>
         </TouchableOpacity>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginVertical: 10,
+            paddingHorizontal: 10,
+          }}>
+          <Text style={{fontSize: 16, color: '#333'}}>Is the event paid?</Text>
+          <Switch
+            value={isPaid}
+            onValueChange={setIsPaid}
+            thumbColor={isPaid ? '#4CAF50' : '#f4f3f4'}
+            trackColor={{false: '#767577', true: '#81b0ff'}}
+          />
+        </View>
+
+        {isPaid && (
+          <TextInput
+            placeholder="Enter Price"
+            keyboardType="numeric"
+            value={price}
+            onChangeText={setPrice}
+            style={{
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 10,
+              padding: 15,
+              marginVertical: 10,
+            }}
+          />
+        )}
 
         <TouchableOpacity onPress={createEvent} style={createButtonStyle}>
           <Text style={buttonTextStyle}>Create Event</Text>

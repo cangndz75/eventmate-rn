@@ -88,8 +88,9 @@ const UpComingEvent = ({item}) => {
         <Image
           style={{width: 80, height: 80, borderRadius: 12, marginRight: 12}}
           source={{
-            uri: eventData?.organizerUrl || 'https://www.placecage.com/100/100',
+            uri: eventData?.organizerUrl || 'https://via.placeholder.com/100',
           }}
+          onError={e => console.log('Image loading failed', e.nativeEvent)}
         />
 
         <View style={{flex: 1}}>
