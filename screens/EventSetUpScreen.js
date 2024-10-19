@@ -58,14 +58,14 @@ const EventSetUpScreen = () => {
     }
   };
 
-  const saveRequestStatus = async (status) => {
+  const saveRequestStatus = async status => {
     try {
       await AsyncStorage.setItem(`requestStatus-${eventId}`, status);
     } catch (error) {
       console.error('Failed to save request status:', error);
     }
   };
-  
+
   const loadRequestStatus = async () => {
     try {
       const status = await AsyncStorage.getItem(`requestStatus-${eventId}`);
@@ -76,14 +76,14 @@ const EventSetUpScreen = () => {
       console.error('Failed to load request status:', error);
     }
   };
-  
+
   const checkRequestStatus = async () => {
     try {
       const response = await axios.get(
-        `http://10.0.2.2:8000/events/${eventId}/requests`
+        `http://10.0.2.2:8000/events/${eventId}/requests`,
       );
       const request = response.data.find(req => req.userId === userId);
-  
+
       if (request) {
         setRequestStatus(request.status);
       }
@@ -91,7 +91,7 @@ const EventSetUpScreen = () => {
       console.error('Error checking request status:', error);
     }
   };
-  
+
   const fetchOrganizer = async () => {
     if (!eventId) return;
     try {
@@ -115,18 +115,17 @@ const EventSetUpScreen = () => {
         comment,
       });
       setRequestStatus('pending');
-      await saveRequestStatus('pending');  
+      await saveRequestStatus('pending');
       setModalVisible(false);
       Alert.alert('Request Sent', 'Your join request is pending approval.');
     } catch (error) {
       Alert.alert(
         'Error',
-        error.response?.data?.message || 'Failed to send request.'
+        error.response?.data?.message || 'Failed to send request.',
       );
     }
   };
-  
-  
+
   const cancelJoinRequest = async () => {
     try {
       await axios.post(
@@ -138,7 +137,7 @@ const EventSetUpScreen = () => {
       Alert.alert('Error', 'Failed to cancel request.');
     }
   };
-  
+
   const renderActionButton = () => {
     switch (requestStatus) {
       case 'none':
@@ -150,16 +149,21 @@ const EventSetUpScreen = () => {
               padding: 15,
               margin: 10,
               borderRadius: 4,
-            }}
-          >
-            <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+            }}>
+            <Text
+              style={{
+                color: 'white',
+                textAlign: 'center',
+                fontSize: 15,
+                fontWeight: '500',
+              }}>
               Join Event
             </Text>
           </TouchableOpacity>
         );
       case 'pending':
         return (
-          <View style={{ flexDirection: 'row', margin: 10 }}>
+          <View style={{flexDirection: 'row', margin: 10}}>
             <TouchableOpacity
               style={{
                 backgroundColor: 'gray',
@@ -167,9 +171,14 @@ const EventSetUpScreen = () => {
                 flex: 1,
                 marginRight: 5,
                 borderRadius: 4,
-              }}
-            >
-              <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+              }}>
+              <Text
+                style={{
+                  color: 'white',
+                  textAlign: 'center',
+                  fontSize: 15,
+                  fontWeight: '500',
+                }}>
                 Pending
               </Text>
             </TouchableOpacity>
@@ -181,9 +190,14 @@ const EventSetUpScreen = () => {
                 flex: 1,
                 marginLeft: 5,
                 borderRadius: 4,
-              }}
-            >
-              <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+              }}>
+              <Text
+                style={{
+                  color: 'white',
+                  textAlign: 'center',
+                  fontSize: 15,
+                  fontWeight: '500',
+                }}>
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -192,15 +206,20 @@ const EventSetUpScreen = () => {
       case 'accepted':
         return (
           <TouchableOpacity
-            onPress={() => navigation.navigate('ViewTicket', { eventId })}
+            onPress={() => navigation.navigate('ViewTicket', {eventId})}
             style={{
               backgroundColor: 'blue',
               padding: 15,
               margin: 10,
               borderRadius: 4,
-            }}
-          >
-            <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+            }}>
+            <Text
+              style={{
+                color: 'white',
+                textAlign: 'center',
+                fontSize: 15,
+                fontWeight: '500',
+              }}>
               View Ticket
             </Text>
           </TouchableOpacity>
@@ -209,17 +228,17 @@ const EventSetUpScreen = () => {
         return null;
     }
   };
-  
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
       <ScrollView>
         <Image
           source={{
             uri:
-              route?.params?.item?.image ||
+              route?.params?.item?.images?.[0] ||
               'https://via.placeholder.com/600x300',
           }}
-          style={{width: '100%', height: 300}}
+          style={{width: '100%', height: 300, resizeMode: 'cover'}}
         />
         <View style={{position: 'absolute', top: 20, left: 20}}>
           <Ionicons
@@ -382,7 +401,6 @@ const EventSetUpScreen = () => {
       </ScrollView>
 
       {renderActionButton()}
-
 
       <BottomModal
         onBackdropPress={() => setModalVisible(false)}

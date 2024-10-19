@@ -8,6 +8,7 @@ import {
   TextInput,
   Text,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import {Button, Avatar} from '@rneui/themed';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,26 +19,34 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
 import {AuthContext} from '../../AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import moment from 'moment';
+import { EventContext } from '../../EventContext';
 
 const AdminEventSetUpScreen = () => {
+  const { updateEvent } = useContext(EventContext); 
   const navigation = useNavigation();
   const route = useRoute();
   const {userId} = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [comment, setComment] = useState('');
   const [attendees, setAttendees] = useState([]);
   const [isRequestPending, setIsRequestPending] = useState(false);
   const [organizer, setOrganizer] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [eventData, setEventData] = useState(route?.params?.item || {});
   const eventId = route?.params?.item?._id;
-
-  useEffect(() => {
-    fetchAttendees();
-  }, []);
+  const [timeModalVisible, setTimeModalVisible] = useState(false);
+  const times = ['10:00 AM', '12:00 PM', '02:00 PM', '04:00 PM'];
 
   useEffect(() => {
     console.log('Organizer state:', organizer);
   }, [organizer]);
+
+  useEffect(() => {
+    fetchAttendees();
+  }, []);
 
   const fetchAttendees = async () => {
     if (!eventId) return;
@@ -50,6 +59,76 @@ const AdminEventSetUpScreen = () => {
       console.error('Failed to fetch attendees:', error);
     }
   };
+  
+
+  const openEditModal = () => {
+    setEditModalVisible(true);
+  };
+
+  const handleUpdateEvent = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Error', 'No token found. Please log in again.');
+        return;
+      }
+  
+      const response = await axios.put(
+        `http://10.0.2.2:8000/event/${eventId}`,
+        eventData,
+        {
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, '')}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      if (response.status === 200) {
+        Alert.alert('Success', 'Event updated successfully!');
+        updateEvent(response.data);
+        navigation.replace('AdminEventSetUp', { item: response.data });
+      } else {
+        Alert.alert('Error', 'Failed to update event.');
+      }
+    } catch (error) {
+      console.error('Error updating event:', error.message);
+      if (error.response && error.response.status === 403) {
+        Alert.alert('Error', 'Unauthorized. Please log in again.');
+      } else {
+        Alert.alert('Error', 'An unexpected error occurred.');
+      }
+    }
+  };
+  
+
+  const generateDates = () => {
+    const dates = [];
+    for (let i = 0; i < 10; i++) {
+      const date = moment().add(i, 'days');
+      let displayDate = date.format('Do MMMM');
+      if (i === 0) displayDate = 'Today';
+      else if (i === 1) displayDate = 'Tomorrow';
+      dates.push({
+        id: i.toString(),
+        displayDate,
+        actualDate: date.format('YYYY-MM-DD'),
+      });
+    }
+    return dates;
+  };
+
+  const selectDate = selectedDate => {
+    setEventData({...eventData, date: selectedDate});
+    setModalVisible(false);
+  };
+
+  const selectTime = selectedTime => {
+    setEventData({...eventData, time: selectedTime});
+    setTimeModalVisible(false);
+  };
+
+  const dates = generateDates();
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
@@ -57,10 +136,10 @@ const AdminEventSetUpScreen = () => {
         <Image
           source={{
             uri:
-              route?.params?.item?.image ||
+              route?.params?.item?.images?.[0] ||
               'https://via.placeholder.com/600x300',
           }}
-          style={{width: '100%', height: 300}}
+          style={{width: '100%', height: 300, resizeMode: 'cover'}}
         />
         <View style={{position: 'absolute', top: 20, left: 20}}>
           <Ionicons
@@ -181,16 +260,20 @@ const AdminEventSetUpScreen = () => {
             </View>
           </View>
 
+          <Button
+            title="Edit Event"
+            onPress={openEditModal}
+            buttonStyle={{backgroundColor: '#5c6bc0', borderRadius: 10}}
+            containerStyle={{marginVertical: 10}}
+          />
+
           <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 20}}>
             About Event
           </Text>
           <Text style={{color: '#666', marginTop: 10}}>
-            {route?.params?.item?.description ||
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'}
+            {eventData.description ||
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}
           </Text>
-          <Pressable>
-            <Text style={{color: '#5c6bc0', marginTop: 5}}>Read more...</Text>
-          </Pressable>
 
           <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 20}}>
             Gallery (Pre-Event)
@@ -325,8 +408,6 @@ const AdminEventSetUpScreen = () => {
                         width: 30,
                         height: 30,
                         resizeMode: 'contain',
-                        justifyContent: 'center',
-                        alignItems: 'center',
                       }}
                       source={{
                         uri: 'https://cdn-icons-png.flaticon.com/128/7928/7928637.png',
@@ -426,6 +507,111 @@ const AdminEventSetUpScreen = () => {
               </View>
             </View>
           </View>
+          <BottomModal
+            visible={editModalVisible}
+            onTouchOutside={() => setEditModalVisible(false)}
+            swipeDirection={['up', 'down']}
+            modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+            <ModalContent style={{padding: 20}}>
+              <Text style={{fontSize: 18, fontWeight: 'bold'}}>Edit Event</Text>
+
+              <TextInput
+                placeholder="Event Title"
+                value={eventData.title}
+                onChangeText={text => setEventData({...eventData, title: text})}
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#ccc',
+                  borderRadius: 10,
+                  padding: 10,
+                  marginVertical: 10,
+                }}
+              />
+
+              <TextInput
+                placeholder="Description"
+                value={eventData.description}
+                onChangeText={text =>
+                  setEventData({...eventData, description: text})
+                }
+                multiline
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#ccc',
+                  borderRadius: 10,
+                  padding: 10,
+                  marginVertical: 10,
+                  height: 100,
+                }}
+              />
+
+              <TouchableOpacity
+                onPress={() => setModalVisible(true)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#f0f0f0',
+                  padding: 15,
+                  borderRadius: 10,
+                  marginVertical: 10,
+                }}>
+                <Ionicons name="calendar" size={24} color="#4a4a4a" />
+                <Text style={{fontSize: 16, color: '#7d7d7d', marginLeft: 10}}>
+                  {eventData.date || 'Select Date'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setTimeModalVisible(true)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#f0f0f0',
+                  padding: 15,
+                  borderRadius: 10,
+                  marginVertical: 10,
+                }}>
+                <Ionicons name="time" size={24} color="#4a4a4a" />
+                <Text style={{fontSize: 16, color: '#7d7d7d', marginLeft: 10}}>
+                  {eventData.time || 'Select Time'}
+                </Text>
+              </TouchableOpacity>
+
+              <Button
+                title="Save Changes"
+                onPress={handleUpdateEvent}
+                buttonStyle={{backgroundColor: '#07bc0c', borderRadius: 10}}
+              />
+            </ModalContent>
+          </BottomModal>
+
+          <BottomModal
+            visible={modalVisible}
+            onTouchOutside={() => setModalVisible(false)}
+            swipeDirection={['up', 'down']}
+            modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+            <ModalContent style={{padding: 20}}>
+              <Text
+                style={{fontSize: 18, fontWeight: 'bold', textAlign: 'center'}}>
+                Choose a Date
+              </Text>
+              {dates.map(item => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => selectDate(item.actualDate)}
+                  style={{
+                    padding: 15,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: '#ddd',
+                    marginBottom: 10,
+                    alignItems: 'center',
+                  }}>
+                  <Text>{item.displayDate}</Text>
+                </TouchableOpacity>
+              ))}
+            </ModalContent>
+          </BottomModal>
         </View>
       </ScrollView>
     </SafeAreaView>

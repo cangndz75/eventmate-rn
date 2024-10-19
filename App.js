@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
 import {
   SafeAreaView,
@@ -27,6 +20,7 @@ import StackNavigator from './navigation/StackNavigator';
 import {AuthProvider} from './AuthContext';
 import {ModalPortal} from 'react-native-modals';
 import {SocketProvider} from './SocketContext';
+import {EventProvider} from './EventContext';
 
 function Section({children, title}) {
   const isDarkMode = useColorScheme() === 'dark';
@@ -64,8 +58,10 @@ function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <StackNavigator />
-        <ModalPortal />
+        <EventProvider>
+          <StackNavigator />
+          <ModalPortal />
+        </EventProvider>
       </SocketProvider>
     </AuthProvider>
   );

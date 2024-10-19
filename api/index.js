@@ -1109,3 +1109,25 @@ app.post('/venues/:venueId/comments', async (req, res) => {
     res.status(500).json({message: 'Internal Server Error'});
   }
 });
+
+app.put('/event/:eventId', authenticateToken, async (req, res) => {
+  const { eventId } = req.params;
+  const updateData = req.body;
+
+  try {
+    const updatedEvent = await Event.findByIdAndUpdate(
+      eventId,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedEvent) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    res.status(200).json(updatedEvent);
+  } catch (error) {
+    console.error('Error updating event:', error.message);
+    res.status(500).json({ message: 'Failed to update event' });
+  }
+});
