@@ -24,6 +24,28 @@ const HomeScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.get('http://10.0.2.2:8000/events', {
+          headers: {Authorization: `Bearer ${token}`},
+        });
+
+        setEventList(response.data);
+        if (response.data.length > 0) {
+          setPopularEvent(response.data[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     fetchEvents();
   }, []);
 

@@ -24,52 +24,25 @@ const LoginScreen = () => {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Email and password are required.');
-      return;
-    }
-
     try {
-      setIsLoading(true);
-      const response = await axios.post('http://10.0.2.2:8000/login', {
-        email,
-        password,
-      });
-
-      const {token, role, userId} = response.data;
-
+      const response = await axios.post('http://10.0.2.2:8000/login', { email, password });
+      const { token, userId, role } = response.data;
+  
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('userId', String(userId));
       await AsyncStorage.setItem('role', role);
-
+  
       setToken(token);
       setUserId(userId);
       setRole(role);
-
-      Alert.alert('Success', 'Login successful!');
-
-      if (role === 'organizer') {
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'AdminDashboard'}],
-        });
-      } else {
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Main'}],
-        });
-      }
+  
+      navigation.navigate('Home');
     } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      Alert.alert(
-        'Login Failed',
-        error.response?.data?.message ||
-          'Something went wrong, please try again.',
-      );
-    } finally {
-      setIsLoading(false);
+      console.error('Login failed:', error);
+      Alert.alert('Error', 'Login failed. Please try again.');
     }
   };
+  
 
   return (
     <KeyboardAvoidingView

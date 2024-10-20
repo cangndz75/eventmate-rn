@@ -5,7 +5,7 @@ const userSchema = mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true, // Her email'in benzersiz olmasını sağlar.
+      unique: true,
     },
     password: {
       type: String,
@@ -89,6 +89,7 @@ const userSchema = mongoose.Schema(
         },
       },
     ],
+    isPrivate: {type: Boolean, default: false},
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,

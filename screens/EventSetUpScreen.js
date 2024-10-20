@@ -37,12 +37,31 @@ const EventSetUpScreen = () => {
     route?.params?.isFavorited || false,
   );
   const [loading, setLoading] = useState(true);
+  const [userEvents, setUserEvents] = useState([]);
 
   useEffect(() => {
+    if (userId) {
+      fetchAttendees(); 
+    } else {
+      console.warn('Warning: User ID is undefined');
+    }
+  }, [userId]);
+  useEffect(() => {
+    const checkUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      if (!storedUserId) {
+        console.warn('User ID is undefined');
+        navigation.replace('Login');
+      }
+    };
+    checkUserId();
+  }, [userId, navigation]);
+  
+  useEffect(() => {
+    // fetchUserEvents();
     fetchAttendees();
     fetchOrganizer();
     checkRequestStatus();
-    checkIfFavorited();
   }, []);
 
   useEffect(() => {
@@ -50,28 +69,41 @@ const EventSetUpScreen = () => {
   }, [organizer]);
 
   const fetchAttendees = async () => {
-    if (!eventId) return;
     try {
       const response = await axios.get(
-        `http://10.0.2.2:8000/event/${eventId}/attendees`,
+        `http://10.0.2.2:8000/event/${eventId}/attendees`
       );
       setAttendees(response.data);
     } catch (error) {
-      console.error('Warning: Failed to fetch attendees:', error);
-      Alert.alert(
-        'Error',
-        'Failed to fetch attendees. Please try again later.',
-      );
+      console.error('Error fetching attendees:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // const fetchUserEvents = async () => {
+  //   try {
+  //     const response = await axios.get(`http://10.0.2.2:8000/users/${userId}`);
+  //     setUserEvents(response.data.events || []);
+  //   } catch (error) {
+  //     console.error('Failed to fetch user events:', error);
+  //   }
+  // };
+
   const checkIfFavorited = async () => {
+    if (!userId) {
+      console.error('Cannot fetch favorites: User ID is missing');
+      return;
+    }
     try {
+      console.log(`Fetching favorites for userId: ${userId}`);
       const response = await axios.get(`http://10.0.2.2:8000/favorites/${userId}`);
       const favorites = response.data.map(event => event._id);
   
       setIsFavorited(favorites.includes(eventId));
     } catch (error) {
-      console.error('Failed to load favorites:', error);
+      console.error('Failed to load favorites:', error.response?.data || error.message);
+      Alert.alert('Error', 'Failed to load favorites. Please try again.');
     }
   };
 
@@ -189,6 +221,23 @@ const EventSetUpScreen = () => {
   };
 
   const renderActionButton = () => {
+    if (attendees.some(attendee => attendee._id === userId)) {
+      return (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ViewTicket', { eventId })}
+          style={{
+            backgroundColor: 'blue',
+            padding: 15,
+            margin: 10,
+            borderRadius: 4,
+          }}>
+          <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+            View Ticket
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+  
     switch (requestStatus) {
       case 'none':
         return (
@@ -200,20 +249,14 @@ const EventSetUpScreen = () => {
               margin: 10,
               borderRadius: 4,
             }}>
-            <Text
-              style={{
-                color: 'white',
-                textAlign: 'center',
-                fontSize: 15,
-                fontWeight: '500',
-              }}>
+            <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
               Join Event
             </Text>
           </TouchableOpacity>
         );
       case 'pending':
         return (
-          <View style={{flexDirection: 'row', margin: 10}}>
+          <View style={{ flexDirection: 'row', margin: 10 }}>
             <TouchableOpacity
               style={{
                 backgroundColor: 'gray',
@@ -222,13 +265,7 @@ const EventSetUpScreen = () => {
                 marginRight: 5,
                 borderRadius: 4,
               }}>
-              <Text
-                style={{
-                  color: 'white',
-                  textAlign: 'center',
-                  fontSize: 15,
-                  fontWeight: '500',
-                }}>
+              <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
                 Pending
               </Text>
             </TouchableOpacity>
@@ -241,43 +278,18 @@ const EventSetUpScreen = () => {
                 marginLeft: 5,
                 borderRadius: 4,
               }}>
-              <Text
-                style={{
-                  color: 'white',
-                  textAlign: 'center',
-                  fontSize: 15,
-                  fontWeight: '500',
-                }}>
+              <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
                 Cancel
               </Text>
             </TouchableOpacity>
           </View>
         );
-      case 'accepted':
-        return (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ViewTicket', {eventId})}
-            style={{
-              backgroundColor: 'blue',
-              padding: 15,
-              margin: 10,
-              borderRadius: 4,
-            }}>
-            <Text
-              style={{
-                color: 'white',
-                textAlign: 'center',
-                fontSize: 15,
-                fontWeight: '500',
-              }}>
-              View Ticket
-            </Text>
-          </TouchableOpacity>
-        );
       default:
         return null;
     }
   };
+  
+  
   // if (loading) {
   //   return (
   //     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

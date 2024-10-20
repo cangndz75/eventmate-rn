@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
@@ -16,11 +17,9 @@ const AdminEventScreen = () => {
   const [events, setEvents] = useState([]);
   const {userId, role} = useContext(AuthContext);
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('AuthContext userId:', userId); 
-    console.log('AuthContext role:', role); 
-
     if (userId && role === 'organizer') {
       fetchOrganizerEvents();
     }
@@ -28,18 +27,35 @@ const AdminEventScreen = () => {
 
   const fetchOrganizerEvents = async () => {
     try {
-      console.log('userId:', userId, 'role:', role); 
-
+      setLoading(true);
       const response = await axios.get(`http://10.0.2.2:8000/events`, {
-        params: {userId, role},
+        params: {organizerId: userId},
       });
 
-      console.log('Response Data:', response.data);
+      console.log('Events fetched:', response.data);
       setEvents(response.data);
     } catch (error) {
-      console.log('Error fetching organizer events:', error);
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false); 
     }
   };
+
+  if (loading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color="#07bc0c" />
+      </View>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text style={{fontSize: 18, color: '#888'}}>No Events Found</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#f0f0f5'}}>
@@ -62,6 +78,7 @@ const AdminEventScreen = () => {
             Create Event
           </Text>
         </Pressable>
+
         <View style={{padding: 12}}>
           <View
             style={{
@@ -72,10 +89,11 @@ const AdminEventScreen = () => {
             <Text style={{fontSize: 16, fontWeight: '700', color: '#333'}}>
               My Events
             </Text>
-            <Pressable>
+            <Pressable onPress={() => fetchOrganizerEvents()}>
               <Text style={{color: '#ff6b6b', fontWeight: '600'}}>See All</Text>
             </Pressable>
           </View>
+
           <FlatList
             horizontal
             data={events}

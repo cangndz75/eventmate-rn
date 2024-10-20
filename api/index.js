@@ -13,7 +13,7 @@ const app = express();
 const port = process.env.PORT || 8000;
 const generateRoute = require('./routes/generateRoute');
 const axios = require('axios');
-const refreshTokens= [];
+const refreshTokens = [];
 const path = require('path');
 
 app.use(cors());
@@ -49,28 +49,27 @@ const authenticateToken = (req, res, next) => {
 };
 
 app.post('/refresh', async (req, res) => {
-  const { token } = req.body;
+  const {token} = req.body;
   if (!token) {
-    return res.status(400).json({ message: 'Refresh token is required' });
+    return res.status(400).json({message: 'Refresh token is required'});
   }
 
   try {
     jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
-      if (err) return res.status(403).json({ message: 'Invalid refresh token' });
+      if (err) return res.status(403).json({message: 'Invalid refresh token'});
 
       const newAccessToken = jwt.sign(
-        { userId: user.userId, role: user.role },
+        {userId: user.userId, role: user.role},
         process.env.JWT_SECRET_KEY,
-        { expiresIn: '1h' }
+        {expiresIn: '1h'},
       );
 
-      res.status(200).json({ token: newAccessToken });
+      res.status(200).json({token: newAccessToken});
     });
   } catch (error) {
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
-
 
 app.post('/register', async (req, res) => {
   try {
@@ -152,24 +151,24 @@ app.get('/user/:userId', async (req, res) => {
 });
 
 app.put('/user/:userId', async (req, res) => {
-  const { userId } = req.params;
-  const { firstName, lastName, email, password, phone, country } = req.body;
+  const {userId} = req.params;
+  const {firstName, lastName, email, password, phone, country} = req.body;
 
   try {
     const user = await User.findByIdAndUpdate(
       userId,
-      { firstName, lastName, email, password, phone, country },
-      { new: true }
+      {firstName, lastName, email, password, phone, country},
+      {new: true},
     );
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
-    res.status(200).json({ message: 'Profile updated successfully', user });
+    res.status(200).json({message: 'Profile updated successfully', user});
   } catch (error) {
     console.error('Error updating user:', error);
-    res.status(500).json({ message: 'Failed to update profile' });
+    res.status(500).json({message: 'Failed to update profile'});
   }
 });
 
@@ -392,15 +391,27 @@ app.post('/generate', authenticateToken, async (req, res) => {
 });
 
 app.post('/createevent', authenticateToken, async (req, res) => {
-  console.log('Received event data:', req.body); 
+  console.log('Received event data:', req.body);
 
   const {
-    title, description, tags, location, date, time, eventType,
-    totalParticipants, organizer, images, isPaid, price
+    title,
+    description,
+    tags,
+    location,
+    date,
+    time,
+    eventType,
+    totalParticipants,
+    organizer,
+    images,
+    isPaid,
+    price,
   } = req.body;
 
   if (!title || !location || !eventType || !totalParticipants || !organizer) {
-    return res.status(400).json({ message: 'All fields are required except date.' });
+    return res
+      .status(400)
+      .json({message: 'All fields are required except date.'});
   }
 
   try {
@@ -423,30 +434,27 @@ app.post('/createevent', authenticateToken, async (req, res) => {
     res.status(200).json(newEvent);
   } catch (error) {
     console.error('Error creating event:', error.message);
-    res.status(500).json({ message: 'Failed to create event.' });
+    res.status(500).json({message: 'Failed to create event.'});
   }
 });
 
-
-
 app.get('/events', async (req, res) => {
-  const { organizerId, role } = req.query;
+  const {organizerId, role} = req.query;
 
   try {
     let filter = {};
 
     if (role === 'organizer' && organizerId) {
-      filter = { organizer: mongoose.Types.ObjectId(organizerId) };
+      filter = {organizer: mongoose.Types.ObjectId(organizerId)};
     }
 
     const events = await Event.find(filter).populate('organizer');
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
-    res.status(500).json({ message: 'Failed to fetch events' });
+    res.status(500).json({message: 'Failed to fetch events'});
   }
 });
-
 
 app.get('/upcoming', async (req, res) => {
   try {
@@ -493,32 +501,31 @@ app.get('/upcoming', async (req, res) => {
 
 app.post('/events/:eventId/request', async (req, res) => {
   try {
-    const { userId, comment } = req.body;
-    const { eventId } = req.params;
+    const {userId, comment} = req.body;
+    const {eventId} = req.params;
 
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     const existingRequest = event.requests.find(
-      request => request.userId.toString() === userId
+      request => request.userId.toString() === userId,
     );
 
     if (existingRequest) {
-      return res.status(400).json({ message: 'Request already sent' });
+      return res.status(400).json({message: 'Request already sent'});
     }
 
-    event.requests.push({ userId, comment, status: 'pending' });
+    event.requests.push({userId, comment, status: 'pending'});
     await event.save();
 
-    res.status(200).json({ message: 'Request sent successfully' });
+    res.status(200).json({message: 'Request sent successfully'});
   } catch (err) {
     console.error('Error processing join request:', err);
-    res.status(500).json({ message: 'Failed to send request' });
+    res.status(500).json({message: 'Failed to send request'});
   }
 });
-
 
 app.post('/events/:eventId/cancel-request', async (req, res) => {
   try {
@@ -589,13 +596,13 @@ app.get('/events/:eventId/requests', async (req, res) => {
 
     const requestsWithUserInfo = event.requests.map(request => ({
       requestId: request._id,
-      userId: request.userId._id,
-      firstName: request.userId.firstName,
-      lastName: request.userId.lastName,
-      image: request.userId.image,
-      email: request.userId.email,
-      comment: request.comment,
-      status: request.status,
+      userId: request.userId?._id, 
+      firstName: request.userId?.firstName || 'Unknown',
+      lastName: request.userId?.lastName || 'Unknown',
+      image: request.userId?.image || 'https://via.placeholder.com/150',
+      email: request.userId?.email || 'N/A',
+      comment: request.comment || '',
+      status: request.status || 'pending',
     }));
 
     res.status(200).json(requestsWithUserInfo);
@@ -604,6 +611,7 @@ app.get('/events/:eventId/requests', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
 
 app.get('/event/:eventId/attendees', async (req, res) => {
   try {
@@ -655,46 +663,39 @@ app.put('/updateAllUsersToAddOrganizer', async (req, res) => {
 });
 
 app.post('/accept', async (req, res) => {
-  const { eventId, userId } = req.body;
-
+  const {eventId, userId} = req.body;
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     const event = await Event.findById(eventId).session(session);
-    if (!event) {
-      throw new Error(`Event not found with ID: ${eventId}`);
-    }
+    if (!event) throw new Error(`Event not found with ID: ${eventId}`);
 
     const user = await User.findById(userId).session(session);
-    if (!user) {
-      throw new Error(`User not found with ID: ${userId}`);
-    }
+    if (!user) throw new Error(`User not found with ID: ${userId}`);
 
     if (!event.attendees.includes(userId)) {
       event.attendees.push(userId);
     }
 
-    event.requests = event.requests.filter(req => req.userId.toString() !== userId);
+    event.requests = event.requests.filter(
+      req => req.userId.toString() !== userId,
+    );
+    user.events.push(eventId); 
 
-    if (!user.events.includes(eventId)) {
-      user.events.push(eventId);
-    }
-
-    await event.save({ session });
-    await user.save({ session });
-
+    await event.save({session});
+    await user.save({session});
     await session.commitTransaction();
-    res.status(200).json({ message: 'Request accepted', event });
+
+    res.status(200).json({message: 'Request accepted', event});
   } catch (error) {
     await session.abortTransaction();
     console.error('Error accepting request:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({message: 'Server error'});
   } finally {
     session.endSession();
   }
 });
-
 
 app.post('/reject', async (req, res) => {
   try {
@@ -943,10 +944,13 @@ app.post('/rejectrequest', async (req, res) => {
 
 app.post('/favorites', async (req, res) => {
   try {
-    const { userId, eventId } = req.body;
+    const {userId, eventId} = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(eventId)) {
-      return res.status(400).json({ message: 'Invalid user or event ID' });
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(eventId)
+    ) {
+      return res.status(400).json({message: 'Invalid user or event ID'});
     }
 
     const [user, event] = await Promise.all([
@@ -954,48 +958,52 @@ app.post('/favorites', async (req, res) => {
       Event.findById(eventId),
     ]);
 
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    if (!event) return res.status(404).json({ message: 'Event not found' });
+    if (!user) return res.status(404).json({message: 'User not found'});
+    if (!event) return res.status(404).json({message: 'Event not found'});
 
     const isFavorited = user.favorites.includes(eventId);
 
     if (isFavorited) {
       user.favorites.pull(eventId);
       await user.save();
-      return res.status(200).json({ message: 'Event removed from favorites', isFavorited: false });
+      return res
+        .status(200)
+        .json({message: 'Event removed from favorites', isFavorited: false});
     } else {
-      user.favorites.addToSet(eventId); 
+      user.favorites.addToSet(eventId);
       await user.save();
-      return res.status(200).json({ message: 'Event added to favorites', isFavorited: true });
+      return res
+        .status(200)
+        .json({message: 'Event added to favorites', isFavorited: true});
     }
   } catch (error) {
     console.error('Error toggling favorite:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
 app.get('/favorites/:userId', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const {userId} = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
+      return res.status(400).json({message: 'Invalid user ID'});
     }
 
     const user = await User.findById(userId).populate({
       path: 'favorites',
       model: 'Event',
-      select: 'title location date time', 
+      select: 'title location date time',
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
     res.status(200).json(user.favorites);
   } catch (error) {
     console.error('Error fetching favorites:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
@@ -1003,37 +1011,37 @@ app.get('/venues/:venueId', async (req, res) => {
   const {venueId} = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(venueId)) {
-    return res.status(400).json({ message: 'Invalid Venue ID' });
+    return res.status(400).json({message: 'Invalid Venue ID'});
   }
 
   try {
     const venue = await Venue.findById(venueId).populate({
       path: 'eventsAvailable',
       model: 'Event',
-      select: 'title eventType location date time price', 
+      select: 'title eventType location date time price',
     });
 
     if (!venue) {
-      return res.status(404).json({ message: 'Venue not found' });
+      return res.status(404).json({message: 'Venue not found'});
     }
 
     res.status(200).json(venue);
   } catch (error) {
     console.error('Error fetching venue:', error.message);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
 app.get('/venues/:venueId/events', async (req, res) => {
-  const { venueId } = req.params;
+  const {venueId} = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(venueId)) {
-    return res.status(400).json({ message: 'Invalid Venue ID' });
+    return res.status(400).json({message: 'Invalid Venue ID'});
   }
 
   try {
     const venue = await Venue.findById(venueId).populate('eventsAvailable');
-    if (!venue) return res.status(404).json({ message: 'Venue not found' });
+    if (!venue) return res.status(404).json({message: 'Venue not found'});
 
     const events = venue.eventsAvailable.map(event => ({
       _id: event._id,
@@ -1048,10 +1056,9 @@ app.get('/venues/:venueId/events', async (req, res) => {
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error.message);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
-
 
 app.get('/event/:eventId/organizer', async (req, res) => {
   try {
@@ -1118,23 +1125,21 @@ app.post('/venues/:venueId/comments', async (req, res) => {
 });
 
 app.put('/event/:eventId', authenticateToken, async (req, res) => {
-  const { eventId } = req.params;
+  const {eventId} = req.params;
   const updateData = req.body;
 
   try {
-    const updatedEvent = await Event.findByIdAndUpdate(
-      eventId,
-      updateData,
-      { new: true }
-    );
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, {
+      new: true,
+    });
 
     if (!updatedEvent) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     res.status(200).json(updatedEvent);
   } catch (error) {
     console.error('Error updating event:', error.message);
-    res.status(500).json({ message: 'Failed to update event' });
+    res.status(500).json({message: 'Failed to update event'});
   }
 });

@@ -59,10 +59,8 @@ const ManageRequests = () => {
       Alert.alert('Error', `Failed to update status to ${status}`);
     }
   };
-
-  const acceptRequest = async (userId, requestId, eventId) => {
-    console.log('Accepting Request:', { userId, requestId, eventId }); 
   
+  const acceptRequest = async (userId, requestId, eventId) => {
     try {
       const response = await axios.post('http://10.0.2.2:8000/accept', {
         userId,
@@ -71,6 +69,9 @@ const ManageRequests = () => {
       });
   
       if (response.status === 200) {
+        await axios.post(`http://10.0.2.2:8000/users/${userId}/events`, {
+          eventId,
+        });
         Alert.alert('Success', 'Request accepted');
         fetchRequests();
       }

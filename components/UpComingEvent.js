@@ -1,38 +1,52 @@
-import {Image, Pressable, Text, View, ActivityIndicator} from 'react-native';
-import React, {useContext, useEffect, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {
+  Image,
+  Pressable,
+  Text,
+  View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+} from 'react-native';
+import React, {useContext, useEffect, useState, useCallback} from 'react';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
-  const {role} = useContext(AuthContext);
+  const {role, userId} = useContext(AuthContext);
   const [eventData, setEventData] = useState(item || null);
   const [isBooked, setIsBooked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // Refresh state
 
-  useEffect(() => {
-    if (!item) {
+  // Sayfa odağa geldiğinde etkinlikleri yüklemek için
+  useFocusEffect(
+    useCallback(() => {
       fetchEventData();
-    } else {
-      setEventData(item);
-      setIsBooked(item?.isBooked || false);
-      setLoading(false);
-    }
-  }, [item]);
+    }, [item]),
+  );
 
   const fetchEventData = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(
         `http://10.0.2.2:8000/events/${item?._id}`,
       );
       setEventData(response.data);
+      setIsBooked(response.data?.attendees?.some(att => att._id === userId));
     } catch (error) {
       console.error('Error fetching event data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchEventData();
+    setRefreshing(false);
   };
 
   if (loading) {
@@ -54,7 +68,7 @@ const UpComingEvent = ({item}) => {
     );
   }
 
-  return (
+  const renderEventItem = () => (
     <Pressable
       onPress={() =>
         navigation.navigate(
@@ -153,6 +167,17 @@ const UpComingEvent = ({item}) => {
         )}
       </View>
     </Pressable>
+  );
+
+  return (
+    <FlatList
+      data={[eventData]}
+      renderItem={renderEventItem}
+      keyExtractor={item => item._id}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    />
   );
 };
 

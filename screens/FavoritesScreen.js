@@ -25,11 +25,16 @@ const FavoritesScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchFavorites();
-  }, []);
+    if (userId) {
+      fetchFavorites();
+    } else {
+      console.log('User ID not found');
+    }
+  }, [userId]);
 
   const fetchFavorites = async () => {
     try {
+      console.log('Fetching favorites for userId:', userId);
       const response = await axios.get(
         `http://10.0.2.2:8000/favorites/${userId}`,
       );
@@ -43,10 +48,14 @@ const FavoritesScreen = () => {
       );
       setFavorites(favoriteEvents);
     } catch (error) {
-      console.error('Failed to fetch favorites:', error);
+      console.error(
+        'Failed to fetch favorites:',
+        error.response ? error.response.data : error.message,
+      );
       ToastAndroid.show('Failed to load favorites.', ToastAndroid.SHORT);
     }
   };
+
   useFocusEffect(
     useCallback(() => {
       fetchFavorites();

@@ -22,12 +22,17 @@ const ProfileDetailScreen = () => {
   const navigation = useNavigation();
   const [visible, setVisible] = useState(false);
   const {userId, token, setToken, setUserId} = useContext(AuthContext);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
-    if (!userId) {
-      console.error('User ID is undefined');
-      navigation.replace('Login');
-    }
+    const checkUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      if (!storedUserId) {
+        console.warn('User ID is undefined');
+        navigation.replace('Login');
+      }
+    };
+    checkUserId();
   }, [userId, navigation]);
 
   const fetchUser = async () => {
