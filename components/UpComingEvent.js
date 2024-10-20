@@ -19,9 +19,8 @@ const UpComingEvent = ({item}) => {
   const [eventData, setEventData] = useState(item || null);
   const [isBooked, setIsBooked] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false); // Refresh state
+  const [refreshing, setRefreshing] = useState(false); 
 
-  // Sayfa odağa geldiğinde etkinlikleri yüklemek için
   useFocusEffect(
     useCallback(() => {
       fetchEventData();

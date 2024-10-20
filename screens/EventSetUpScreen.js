@@ -37,28 +37,30 @@ const EventSetUpScreen = () => {
     route?.params?.isFavorited || false,
   );
   const [loading, setLoading] = useState(true);
-  const [userEvents, setUserEvents] = useState([]);
 
   useEffect(() => {
+    console.log('AuthContext UserId:', userId); 
     if (userId) {
-      fetchAttendees(); 
+      fetchAttendees();
     } else {
       console.warn('Warning: User ID is undefined');
     }
   }, [userId]);
+
   useEffect(() => {
     const checkUserId = async () => {
       const storedUserId = await AsyncStorage.getItem('userId');
+      console.log('Stored User ID:', storedUserId);  
       if (!storedUserId) {
         console.warn('User ID is undefined');
         navigation.replace('Login');
       }
     };
     checkUserId();
-  }, [userId, navigation]);
+  }, []);
   
+
   useEffect(() => {
-    // fetchUserEvents();
     fetchAttendees();
     fetchOrganizer();
     checkRequestStatus();
@@ -71,7 +73,7 @@ const EventSetUpScreen = () => {
   const fetchAttendees = async () => {
     try {
       const response = await axios.get(
-        `http://10.0.2.2:8000/event/${eventId}/attendees`
+        `http://10.0.2.2:8000/event/${eventId}/attendees`,
       );
       setAttendees(response.data);
     } catch (error) {
@@ -81,15 +83,6 @@ const EventSetUpScreen = () => {
     }
   };
 
-  // const fetchUserEvents = async () => {
-  //   try {
-  //     const response = await axios.get(`http://10.0.2.2:8000/users/${userId}`);
-  //     setUserEvents(response.data.events || []);
-  //   } catch (error) {
-  //     console.error('Failed to fetch user events:', error);
-  //   }
-  // };
-
   const checkIfFavorited = async () => {
     if (!userId) {
       console.error('Cannot fetch favorites: User ID is missing');
@@ -97,16 +90,20 @@ const EventSetUpScreen = () => {
     }
     try {
       console.log(`Fetching favorites for userId: ${userId}`);
-      const response = await axios.get(`http://10.0.2.2:8000/favorites/${userId}`);
+      const response = await axios.get(
+        `http://10.0.2.2:8000/favorites/${userId}`,
+      );
       const favorites = response.data.map(event => event._id);
-  
+
       setIsFavorited(favorites.includes(eventId));
     } catch (error) {
-      console.error('Failed to load favorites:', error.response?.data || error.message);
+      console.error(
+        'Failed to load favorites:',
+        error.response?.data || error.message,
+      );
       Alert.alert('Error', 'Failed to load favorites. Please try again.');
     }
   };
-
 
   const saveFavorites = async newFavorites => {
     try {
@@ -122,12 +119,12 @@ const EventSetUpScreen = () => {
         userId,
         eventId,
       });
-  
-      const { message, isFavorited } = response.data;
-  
+
+      const {message, isFavorited} = response.data;
+
       setIsFavorited(isFavorited);
       ToastAndroid.show(message, ToastAndroid.SHORT);
-  
+
       if (isFavorited) {
         console.log('Added to favorites:', eventId);
       } else {
@@ -138,7 +135,6 @@ const EventSetUpScreen = () => {
       ToastAndroid.show('Failed to update favorite.', ToastAndroid.SHORT);
     }
   };
-  
 
   const saveRequestStatus = async status => {
     try {
@@ -224,20 +220,36 @@ const EventSetUpScreen = () => {
     if (attendees.some(attendee => attendee._id === userId)) {
       return (
         <TouchableOpacity
-          onPress={() => navigation.navigate('ViewTicket', { eventId })}
+          onPress={() =>
+            navigation.navigate('TicketDetailScreen', {
+              event: {
+                title: route?.params?.item?.title,
+                date: route?.params?.item?.date,
+                time: route?.params?.item?.time,
+                location: route?.params?.item?.location,
+                image: route?.params?.item?.images?.[0],
+              },
+            })
+          }
           style={{
             backgroundColor: 'blue',
             padding: 15,
             margin: 10,
             borderRadius: 4,
           }}>
-          <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+          <Text
+            style={{
+              color: 'white',
+              textAlign: 'center',
+              fontSize: 15,
+              fontWeight: '500',
+            }}>
             View Ticket
           </Text>
         </TouchableOpacity>
       );
     }
-  
+
     switch (requestStatus) {
       case 'none':
         return (
@@ -249,14 +261,20 @@ const EventSetUpScreen = () => {
               margin: 10,
               borderRadius: 4,
             }}>
-            <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+            <Text
+              style={{
+                color: 'white',
+                textAlign: 'center',
+                fontSize: 15,
+                fontWeight: '500',
+              }}>
               Join Event
             </Text>
           </TouchableOpacity>
         );
       case 'pending':
         return (
-          <View style={{ flexDirection: 'row', margin: 10 }}>
+          <View style={{flexDirection: 'row', margin: 10}}>
             <TouchableOpacity
               style={{
                 backgroundColor: 'gray',
@@ -265,7 +283,13 @@ const EventSetUpScreen = () => {
                 marginRight: 5,
                 borderRadius: 4,
               }}>
-              <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+              <Text
+                style={{
+                  color: 'white',
+                  textAlign: 'center',
+                  fontSize: 15,
+                  fontWeight: '500',
+                }}>
                 Pending
               </Text>
             </TouchableOpacity>
@@ -278,7 +302,13 @@ const EventSetUpScreen = () => {
                 marginLeft: 5,
                 borderRadius: 4,
               }}>
-              <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, fontWeight: '500' }}>
+              <Text
+                style={{
+                  color: 'white',
+                  textAlign: 'center',
+                  fontSize: 15,
+                  fontWeight: '500',
+                }}>
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -288,15 +318,6 @@ const EventSetUpScreen = () => {
         return null;
     }
   };
-  
-  
-  // if (loading) {
-  //   return (
-  //     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-  //       <ActivityIndicator size="large" color="#07bc0c" />
-  //     </View>
-  //   );
-  // }
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
@@ -322,7 +343,6 @@ const EventSetUpScreen = () => {
             position: 'absolute',
             top: 20,
             right: 20,
-            flexDirection: 'row',
             gap: 15,
           }}>
           <Ionicons name="heart-outline" size={24} color="#fff" />
