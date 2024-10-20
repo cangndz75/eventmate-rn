@@ -9,6 +9,7 @@ import {
   Text,
   Alert,
   TouchableOpacity,
+  ToastAndroid,
 } from 'react-native';
 import {Button, Avatar} from '@rneui/themed';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,6 +20,7 @@ import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ActivityIndicator} from 'react-native-paper';
 
 const EventSetUpScreen = () => {
   const navigation = useNavigation();
@@ -31,11 +33,16 @@ const EventSetUpScreen = () => {
   const [organizer, setOrganizer] = useState(null);
   const [requestStatus, setRequestStatus] = useState('none');
   const eventId = route?.params?.item?._id;
+  const [isFavorited, setIsFavorited] = useState(
+    route?.params?.isFavorited || false,
+  );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAttendees();
     fetchOrganizer();
     checkRequestStatus();
+    checkIfFavorited();
   }, []);
 
   useEffect(() => {
@@ -57,6 +64,49 @@ const EventSetUpScreen = () => {
       );
     }
   };
+  const checkIfFavorited = async () => {
+    try {
+      const response = await axios.get(`http://10.0.2.2:8000/favorites/${userId}`);
+      const favorites = response.data.map(event => event._id);
+  
+      setIsFavorited(favorites.includes(eventId));
+    } catch (error) {
+      console.error('Failed to load favorites:', error);
+    }
+  };
+
+
+  const saveFavorites = async newFavorites => {
+    try {
+      await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+    } catch (error) {
+      console.error('Failed to save favorites:', error);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    try {
+      const response = await axios.post('http://10.0.2.2:8000/favorites', {
+        userId,
+        eventId,
+      });
+  
+      const { message, isFavorited } = response.data;
+  
+      setIsFavorited(isFavorited);
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+  
+      if (isFavorited) {
+        console.log('Added to favorites:', eventId);
+      } else {
+        console.log('Removed from favorites:', eventId);
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+      ToastAndroid.show('Failed to update favorite.', ToastAndroid.SHORT);
+    }
+  };
+  
 
   const saveRequestStatus = async status => {
     try {
@@ -228,6 +278,13 @@ const EventSetUpScreen = () => {
         return null;
     }
   };
+  // if (loading) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  //       <ActivityIndicator size="large" color="#07bc0c" />
+  //     </View>
+  //   );
+  // }
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
@@ -260,6 +317,24 @@ const EventSetUpScreen = () => {
           <Entypo name="share" size={24} color="#fff" />
         </View>
 
+        <View style={{position: 'absolute', top: 20, right: 20}}>
+          <Pressable
+            onPress={toggleFavorite}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: '#fff',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Ionicons
+              name={isFavorited ? 'heart' : 'heart-outline'}
+              size={24}
+              color={isFavorited ? 'red' : '#000'}
+            />
+          </Pressable>
+        </View>
         <View style={{padding: 16}}>
           <Text style={{fontSize: 24, fontWeight: 'bold', color: '#333'}}>
             {route?.params?.item?.title || 'National Music Festival'}

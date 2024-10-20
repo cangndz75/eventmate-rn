@@ -943,52 +943,59 @@ app.post('/rejectrequest', async (req, res) => {
 
 app.post('/favorites', async (req, res) => {
   try {
-    const {userId, eventId} = req.body;
+    const { userId, eventId } = req.body;
 
-    // Find the user by ID
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({message: 'User not found'});
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: 'Invalid user or event ID' });
     }
 
-    // Check if the event is already in favorites
-    const eventIndex = user.favorites.indexOf(eventId);
+    const [user, event] = await Promise.all([
+      User.findById(userId),
+      Event.findById(eventId),
+    ]);
 
-    if (eventIndex === -1) {
-      // Add the event to favorites
-      user.favorites.push(eventId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    const isFavorited = user.favorites.includes(eventId);
+
+    if (isFavorited) {
+      user.favorites.pull(eventId);
       await user.save();
-      return res.status(200).json({message: 'Event added to favorites'});
+      return res.status(200).json({ message: 'Event removed from favorites', isFavorited: false });
     } else {
-      // Remove the event from favorites
-      user.favorites.splice(eventIndex, 1);
+      user.favorites.addToSet(eventId); 
       await user.save();
-      return res.status(200).json({message: 'Event removed from favorites'});
+      return res.status(200).json({ message: 'Event added to favorites', isFavorited: true });
     }
   } catch (error) {
     console.error('Error toggling favorite:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 app.get('/favorites/:userId', async (req, res) => {
   try {
-    const {userId} = req.params;
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
 
     const user = await User.findById(userId).populate({
       path: 'favorites',
       model: 'Event',
+      select: 'title location date time', 
     });
 
     if (!user) {
-      return res.status(404).json({message: 'User not found'});
+      return res.status(404).json({ message: 'User not found' });
     }
 
     res.status(200).json(user.favorites);
-    console.log('Favorites:', user.favorites);
   } catch (error) {
     console.error('Error fetching favorites:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
