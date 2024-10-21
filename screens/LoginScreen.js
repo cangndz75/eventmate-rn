@@ -25,7 +25,10 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://10.0.2.2:8000/login', { email, password });
+      const response = await axios.post('https://biletixai.onrender.com/login', { 
+        email, 
+        password 
+      });
       const { token, userId, role } = response.data;
   
       await AsyncStorage.setItem('token', token);
@@ -36,7 +39,7 @@ const LoginScreen = () => {
       setUserId(userId);
       setRole(role);
   
-      navigation.navigate('Home');
+      navigation.navigate('Main');
     } catch (error) {
       console.error('Login failed:', error);
       Alert.alert('Error', 'Login failed. Please try again.');

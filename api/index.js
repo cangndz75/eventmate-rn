@@ -909,7 +909,7 @@ app.delete('/messages/:messageId', async (req, res) => {
 });
 
 app.get('/users', async (req, res) => {
-  console.log('Fetching users...'); // Debugging log
+  console.log('Fetching users...');
   try {
     const users = await User.find({}, 'firstName lastName image');
     res.status(200).json(users);

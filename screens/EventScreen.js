@@ -21,7 +21,7 @@ const EventScreen = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  const [searchQuery, setSearchQuery] = useState(''); 
 
   const categories = ['All', 'Sports', 'Music', 'Football'];
 
