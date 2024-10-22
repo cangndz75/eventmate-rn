@@ -69,20 +69,29 @@ const ManageRequests = () => {
       });
   
       if (response.status === 200) {
-        await axios.post(`http://10.0.2.2:8000/users/${userId}/events`, {
-          eventId,
-        });
-        Alert.alert('Success', 'Request accepted');
-        fetchRequests();
+        try {
+          const userEventResponse = await axios.post(`http://10.0.2.2:8000/users/${userId}/events`, {
+            eventId,
+          });
+  
+          if (userEventResponse.status === 200) {
+            Alert.alert('Success', 'Request accepted');
+            fetchRequests();
+          } else {
+            console.error('Failed to add event to user:', userEventResponse.data);
+            Alert.alert('Error', 'Failed to add event to user');
+          }
+        } catch (error) {
+          console.error('Failed to add event to user:', error.response ? error.response.data : error.message);
+          Alert.alert('Error', 'Failed to add event to user');
+        }
       }
     } catch (error) {
-      console.error(
-        'Failed to accept request:',
-        error.response ? error.response.data : error.message,
-      );
+      console.error('Failed to accept request:', error.response ? error.response.data : error.message);
       Alert.alert('Error', 'Failed to accept request');
     }
   };
+  
   
 
   const rejectRequest = async (requestId, eventId) => {

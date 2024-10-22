@@ -192,7 +192,7 @@ const HomeScreen = () => {
             onPress={() => navigation.navigate('Event', {item: popularEvent})}
             style={{borderRadius: 15, overflow: 'hidden'}}>
             <ImageBackground
-              source={{uri: popularEvent.organizerUrl}}
+              source={{uri: popularEvent.organizerUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqG-InngmdJ4Ifg1hcdSKJM9y9vdYIobP1Ya-1f10vV2yclcqd"}}
               style={{height: 200, justifyContent: 'flex-end', padding: 10}}>
               <View
                 style={{
