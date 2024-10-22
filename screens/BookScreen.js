@@ -15,12 +15,15 @@ import VenueCard from '../components/VenueCard';
 
 const BookScreen = ({navigation}) => {
   const [venues, setVenues] = useState([]);
+  const [filteredVenues, setFilteredVenues] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchVenues = async () => {
     try {
       const response = await axios.get('http://10.0.2.2:8000/venues');
       setVenues(response.data);
+      setFilteredVenues(response.data); 
     } catch (error) {
       console.error('Error fetching venues:', error.message);
     } finally {
@@ -31,6 +34,14 @@ const BookScreen = ({navigation}) => {
   useEffect(() => {
     fetchVenues();
   }, []);
+
+  const handleSearch = query => {
+    setSearchQuery(query);
+    const filteredData = venues.filter(venue =>
+      venue.name.toLowerCase().includes(query.toLowerCase()),
+    );
+    setFilteredVenues(filteredData);
+  };
 
   if (loading) {
     return (
@@ -68,12 +79,17 @@ const BookScreen = ({navigation}) => {
           flexDirection: 'row',
           borderRadius: 25,
         }}>
-        <TextInput placeholder="Search" style={{flex: 1}} />
+        <TextInput
+          placeholder="Search"
+          style={{flex: 1}}
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
         <Ionicons name="search" size={24} color="black" />
       </View>
 
       <FlatList
-        data={venues}
+        data={filteredVenues}
         renderItem={({item}) => (
           <VenueCard
             item={item}

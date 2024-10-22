@@ -59,9 +59,10 @@ const StackNavigator = () => {
           }}
         />
         <Tab.Screen
-          name="EVENT"
+          name="Event"
           component={role === 'organizer' ? AdminEventScreen : EventScreen}
           options={{
+            headerShown: false,
             tabBarActiveTintColor: 'green',
             tabBarIcon: ({focused}) => (
               <AntDesign
@@ -76,6 +77,7 @@ const StackNavigator = () => {
           name="Book"
           component={BookScreen}
           options={{
+            headerShown: false,
             tabBarActiveTintColor: 'green',
             tabBarIcon: ({focused}) => (
               <Ionicons
@@ -90,6 +92,7 @@ const StackNavigator = () => {
           name="Profile"
           component={ProfileDetailScreen}
           options={{
+            headerShown: false,
             tabBarActiveTintColor: 'green',
             tabBarIcon: ({focused}) => (
               <Ionicons
@@ -104,6 +107,7 @@ const StackNavigator = () => {
           name="Chats"
           component={ChatsScreen}
           options={{
+            headerShown: false,
             tabBarActiveTintColor: 'green',
             tabBarIcon: ({focused}) => (
               <Ionicons
@@ -119,6 +123,7 @@ const StackNavigator = () => {
             name="Favorites"
             component={FavoritesScreen}
             options={{
+              headerShown: false,
               tabBarActiveTintColor: 'green',
               tabBarIcon: ({focused}) => (
                 <Ionicons
