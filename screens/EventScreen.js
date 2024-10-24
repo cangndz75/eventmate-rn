@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect, useCallback} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,14 @@ import {
   ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import UpComingEvent from '../components/UpComingEvent';
 import FilterModal from '../components/FilterModal';
 
 const EventScreen = () => {
-  const {userId, user} = useContext(AuthContext);
+  const {user} = useContext(AuthContext);
   const navigation = useNavigation();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +27,10 @@ const EventScreen = () => {
 
   const categories = ['All', 'Sports', 'Music', 'Football'];
 
+  // Fetch all events from the backend
   useEffect(() => {
     fetchEvents();
-  }, [userId]);
+  }, []);
 
   const fetchEvents = async () => {
     try {
@@ -42,12 +43,14 @@ const EventScreen = () => {
     }
   };
 
+  // Handle the filters applied from the FilterModal
   const applyFilters = filters => {
     setPriceRange(filters.priceRange);
-    setSelectedCategory(filters.selectedCategory || 'All');
+    setSelectedCategory(filters.selectedCategories?.[0] || 'All');
     setFilterModalVisible(false);
   };
 
+  // Filter events based on the selected category, search query, and price range
   const filteredEvents = events.filter(
     event =>
       (selectedCategory === 'All' ||
@@ -66,6 +69,7 @@ const EventScreen = () => {
         <Ionicons name="notifications-outline" size={24} color="white" />
       </View>
 
+      {/* Search bar */}
       <View
         style={{
           marginTop: 15,
@@ -88,6 +92,7 @@ const EventScreen = () => {
         </Pressable>
       </View>
 
+      {/* Category selection */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{marginTop: 15, flexDirection: 'row'}}>
           {categories.map((category, index) => (
