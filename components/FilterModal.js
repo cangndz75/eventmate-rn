@@ -19,7 +19,7 @@ const FilterModal = ({visible, onClose, onApply}) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [location, setLocation] = useState('');
   const [isPaid, setIsPaid] = useState(false);
-  const categories = ['All', 'Music', 'Workshops', 'Art', 'Food & Drink'];
+  const categories = ['All', 'Concert', 'Dance', 'Football', 'Theatre'];
 
   const toggleCategory = category => {
     setSelectedCategories(prev =>
