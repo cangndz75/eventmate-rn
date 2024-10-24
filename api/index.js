@@ -1143,3 +1143,14 @@ app.put('/event/:eventId', authenticateToken, async (req, res) => {
     res.status(500).json({message: 'Failed to update event'});
   }
 });
+
+app.post('/venues', async (req, res) => {
+  try {
+    const newVenue = new Venue(req.body);
+    await newVenue.save();
+    res.status(201).json({ message: 'Venue created successfully', venue: newVenue });
+  } catch (error) {
+    console.error('Error creating venue:', error);
+    res.status(500).json({ message: 'Failed to create venue' });
+  }
+});

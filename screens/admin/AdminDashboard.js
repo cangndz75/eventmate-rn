@@ -38,7 +38,7 @@ const dashboardItems = [
     {title: 'Create', icon: 'add-circle-outline', route: 'AdminCreate'},
     {title: 'My Events', icon: 'calendar-outline', route: 'AdminEvents'},
     {title: 'Attends', icon: 'people-outline', route: 'Attends'},
-    {title: 'Reports', icon: 'bar-chart-outline', route: 'Reports'},
+    {title: 'Venue', icon: 'bar-chart-outline', route: 'AdminCreateVenue'},
     {title: 'Settings', icon: 'settings-outline', route: 'Settings'},
 ];
 

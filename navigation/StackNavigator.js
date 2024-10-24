@@ -34,6 +34,7 @@ import HomeScreen from '../screens/HomeScreen';
 import AdminEventSetUpScreen from '../screens/admin/AdminEventSetUpScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
 import TicketDetailScreen from '../screens/TicketDetailScreen';
+import AdminCreateVenueScreen from '../screens/admin/AdminCreateVenueScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -246,6 +247,7 @@ const StackNavigator = () => {
         <Stack.Screen name="Chats" component={ChatsScreen} />
         <Stack.Screen name="ProfileEditScreen" component={ProfileEditScreen} />
         <Stack.Screen name="TicketDetailScreen" component={TicketDetailScreen} />
+        <Stack.Screen name="AdminCreateVenue" component={AdminCreateVenueScreen} />
         <Stack.Screen
           name="AdminDashboard"
           component={AdminDashboard}
