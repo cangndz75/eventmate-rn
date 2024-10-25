@@ -64,7 +64,7 @@ const EventScreen = () => {
       </View>
 
       <Pressable
-        onPress={() => navigation.navigate('SearchScreen')} // Yönlendirme buradan yapılıyor
+        onPress={() => navigation.navigate('SearchScreen')}
         style={{
           marginTop: 15,
           backgroundColor: 'white',
@@ -78,9 +78,9 @@ const EventScreen = () => {
         <TextInput
           placeholder="Search Event"
           style={{flex: 1, marginLeft: 10}}
-          editable={false} // Bu alan düzenlenemez olacak
+          editable={false}
         />
-        <Ionicons name="filter-outline" size={24} color="#7b61ff" />
+        <Ionicons onPress={() => setFilterModalVisible(true)} name="filter-outline" size={24} color="#7b61ff" />
       </Pressable>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
