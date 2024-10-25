@@ -37,6 +37,7 @@ import TicketDetailScreen from '../screens/TicketDetailScreen';
 import AdminCreateVenueScreen from '../screens/admin/AdminCreateVenueScreen';
 import InterestSelectionScreen from '../screens/InterestSelectionScreen';
 import SearchScreen from '../screens/SearchScreen';
+import ReviewScreen from '../screens/ReviewScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -254,6 +255,11 @@ const StackNavigator = () => {
         <Stack.Screen
           name="SearchScreen"
           component={SearchScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ReviewScreen"
+          component={ReviewScreen}
           options={{headerShown: false}}
         />
         <Stack.Screen

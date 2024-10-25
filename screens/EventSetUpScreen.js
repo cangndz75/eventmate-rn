@@ -217,7 +217,7 @@ const EventSetUpScreen = () => {
             name="arrow-back"
             size={24}
             color="#fff"
-            onPress={() => navigation.goBack()} // Navigates back to the previous screen
+            onPress={() => navigation.goBack()} 
           />
         </View>
 
