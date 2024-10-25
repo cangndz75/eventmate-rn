@@ -6564,6 +6564,8 @@ react-native-webview@^11.0.0:
 
 react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", "react-native@^0.0.0-0 || >=0.65 <1.0", "react-native@>= 0.64.3", react-native@>=0.42.0, react-native@>=0.44.0, react-native@>=0.50.0, react-native@>=0.57, react-native@>=0.59.0, react-native@>=0.61.3, react-native@>=0.62.0, react-native@>=0.65.0, react-native@0.75.3:
   version "0.75.3"
+  resolved "https://registry.npmjs.org/react-native/-/react-native-0.75.3.tgz"
+  integrity sha512-+Ne6u5H+tPo36sme19SCd1u2UID2uo0J/XzAJarxmrDj4Nsdi44eyUDKtQHmhgxjRGsuVJqAYrMK0abLSq8AHw==
   dependencies:
     "@jest/create-cache-key-function" "^29.6.3"
     "@react-native-community/cli" "14.1.0"

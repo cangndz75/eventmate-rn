@@ -1,15 +1,15 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useContext, useEffect, useRef} from 'react';
 import {
   View,
   Text,
   FlatList,
   Pressable,
-  TextInput,
   ActivityIndicator,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import UpComingEvent from '../components/UpComingEvent';
@@ -17,19 +17,24 @@ import FilterModal from '../components/FilterModal';
 
 const EventScreen = () => {
   const {user} = useContext(AuthContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation(); // Navigasyon hook'u
+  const route = useRoute();
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(
+    route.params?.category || 'All',
+  );
+  const [searchQuery, setSearchQuery] = useState(
+    route.params?.searchQuery || '',
+  );
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 1000]);
 
   const categories = ['All', 'Sports', 'Music', 'Football'];
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [selectedCategory]);
 
   const fetchEvents = async () => {
     try {
@@ -42,19 +47,11 @@ const EventScreen = () => {
     }
   };
 
-  const applyFilters = filters => {
-    setPriceRange(filters.priceRange);
-    setSelectedCategory(filters.selectedCategories?.[0] || 'All');
-    setFilterModalVisible(false);
-  };
-
   const filteredEvents = events.filter(
     event =>
       (selectedCategory === 'All' ||
-        event.eventType === selectedCategory.toLowerCase()) &&
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      event.price >= priceRange[0] &&
-      event.price <= priceRange[1],
+        event.eventType.toLowerCase() === selectedCategory.toLowerCase()) &&
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderHeader = () => (
@@ -66,7 +63,8 @@ const EventScreen = () => {
         <Ionicons name="notifications-outline" size={24} color="white" />
       </View>
 
-      <View
+      <Pressable
+        onPress={() => navigation.navigate('SearchScreen')} // Yönlendirme buradan yapılıyor
         style={{
           marginTop: 15,
           backgroundColor: 'white',
@@ -78,15 +76,12 @@ const EventScreen = () => {
         }}>
         <Ionicons name="search-outline" size={20} color="gray" />
         <TextInput
-          placeholder="Search"
+          placeholder="Search Event"
           style={{flex: 1, marginLeft: 10}}
-          value={searchQuery}
-          onChangeText={text => setSearchQuery(text)}
+          editable={false} // Bu alan düzenlenemez olacak
         />
-        <Pressable onPress={() => setFilterModalVisible(true)}>
-          <Ionicons name="options-outline" size={24} color="#7b61ff" />
-        </Pressable>
-      </View>
+        <Ionicons name="filter-outline" size={24} color="#7b61ff" />
+      </Pressable>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{marginTop: 15, flexDirection: 'row'}}>
@@ -132,7 +127,7 @@ const EventScreen = () => {
             <FilterModal
               visible={filterModalVisible}
               onClose={() => setFilterModalVisible(false)}
-              onApply={applyFilters}
+              onApply={filters => console.log(filters)}
             />
           </>
         }
