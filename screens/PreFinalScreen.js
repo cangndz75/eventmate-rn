@@ -68,7 +68,7 @@ const PreFinalScreen = () => {
         await AsyncStorage.setItem('token', token);
         setToken(token);
         clearAllScreenData();
-        navigation.replace('MainStack', {screen: 'Main'});
+        navigation.replace('InterestSelectionScreen');
       }
     } catch (error) {
       console.log(

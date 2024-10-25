@@ -27,7 +27,6 @@ const EventScreen = () => {
 
   const categories = ['All', 'Sports', 'Music', 'Football'];
 
-  // Fetch all events from the backend
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -43,14 +42,12 @@ const EventScreen = () => {
     }
   };
 
-  // Handle the filters applied from the FilterModal
   const applyFilters = filters => {
     setPriceRange(filters.priceRange);
     setSelectedCategory(filters.selectedCategories?.[0] || 'All');
     setFilterModalVisible(false);
   };
 
-  // Filter events based on the selected category, search query, and price range
   const filteredEvents = events.filter(
     event =>
       (selectedCategory === 'All' ||
@@ -69,7 +66,6 @@ const EventScreen = () => {
         <Ionicons name="notifications-outline" size={24} color="white" />
       </View>
 
-      {/* Search bar */}
       <View
         style={{
           marginTop: 15,
@@ -92,7 +88,6 @@ const EventScreen = () => {
         </Pressable>
       </View>
 
-      {/* Category selection */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{marginTop: 15, flexDirection: 'row'}}>
           {categories.map((category, index) => (

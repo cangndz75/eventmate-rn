@@ -1154,3 +1154,45 @@ app.post('/venues', async (req, res) => {
     res.status(500).json({ message: 'Failed to create venue' });
   }
 });
+
+app.post('/user/:userId/interests', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { interests } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { interests },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Interests saved successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to save interests', error });
+  }
+});
+
+app.post('/user/:userId/interests', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { interests } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { interests },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Interests saved successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to save interests', error });
+  }
+});
