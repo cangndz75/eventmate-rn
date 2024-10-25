@@ -1,3 +1,4 @@
+import React, {useContext, useEffect, useState, useCallback} from 'react';
 import {
   Image,
   Pressable,
@@ -7,7 +8,6 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import React, {useContext, useEffect, useState, useCallback} from 'react';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
@@ -19,7 +19,7 @@ const UpComingEvent = ({item}) => {
   const [eventData, setEventData] = useState(item || null);
   const [isBooked, setIsBooked] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false); 
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,7 +31,7 @@ const UpComingEvent = ({item}) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://10.0.2.2:8000/events/${item?._id}`,
+        `https://biletixai.onrender.com/events/${item?._id}`,
       );
       setEventData(response.data);
       setIsBooked(response.data?.attendees?.some(att => att._id === userId));
@@ -70,10 +70,9 @@ const UpComingEvent = ({item}) => {
   const renderEventItem = () => (
     <Pressable
       onPress={() =>
-        navigation.navigate(
-          role === 'organizer' ? 'AdminEventSetUp' : 'EventSetup',
-          {item: eventData},
-        )
+        navigation.navigate('EventSetUp', {
+          item: eventData, 
+        })
       }
       style={{
         backgroundColor: '#fff',
@@ -103,7 +102,6 @@ const UpComingEvent = ({item}) => {
           source={{
             uri: eventData?.images?.[0] || 'https://via.placeholder.com/100',
           }}
-          onError={e => console.log('Image loading failed', e.nativeEvent)}
         />
 
         <View style={{flex: 1}}>
@@ -117,53 +115,6 @@ const UpComingEvent = ({item}) => {
             Hosted by {eventData?.organizerName}
           </Text>
         </View>
-
-        <View style={{alignItems: 'center'}}>
-          <Text style={{fontSize: 20, fontWeight: 'bold', color: '#FF6347'}}>
-            {eventData?.attendees?.length || 0}
-          </Text>
-          <Text style={{fontSize: 12, color: '#FF6347'}}>Going</Text>
-        </View>
-      </View>
-
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: 12,
-        }}>
-        <Text style={{fontSize: 14, fontWeight: '500', color: '#888'}}>
-          {eventData?.time}
-        </Text>
-
-        {role === 'organizer' ? (
-          <Pressable
-            onPress={() =>
-              navigation.navigate('AdminEventSetUp', {item: eventData})
-            }
-            style={{
-              backgroundColor: '#56cc79',
-              paddingVertical: 8,
-              paddingHorizontal: 20,
-              borderRadius: 10,
-            }}>
-            <Text style={{color: 'white', fontWeight: '600'}}>Manage</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => setIsBooked(prev => !prev)}
-            style={{
-              backgroundColor: isBooked ? '#56cc79' : '#FF6347',
-              paddingVertical: 8,
-              paddingHorizontal: 20,
-              borderRadius: 10,
-            }}>
-            <Text style={{color: 'white', fontWeight: '600'}}>
-              {isBooked ? 'Booked' : 'Join'}
-            </Text>
-          </Pressable>
-        )}
       </View>
     </Pressable>
   );

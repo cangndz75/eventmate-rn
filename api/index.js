@@ -1196,3 +1196,40 @@ app.post('/user/:userId/interests', async (req, res) => {
     res.status(500).json({ message: 'Failed to save interests', error });
   }
 });
+
+app.post('/events/:eventId/reviews', async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { userId, review } = req.body;
+
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const newReview = { userId, review, date: new Date() };
+    event.reviews.push(newReview);
+
+    await event.save();
+
+    res.status(201).json({ message: 'Review added successfully', review: newReview });
+  } catch (error) {
+    console.error('Error adding review:', error);
+    res.status(500).json({ message: 'Failed to add review' });
+  }
+});
+
+app.get('/events/:eventId/reviews', async (req, res) => {
+  try {
+    const eventId = mongoose.Types.ObjectId(req.params.eventId);
+    const event = await Event.findById(eventId).populate('reviews');
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    res.json(event.reviews);
+  } catch (error) {
+    console.error('Error fetching event details:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});

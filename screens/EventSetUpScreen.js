@@ -7,76 +7,184 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  Pressable,
-  Alert,
-  Dimensions,
   ActivityIndicator,
+  ToastAndroid,
+  Alert,
+  FlatList,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {AuthContext} from '../AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
-
-const {width} = Dimensions.get('window');
 
 const EventSetUpScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {userId} = useContext(AuthContext);
-  const event = route?.params?.item || {};
-  const [organizer, setOrganizer] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [comment, setComment] = useState('');
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [requestStatus, setRequestStatus] = useState('none');
   const [selectedTab, setSelectedTab] = useState('About');
-  const [isFavorited, setIsFavorited] = useState(false);
+  const {item} = route.params;
+  const eventId = item?._id;
 
   useEffect(() => {
-    fetchOrganizer();
-    checkIfFavorited();
-  }, []);
+    if (item) {
+      fetchEventDetails();
+    } else {
+      Alert.alert('Error', 'No event data found.');
+      navigation.goBack();
+    }
+  }, [item]);
 
-  const fetchOrganizer = async () => {
+  const fetchEventDetails = async () => {
     try {
-      const response = await axios.get(
-        `http://10.0.2.2:8000/event/${event._id}/organizer`,
-      );
-      setOrganizer(response.data);
+      await fetchReviews();
+      await checkRequestStatus();
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch organizer details.');
+      console.error('Error fetching event details:', error);
+      ToastAndroid.show('Failed to load event details', ToastAndroid.SHORT);
     } finally {
       setLoading(false);
     }
   };
 
-  const checkIfFavorited = async () => {
+  const fetchReviews = async () => {
     try {
       const response = await axios.get(
-        `http://10.0.2.2:8000/favorites/${userId}`,
+        `https://biletixai.onrender.com/events/${eventId}/reviews`,
       );
-      const favorites = response.data.map(fav => fav._id);
-      setIsFavorited(favorites.includes(event._id));
+      setReviews(response.data || []);
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch favorites.');
+      if (error.response && error.response.status === 404) {
+        console.log('No reviews found');
+        setReviews([]);
+      } else {
+        console.error('Error fetching reviews:', error);
+        ToastAndroid.show('Failed to fetch reviews', ToastAndroid.SHORT);
+      }
     }
   };
 
-  const toggleFavorite = async () => {
+  const submitReview = async () => {
+    if (!comment) {
+      Alert.alert('Error', 'Comment cannot be empty.');
+      return;
+    }
     try {
-      const response = await axios.post('http://10.0.2.2:8000/favorites', {
-        userId,
-        eventId: event._id,
-      });
-      setIsFavorited(response.data.isFavorited);
+      await axios.post(
+        `https://biletixai.onrender.com/events/${eventId}/reviews`,
+        {userId, comment},
+      );
+      setReviews(prev => [...prev, {userId, review: comment}]);
+      setComment('');
+      ToastAndroid.show('Review added!', ToastAndroid.SHORT);
     } catch (error) {
-      Alert.alert('Error', 'Failed to update favorite.');
+      console.error('Error submitting review:', error);
+      Alert.alert('Error', 'Failed to submit review.');
     }
   };
+
+  const checkRequestStatus = async () => {
+    try {
+      const response = await axios.get(
+        `https://biletixai.onrender.com/events/${eventId}/requests`,
+      );
+      const userRequest = response.data.find(req => req.userId === userId);
+      setRequestStatus(userRequest ? userRequest.status : 'none');
+    } catch (error) {
+      console.error('Error fetching requests:', error);
+      ToastAndroid.show('Failed to check request status', ToastAndroid.SHORT);
+    }
+  };
+
+  const renderGoingSection = () => (
+    <FlatList
+      horizontal
+      data={item.attendees}
+      keyExtractor={(attendee, index) => attendee._id + index}
+      renderItem={({item: attendee}) => (
+        <Image
+          source={{uri: attendee.image || 'https://via.placeholder.com/50'}}
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            marginHorizontal: 5,
+          }}
+        />
+      )}
+      contentContainerStyle={{marginVertical: 10}}
+    />
+  );
+
+  const renderReviewSection = () => (
+    <View style={{marginVertical: 10}}>
+      {reviews.length === 0 ? (
+        <Text>No reviews available.</Text>
+      ) : (
+        reviews.map((review, index) => (
+          <View
+            key={index}
+            style={{
+              backgroundColor: '#f0f0f0',
+              padding: 10,
+              marginVertical: 5,
+              borderRadius: 8,
+            }}>
+            <Text>{review.review}</Text>
+          </View>
+        ))
+      )}
+      <TextInput
+        placeholder="Add your review"
+        value={comment}
+        onChangeText={setComment}
+        style={{
+          borderColor: '#ccc',
+          borderWidth: 1,
+          borderRadius: 8,
+          padding: 10,
+          marginVertical: 10,
+        }}
+      />
+      <TouchableOpacity
+        onPress={submitReview}
+        style={{
+          backgroundColor: 'green',
+          padding: 10,
+          borderRadius: 8,
+          alignItems: 'center',
+        }}>
+        <Text style={{color: 'white'}}>Submit Review</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderActionButton = () => (
+    <TouchableOpacity
+      onPress={() => setModalVisible(true)}
+      style={{
+        backgroundColor: requestStatus === 'none' ? 'green' : 'gray',
+        padding: 15,
+        margin: 10,
+        borderRadius: 8,
+      }}>
+      <Text style={{color: 'white', textAlign: 'center'}}>
+        {requestStatus === 'none' ? 'Join Event' : 'Pending'}
+      </Text>
+    </TouchableOpacity>
+  );
 
   if (loading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading Event...</Text>
       </View>
     );
   }
@@ -84,75 +192,86 @@ const EventSetUpScreen = () => {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
       <ScrollView>
-        <Image
-          source={{uri: event.images?.[0] || 'https://via.placeholder.com/300'}}
-          style={{width: '100%', height: 300, resizeMode: 'cover'}}
-        />
-        {/* Back and Favorite Buttons */}
+        <View style={{position: 'relative'}}>
+          <Image
+            source={{
+              uri: item?.images?.[0] || 'https://via.placeholder.com/600x300',
+            }}
+            style={{width: '100%', height: 300, resizeMode: 'cover'}}
+          />
+          <Text
+            style={{
+              position: 'absolute',
+              bottom: 10,
+              right: 10,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              color: 'white',
+              padding: 5,
+              borderRadius: 5,
+            }}>
+            {item.time}
+          </Text>
+        </View>
         <View style={{position: 'absolute', top: 20, left: 20}}>
           <Ionicons
             name="arrow-back"
             size={24}
             color="#fff"
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.goBack()} // Navigates back to the previous screen
           />
         </View>
-        <View style={{position: 'absolute', top: 20, right: 20}}>
-          <TouchableOpacity onPress={toggleFavorite}>
-            <Ionicons
-              name={isFavorited ? 'heart' : 'heart-outline'}
-              size={24}
-              color={isFavorited ? 'red' : '#fff'}
-            />
-          </TouchableOpacity>
+
+        <View
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+          }}>
+          <Ionicons
+            name="heart-outline"
+            size={24}
+            color="#fff"
+            onPress={() => ToastAndroid.show('Favorited!', ToastAndroid.SHORT)}
+          />
+          <Ionicons
+            name="search"
+            size={24}
+            color="#fff"
+            onPress={() =>
+              ToastAndroid.show('Search clicked!', ToastAndroid.SHORT)
+            }
+          />
         </View>
 
-        {/* Event Details Section */}
         <View style={{padding: 16}}>
-          <Text style={{fontSize: 24, fontWeight: 'bold'}}>{event.title}</Text>
+          <Text style={{fontSize: 24, fontWeight: 'bold'}}>
+            {item?.title || 'Event Title'}
+          </Text>
           <View style={{flexDirection: 'row', marginVertical: 10}}>
             <MaterialIcons name="location-on" size={24} color="#5c6bc0" />
-            <Text style={{marginLeft: 10}}>{event.location}</Text>
+            <Text style={{marginLeft: 10}}>
+              {item?.location || 'Event Location'}
+            </Text>
           </View>
 
-          {/* Organizer Information */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginVertical: 10,
-            }}>
-            <Image
-              source={{
-                uri: organizer?.image || 'https://via.placeholder.com/150',
-              }}
-              style={{width: 50, height: 50, borderRadius: 25, marginRight: 10}}
-            />
-            <View>
-              <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-                {`${organizer?.firstName} ${organizer?.lastName}`}
-              </Text>
-              <Text style={{color: 'gray'}}>Organizer</Text>
-            </View>
-          </View>
+          <Text style={{fontWeight: 'bold', marginVertical: 10}}>
+            Hosted by: {item.organizer || 'Unknown Organizer'}
+          </Text>
+          {renderGoingSection()}
 
-          {/* About/Review Tabs */}
-          <View style={{flexDirection: 'row', marginVertical: 20}}>
+          <View style={{flexDirection: 'row', marginTop: 10}}>
             <TouchableOpacity
               style={{
                 flex: 1,
                 alignItems: 'center',
                 padding: 10,
                 borderBottomWidth: selectedTab === 'About' ? 2 : 0,
-                borderBottomColor: 'black',
               }}
               onPress={() => setSelectedTab('About')}>
-              <Text
-                style={{
-                  fontWeight: selectedTab === 'About' ? 'bold' : 'normal',
-                }}>
-                About
-              </Text>
+              <Text>About</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{
@@ -160,65 +279,57 @@ const EventSetUpScreen = () => {
                 alignItems: 'center',
                 padding: 10,
                 borderBottomWidth: selectedTab === 'Review' ? 2 : 0,
-                borderBottomColor: 'black',
               }}
               onPress={() => setSelectedTab('Review')}>
-              <Text
-                style={{
-                  fontWeight: selectedTab === 'Review' ? 'bold' : 'normal',
-                }}>
-                Review
-              </Text>
+              <Text>Review</Text>
             </TouchableOpacity>
           </View>
 
           {selectedTab === 'About' ? (
-            <Text style={{color: '#666', marginTop: 10}}>
-              {event.description}
+            <Text style={{marginVertical: 10}}>
+              {item?.description || 'Event Description'}
             </Text>
           ) : (
-            <View>
+            renderReviewSection()
+          )}
+
+          {renderActionButton()}
+
+          <BottomModal
+            visible={modalVisible}
+            onTouchOutside={() => setModalVisible(false)}
+            modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+            <ModalContent style={{padding: 20}}>
               <TextInput
-                placeholder="Write a review..."
+                value={comment}
+                onChangeText={setComment}
+                placeholder="Add a comment..."
                 style={{
-                  height: 100,
+                  borderColor: '#ccc',
                   borderWidth: 1,
-                  borderColor: '#ddd',
-                  borderRadius: 10,
+                  borderRadius: 8,
                   padding: 10,
+                  height: 100,
+                  textAlignVertical: 'top',
                   marginBottom: 10,
                 }}
               />
               <TouchableOpacity
+                onPress={submitReview}
                 style={{
                   backgroundColor: 'green',
                   padding: 15,
-                  borderRadius: 10,
+                  borderRadius: 8,
                   alignItems: 'center',
-                }}
-                onPress={() =>
-                  Alert.alert('Review Submitted', 'Thanks for your feedback!')
-                }>
+                }}>
                 <Text style={{color: 'white', fontWeight: 'bold'}}>
                   Submit Review
                 </Text>
               </TouchableOpacity>
-            </View>
-          )}
+            </ModalContent>
+          </BottomModal>
         </View>
       </ScrollView>
-
-      <TouchableOpacity
-        style={{
-          backgroundColor: 'black',
-          padding: 15,
-          margin: 20,
-          borderRadius: 10,
-          alignItems: 'center',
-        }}
-        onPress={() => Alert.alert('Booking', 'You have booked the event!')}>
-        <Text style={{color: 'white', fontWeight: 'bold'}}>Book Schedule</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
