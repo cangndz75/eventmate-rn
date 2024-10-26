@@ -123,11 +123,18 @@ const EventSetUpScreen = () => {
   );
 
   const renderReviewSection = () => (
-    <View style={{marginVertical: 10}}>
+    <View style={{ marginVertical: 10 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ fontWeight: 'bold' }}>Reviews</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('ReviewScreen',{ eventId }) }>
+          <Text style={{ color: 'blue' }}>See All</Text>
+        </TouchableOpacity>
+      </View>
+  
       {reviews.length === 0 ? (
         <Text>No reviews available.</Text>
       ) : (
-        reviews.map((review, index) => (
+        reviews.slice(0, 2).map((review, index) => (
           <View
             key={index}
             style={{
@@ -135,35 +142,31 @@ const EventSetUpScreen = () => {
               padding: 10,
               marginVertical: 5,
               borderRadius: 8,
-            }}>
+            }}
+          >
             <Text>{review.review}</Text>
           </View>
         ))
       )}
+  
       <TextInput
         placeholder="Add your review"
         value={comment}
         onChangeText={setComment}
         style={{
-          borderColor: '#ccc',
           borderWidth: 1,
+          borderColor: '#ccc',
           borderRadius: 8,
           padding: 10,
-          marginVertical: 10,
+          marginTop: 10,
         }}
       />
-      <TouchableOpacity
-        onPress={submitReview}
-        style={{
-          backgroundColor: 'green',
-          padding: 10,
-          borderRadius: 8,
-          alignItems: 'center',
-        }}>
-        <Text style={{color: 'white'}}>Submit Review</Text>
+      <TouchableOpacity onPress={submitReview} style={{ backgroundColor: 'green', padding: 15, borderRadius: 8, marginTop: 10 }}>
+        <Text style={{ color: 'white', textAlign: 'center' }}>Submit Review</Text>
       </TouchableOpacity>
     </View>
   );
+  
 
   const renderActionButton = () => (
     <TouchableOpacity
