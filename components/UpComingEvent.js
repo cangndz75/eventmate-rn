@@ -71,7 +71,8 @@ const UpComingEvent = ({item}) => {
     <Pressable
       onPress={() =>
         navigation.navigate('EventSetUp', {
-          item: eventData, 
+          item: eventData,
+          eventId:eventData._id,
         })
       }
       style={{

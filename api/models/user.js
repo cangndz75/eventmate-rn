@@ -71,6 +71,11 @@ const userSchema = mongoose.Schema(
         ref: 'Event',
       },
     ],
+    interests: [{ type: String }],
+    aboutMe: {
+      type: String,
+      default: '',
+    },
     requests: [
       {
         from: {

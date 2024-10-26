@@ -18,6 +18,7 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {AuthContext} from '../AuthContext';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
+import { StyleSheet } from 'react-native';
 
 const EventSetUpScreen = () => {
   const navigation = useNavigation();
@@ -33,23 +34,49 @@ const EventSetUpScreen = () => {
   const eventId = item?._id;
 
   useEffect(() => {
-    if (item) {
-      fetchEventDetails();
-    } else {
-      Alert.alert('Error', 'No event data found.');
-      navigation.goBack();
-    }
+    const fetchUserAndEventDetails = async () => {
+      try {
+        const user = await User.findById(userId);
+        console.log('User data:', user);
+
+        if (item) {
+          await fetchEventDetails();
+        } else {
+          Alert.alert('Error', 'No event data found.');
+          navigation.goBack();
+        }
+      } catch (error) {
+        console.error('Error fetching user or event details:', error);
+      }
+    };
+
+    fetchUserAndEventDetails();
   }, [item]);
 
   const fetchEventDetails = async () => {
     try {
+      const eventResponse = await axios.get(
+        `https://biletixai.onrender.com/events/${eventId}`
+      );
+
+      if (eventResponse.status !== 200 || !eventResponse.data) {
+        throw new Error('Event data not found');
+      }
+
+      console.log('Event data:', eventResponse.data);
+
       await fetchReviews();
       await checkRequestStatus();
     } catch (error) {
-      console.error('Error fetching event details:', error);
-      ToastAndroid.show('Failed to load event details', ToastAndroid.SHORT);
+      console.error(
+        'Error fetching event details:',
+        error.response ? error.response.data : error.message
+      );
+
+      const errorMessage = error.response?.data?.message || 'Unexpected error occurred';
+      Alert.alert('Error', `Failed to load event details: ${errorMessage}`);
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
@@ -60,32 +87,35 @@ const EventSetUpScreen = () => {
       );
       setReviews(response.data || []);
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log('No reviews found');
-        setReviews([]);
-      } else {
-        console.error('Error fetching reviews:', error);
-        ToastAndroid.show('Failed to fetch reviews', ToastAndroid.SHORT);
-      }
+      console.error('Error fetching reviews:', error.response ? error.response.data : error.message);
+      const errorMessage = error.response?.data?.message || 'Unexpected error occurred';
+      Alert.alert('Error', `Failed to load reviews: ${errorMessage}`);
     }
   };
 
   const submitReview = async () => {
-    if (!comment) {
+    if (!comment.trim()) {
       Alert.alert('Error', 'Comment cannot be empty.');
       return;
     }
+
     try {
-      await axios.post(
+      const response = await axios.post(
         `https://biletixai.onrender.com/events/${eventId}/reviews`,
-        {userId, comment},
+        { userId, comment }
       );
-      setReviews(prev => [...prev, {userId, review: comment}]);
-      setComment('');
-      ToastAndroid.show('Review added!', ToastAndroid.SHORT);
+
+      if (response.status === 201) {
+        setReviews(prev => [...prev, { userId, review: comment }]);
+        setComment(''); // Clear input
+        ToastAndroid.show('Review added!', ToastAndroid.SHORT);
+      } else {
+        throw new Error('Failed to add review');
+      }
     } catch (error) {
-      console.error('Error submitting review:', error);
-      Alert.alert('Error', 'Failed to submit review.');
+      console.error('Error submitting review:', error.response ? error.response.data : error.message);
+      const errorMessage = error.response?.data?.message || 'Unexpected error occurred';
+      Alert.alert('Error', `Failed to submit review: ${errorMessage}`);
     }
   };
 
@@ -97,8 +127,8 @@ const EventSetUpScreen = () => {
       const userRequest = response.data.find(req => req.userId === userId);
       setRequestStatus(userRequest ? userRequest.status : 'none');
     } catch (error) {
-      console.error('Error fetching requests:', error);
-      ToastAndroid.show('Failed to check request status', ToastAndroid.SHORT);
+      console.error('Error fetching requests:', error.response ? error.response.data : error.message);
+      ToastAndroid.show(`Failed to check request status: ${error.response ? error.response.data.message : error.message}`, ToastAndroid.SHORT);
     }
   };
 
@@ -125,48 +155,35 @@ const EventSetUpScreen = () => {
   const renderReviewSection = () => (
     <View style={{ marginVertical: 10 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ fontWeight: 'bold' }}>Reviews</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('ReviewScreen',{ eventId }) }>
+        <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Reviews</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('ReviewScreen', { eventId })}>
           <Text style={{ color: 'blue' }}>See All</Text>
         </TouchableOpacity>
       </View>
-  
+
       {reviews.length === 0 ? (
         <Text>No reviews available.</Text>
       ) : (
         reviews.slice(0, 2).map((review, index) => (
-          <View
-            key={index}
-            style={{
-              backgroundColor: '#f0f0f0',
-              padding: 10,
-              marginVertical: 5,
-              borderRadius: 8,
-            }}
-          >
+          <View key={index} style={{ backgroundColor: '#f0f0f0', padding: 10, marginVertical: 5, borderRadius: 8 }}>
             <Text>{review.review}</Text>
           </View>
         ))
       )}
-  
-      <TextInput
-        placeholder="Add your review"
-        value={comment}
-        onChangeText={setComment}
-        style={{
-          borderWidth: 1,
-          borderColor: '#ccc',
-          borderRadius: 8,
-          padding: 10,
-          marginTop: 10,
-        }}
-      />
-      <TouchableOpacity onPress={submitReview} style={{ backgroundColor: 'green', padding: 15, borderRadius: 8, marginTop: 10 }}>
-        <Text style={{ color: 'white', textAlign: 'center' }}>Submit Review</Text>
-      </TouchableOpacity>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          placeholder="Send your review"
+          value={comment}
+          onChangeText={setComment}
+          style={styles.textInput}
+        />
+        <TouchableOpacity onPress={submitReview}>
+          <Ionicons name="send" size={24} color="blue" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
-  
 
   const renderActionButton = () => (
     <TouchableOpacity
@@ -338,3 +355,20 @@ const EventSetUpScreen = () => {
 };
 
 export default EventSetUpScreen;
+
+const styles = StyleSheet.create({
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 25,
+    paddingHorizontal: 10,
+    marginTop: 10,
+  },
+  textInput: {
+    flex: 1,
+    height: 40,
+    paddingHorizontal: 10,
+  },
+});

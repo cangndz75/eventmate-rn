@@ -6,6 +6,8 @@ import {
   View,
   ScrollView,
   SafeAreaView,
+  TouchableOpacity,
+  Modal,
 } from 'react-native';
 import React, {useContext, useState, useCallback, useEffect} from 'react';
 import axios from 'axios';
@@ -14,15 +16,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImageViewing from 'react-native-image-viewing';
+import {TextInput} from 'react-native';
 
 const ProfileDetailScreen = () => {
   const [user, setUser] = useState('');
   const navigation = useNavigation();
   const [visible, setVisible] = useState(false);
   const {userId, token, setToken, setUserId} = useContext(AuthContext);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [aboutText, setAboutText] = useState(''); // TextInput için state
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     const checkUserId = async () => {
@@ -44,16 +47,7 @@ const ProfileDetailScreen = () => {
       const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
       setUser(response.data);
     } catch (error) {
-      if (error.response) {
-        console.error('Error fetching user data:', error.response.data);
-        console.error('Status code:', error.response.status);
-        console.error('Headers:', error.response.headers);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error setting up request:', error.message);
-      }
-      console.error('Error config:', error.config);
+      console.error('Error fetching user data:', error.message);
     }
   };
 
@@ -70,209 +64,327 @@ const ProfileDetailScreen = () => {
       await AsyncStorage.removeItem('token');
       setToken('');
       setUserId('');
-      navigation.replace('Start'); 
+      navigation.replace('Start');
     } catch (error) {
       console.log('Error during logout:', error);
     }
   };
 
+  const updateAboutMe = async () => {
+    try {
+      const url = `http://10.0.2.2:8000/user/${userId}/about`;
+      const response = await axios.put(url, { aboutMe: aboutText });
+  
+      setUser(response.data);
+      setIsModalVisible(false);
+    } catch (error) {
+      console.error('Failed to update about me:', error.message);
+      if (error.response) {
+        console.error('Error details:', error.response.data);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      } else {
+        console.error('Error setting up request:', error.message);
+      }
+    }
+  };
+  
+  
+
+  const handleOpenModal = () => {
+    setAboutText(user?.user?.aboutMe || ''); 
+    setIsModalVisible(true);
+  };
+
   const images = [
-    {
-      uri: user?.user?.image || 'https://via.placeholder.com/150',
-    },
+    {uri: user?.user?.image || 'https://via.placeholder.com/150'},
   ];
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
+    <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{paddingBottom: 20}}>
-        <View
-          style={{
-            backgroundColor: 'white',
-            padding: 12,
-            margin: 12,
-            borderRadius: 8,
-          }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              gap: 20,
-            }}>
-            <Pressable onPress={() => setVisible(true)}>
-              <Image
-                style={{width: 70, height: 70, borderRadius: 35}}
-                source={{
-                  uri: user?.user?.image || 'https://via.placeholder.com/150',
-                }}
-              />
-            </Pressable>
+        <View style={styles.header}>
+          <Pressable onPress={() => setVisible(true)}>
+            <Image
+              style={styles.profileImage}
+              source={{
+                uri: user?.user?.image || 'https://via.placeholder.com/150',
+              }}
+            />
+          </Pressable>
 
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 30,
-                justifyContent: 'space-around',
-                width: '80%',
-              }}>
-              <View>
-                <Text style={{textAlign: 'center'}}>
-                  {user?.user?.noOfEvents}
-                </Text>
-                <Text style={{color: 'gray', marginTop: 6, fontSize: 13}}>
-                  EVENTS
-                </Text>
-              </View>
-
-              <View>
-                <Text style={{textAlign: 'center'}}>
-                  {user?.user?.eventPals?.length}
-                </Text>
-                <Text style={{color: 'gray', marginTop: 6, fontSize: 13}}>
-                  FRIENDS
-                </Text>
-              </View>
-
-              <View>
-                <Text style={{textAlign: 'center'}}>60</Text>
-                <Text style={{color: 'gray', marginTop: 6, fontSize: 13}}>
-                  POINTS
-                </Text>
-              </View>
-            </View>
+          <Text style={styles.userName}>
+            {user?.user?.firstName || 'User Name'}
+          </Text>
+          <View style={styles.followContainer}>
+            <Text style={styles.followText}>
+              {user?.user?.followers || 0} Followers
+            </Text>
+            <Text style={styles.followText}>|</Text>
+            <Text style={styles.followText}>
+              {user?.user?.following || 0} Following
+            </Text>
           </View>
 
-          <View>
-            <Text style={{marginTop: 10, fontWeight: '500'}}>
-              {user?.user?.firstName}
-            </Text>
-            <Text style={{color: 'gray', marginTop: 6}}>
-              Last Played on 13th July
-            </Text>
+          <TouchableOpacity
+            style={styles.editProfileButton}
+            onPress={() => navigation.navigate('ProfileEditScreen')}>
+            <Text style={styles.editProfileText}>Edit Profile</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.aboutMeContainer}>
+          <View style={styles.headerRow}>
+            <Text style={styles.aboutMeTitle}>About Me</Text>
+            <TouchableOpacity onPress={handleOpenModal}>
+              <Text style={styles.editText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.aboutMeDescription}>
+            {user?.user?.aboutMe || 'Share something about yourself!'}
+          </Text>
+        </View>
+
+        <View style={styles.interestsContainer}>
+          <Text style={styles.interestsTitle}>Interests</Text>
+          <View style={styles.tagsContainer}>
+            {user?.user?.interests?.map((interest, index) => (
+              <View key={index} style={styles.tag}>
+                <Text style={styles.tagText}>{interest}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
-        <View style={{padding: 12}}>
-          <View
-            style={{backgroundColor: 'white', padding: 10, borderRadius: 10}}>
-            <ProfileOption
-              icon={<AntDesign name="calendar" size={24} color={'green'} />}
-              title="My Bookings"
-              subtitle="View Transactions & Receipts"
-            />
-
-            <ProfileOption
-              icon={
-                <Ionicons name="people-outline" size={24} color={'green'} />
-              }
-              title="Playpals"
-              subtitle="View & Manage Players"
-            />
-
-            <ProfileOption
-              icon={<AntDesign name="book" size={24} color={'green'} />}
-              title="Passbook"
-              subtitle="Manage Karma, Playo credits, etc"
-            />
-
-            <ProfileOption
-              icon={
-                <MaterialIcons
-                  name="energy-savings-leaf"
-                  size={24}
-                  color={'green'}
-                />
-              }
-              title="Preference and Privacy"
-              subtitle="View Transactions & Receipts"
-            />
-
-            <ProfileOption
-              icon={<AntDesign name="profile" size={24} color={'green'} />}
-              title="Detail"
-              onPress={() => navigation.navigate('ProfileEditScreen')}
-            />
-
-            <ProfileOption
-              icon={
-                <Ionicons name="people-outline" size={24} color={'green'} />
-              }
-              title="Blogs"
-            />
-
-            <ProfileOption
-              icon={<AntDesign name="book" size={24} color={'green'} />}
-              title="Invite & Earn"
-            />
-
-            <ProfileOption
-              icon={
-                <MaterialIcons
-                  name="energy-savings-leaf"
-                  size={24}
-                  color={'green'}
-                />
-              }
-              title="Help & Support"
-            />
-
-            <ProfileOption
-              icon={
-                <MaterialIcons
-                  name="energy-savings-leaf"
-                  size={24}
-                  color={'green'}
-                />
-              }
-              title="Logout"
-              onPress={clearAuthToken}
-            />
+        <TouchableOpacity
+          style={styles.optionContainer}
+          onPress={() => navigation.navigate('BookingsScreen')}>
+          <View style={styles.iconContainer}>
+            <AntDesign name="calendar" size={24} color={'green'} />
           </View>
-        </View>
+          <Text style={styles.optionText}>My Bookings</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.optionContainer}
+          onPress={clearAuthToken}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="log-out-outline" size={24} color={'red'} />
+          </View>
+          <Text style={styles.optionText}>Logout</Text>
+        </TouchableOpacity>
+
+        <ImageViewing
+          images={images}
+          imageIndex={0}
+          visible={visible}
+          onRequestClose={() => setVisible(false)}
+        />
       </ScrollView>
 
-      <ImageViewing
-        images={images}
-        imageIndex={0}
-        visible={visible}
-        onRequestClose={() => setVisible(false)}
-      />
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit About Me</Text>
+            <TextInput
+              value={aboutText}
+              onChangeText={setAboutText}
+              style={styles.textInput}
+              multiline
+            />
+            <TouchableOpacity onPress={updateAboutMe} style={styles.saveButton}>
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setIsModalVisible(false)}
+              style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
 
-const ProfileOption = ({icon, title, subtitle, onPress}) => (
-  <Pressable onPress={onPress} style={styles.optionContainer}>
-    <View style={styles.iconContainer}>{icon}</View>
-    <View>
-      <Text style={styles.optionTitle}>{title}</Text>
-      {subtitle && <Text style={styles.optionSubtitle}>{subtitle}</Text>}
-    </View>
-  </Pressable>
-);
-
 export default ProfileDetailScreen;
 
 const styles = StyleSheet.create({
-  optionContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  header: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    backgroundColor: 'white',
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  profileImage: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    marginBottom: 15,
+  },
+  userName: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 5,
+  },
+  followContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    marginVertical: 10,
+  },
+  followText: {
+    fontSize: 16,
+    color: 'gray',
+    marginHorizontal: 8,
+  },
+  editProfileButton: {
+    borderWidth: 1,
+    borderColor: '#007bff',
+    borderRadius: 8,
+    paddingHorizontal: 25,
+    paddingVertical: 8,
+    marginTop: 10,
+  },
+  editProfileText: {
+    color: '#007bff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  aboutMeContainer: {
+    backgroundColor: 'white',
+    padding: 20,
     marginVertical: 15,
+    borderRadius: 10,
+    marginHorizontal: 10,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#E0E0E0',
-    justifyContent: 'center',
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 10,
   },
-  optionTitle: {
+  aboutMeTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  editText: {
+    color: '#007bff',
     fontSize: 16,
     fontWeight: '500',
   },
-  optionSubtitle: {
-    marginTop: 7,
+  aboutMeDescription: {
+    fontSize: 16,
     color: 'gray',
+    lineHeight: 22,
+  },
+  interestsContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    marginVertical: 10,
+    borderRadius: 10,
+    marginHorizontal: 10,
+  },
+  interestsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  tag: {
+    backgroundColor: '#e0f7fa',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 16,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  tagText: {
+    color: '#007bff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  optionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  iconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: '#e0e0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  optionText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#333',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 25,
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 15,
+    color: '#333',
+  },
+  textInput: {
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 15,
+    height: 100,
+    textAlignVertical: 'top',
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: 'black',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

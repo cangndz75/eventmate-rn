@@ -18,7 +18,7 @@ const ReviewScreen = ({route, navigation}) => {
   const [reviews, setReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
   const [comment, setComment] = useState('');
-  const [averageScore, setAverageScore] = useState(0.0); // Default 0.0 if no reviews
+  const [averageScore, setAverageScore] = useState(0.0); 
   const [selectedFilter, setSelectedFilter] = useState('All time');
 
   useEffect(() => {

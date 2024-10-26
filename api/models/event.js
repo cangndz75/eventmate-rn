@@ -35,6 +35,13 @@ const eventSchema = new Schema(
         },
       },
     ],
+    reviews: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        review: String,
+        date: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

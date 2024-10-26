@@ -1081,19 +1081,21 @@ app.get('/event/:eventId/organizer', async (req, res) => {
 });
 
 app.get('/events/:eventId', async (req, res) => {
+  const { eventId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({ message: 'Invalid event ID' });
+  }
+
   try {
-    const {eventId} = req.params;
-    const event = await Event.findById(eventId).populate(
-      'attendees',
-      'firstName lastName image',
-    );
+    const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
     }
     res.status(200).json(event);
   } catch (error) {
     console.error('Error fetching event:', error);
-    res.status(500).json({message: 'Internal server error'});
+    res.status(500).json({ message: 'Internal server error', error });
   }
 });
 
@@ -1200,25 +1202,27 @@ app.post('/user/:userId/interests', async (req, res) => {
 app.post('/events/:eventId/reviews', async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { userId, review } = req.body;
-
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+    const { userId, comment } = req.body;
+    if (!userId || !comment) {
+      return res.status(400).json({ message: 'userId and comment are required.' });
     }
 
-    const newReview = { userId, review, date: new Date() };
-    event.reviews.push(newReview);
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found.' });
+    }
 
+    const newReview = { userId, review: comment, date: new Date() };
+    event.reviews.push(newReview);
     await event.save();
 
     res.status(201).json({ message: 'Review added successfully', review: newReview });
   } catch (error) {
-    console.error('Error adding review:', error);
-    res.status(500).json({ message: 'Failed to add review' });
+    console.error('Error adding review:', error.message);
+    res.status(500).json({ message: 'Failed to add review.', error: error.message });
   }
 });
+
 
 app.get('/events/:eventId/reviews', async (req, res) => {
   try {
@@ -1231,5 +1235,26 @@ app.get('/events/:eventId/reviews', async (req, res) => {
   } catch (error) {
     console.error('Error fetching event details:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.put('/user/:userId/about', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { aboutMe } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { aboutMe },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update about me', error });
   }
 });
