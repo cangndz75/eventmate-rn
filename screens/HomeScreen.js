@@ -24,6 +24,7 @@ const HomeScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [errorMessage, setErrorMessage] = useState(null);
   const categories = [
     'All',
     'Sports',
@@ -56,6 +57,7 @@ const HomeScreen = () => {
         }
       } catch (error) {
         console.error('Error fetching events:', error);
+        setErrorMessage('Failed to load events. Please try again later.'); // Set error message
       } finally {
         setIsLoading(false);
       }
@@ -86,6 +88,14 @@ const HomeScreen = () => {
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" color="#5c6bc0" />
         <Text>Loading events...</Text>
+      </View>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text style={{color: 'red'}}>{errorMessage}</Text>
       </View>
     );
   }
