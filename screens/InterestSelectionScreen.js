@@ -82,15 +82,17 @@ const InterestSelectionScreen = ({navigation}) => {
     try {
       await axios.post(
         `https://biletixai.onrender.com/user/${userId}/interests`,
-        {interests: selectedInterests},
+        { interests: selectedInterests },
       );
+  
       Dialog.show({
         type: ALERT_TYPE.SUCCESS,
         title: 'Başarılı!',
         textBody: 'İlgi alanlarınız kaydedildi!',
         button: 'Tamam',
       });
-      navigation.navigate('ProfileDetail');
+  
+      navigation.goBack(); 
     } catch (error) {
       console.error('Error saving interests:', error);
       Dialog.show({
@@ -101,6 +103,7 @@ const InterestSelectionScreen = ({navigation}) => {
       });
     }
   };
+  
 
   if (isLoading) {
     return (

@@ -24,7 +24,7 @@ const ProfileDetailScreen = () => {
   const navigation = useNavigation();
   const [visible, setVisible] = useState(false);
   const {userId, token, setToken, setUserId} = useContext(AuthContext);
-  const [aboutText, setAboutText] = useState(''); // TextInput için state
+  const [aboutText, setAboutText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
@@ -53,10 +53,21 @@ const ProfileDetailScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (userId) {
-        fetchUser();
-      }
-    }, [userId]),
+      const fetchDataOnFocus = async () => {
+        const params = navigation
+          .getState()
+          .routes.find(route => route.name === 'ProfileDetail')?.params;
+
+        if (params?.refresh) {
+          console.log('Refreshing profile data');
+          await fetchUser();
+
+          navigation.setParams({refresh: false});
+        }
+      };
+
+      fetchDataOnFocus();
+    }, [navigation, userId]),
   );
 
   const clearAuthToken = async () => {
@@ -75,7 +86,11 @@ const ProfileDetailScreen = () => {
       const url = `http://10.0.2.2:8000/user/${userId}/about`;
       const response = await axios.put(url, {aboutMe: aboutText});
 
-      setUser(response.data);
+      setUser(prevState => ({
+        ...prevState,
+        user: {...prevState.user, aboutMe: aboutText},
+      }));
+
       setIsModalVisible(false);
     } catch (error) {
       console.error('Failed to update about me:', error.message);

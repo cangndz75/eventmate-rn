@@ -64,12 +64,13 @@ const PreFinalScreen = () => {
   console.log('User Data:', userData);
   const registerUser = async () => {
     try {
-      console.log('User Data:', userData);
+      console.log('User Data being sent:', userData); 
+  
       const response = await axios.post(
         'http://10.0.2.2:8000/register',
-        userData,
+        userData
       );
-
+  
       if (response.data.token) {
         const token = response.data.token;
         await AsyncStorage.setItem('token', token);
@@ -80,27 +81,16 @@ const PreFinalScreen = () => {
     } catch (error) {
       console.log(
         'Error during registration:',
-        error.response?.data || error.message,
+        error.response?.data || error.message
       );
-      console.log('Full error details:', error);
-
-      if (error.response) {
-        console.log('Response data:', error.response.data);
-        console.log('Response status:', error.response.status);
-        console.log('Response headers:', error.response.headers);
-      } else if (error.request) {
-        console.log('Request data:', error.request);
-      } else {
-        console.log('Error message:', error.message);
-      }
-
       Alert.alert(
         'Registration Failed',
         error.response?.data?.message ||
-          'Something went wrong. Please try again later.',
+          'Something went wrong. Please try again later.'
       );
     }
   };
+  
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>

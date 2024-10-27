@@ -73,6 +73,8 @@ app.post('/refresh', async (req, res) => {
 
 app.post('/register', async (req, res) => {
   try {
+    console.log('Incoming user data:', req.body);
+
     const {
       email,
       password,
@@ -94,18 +96,19 @@ app.post('/register', async (req, res) => {
       aboutMe,
       interests,
     });
+
     await newUser.save();
 
     const token = jwt.sign(
-      {userId: newUser._id, role: newUser.role},
+      { userId: newUser._id, role: newUser.role },
       process.env.JWT_SECRET_KEY,
-      {expiresIn: '1h'},
+      { expiresIn: '1h' }
     );
 
-    res.status(201).json({token, role: newUser.role});
+    res.status(201).json({ token, role: newUser.role });
   } catch (error) {
     console.error('Error during registration:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
