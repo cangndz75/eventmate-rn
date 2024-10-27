@@ -1,4 +1,11 @@
-import {Pressable, SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import {
+  Alert,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React, {useEffect, useContext, useState} from 'react';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext'; // Ensure the path to AuthContext is correct
@@ -13,7 +20,7 @@ const PreFinalScreen = () => {
 
   useEffect(() => {
     if (token) {
-      navigation.replace('MainStack', {screen: 'Main'});
+      navigation.replace('InterestSelectionScreen', {screen: 'InterestSelectionScreen'});
     }
   }, [token]);
 
@@ -75,9 +82,22 @@ const PreFinalScreen = () => {
         'Error during registration:',
         error.response?.data || error.message,
       );
+      console.log('Full error details:', error);
+
+      if (error.response) {
+        console.log('Response data:', error.response.data);
+        console.log('Response status:', error.response.status);
+        console.log('Response headers:', error.response.headers);
+      } else if (error.request) {
+        console.log('Request data:', error.request);
+      } else {
+        console.log('Error message:', error.message);
+      }
+
       Alert.alert(
-        'Registration failed',
-        error.response?.data?.message || 'Something went wrong',
+        'Registration Failed',
+        error.response?.data?.message ||
+          'Something went wrong. Please try again later.',
       );
     }
   };

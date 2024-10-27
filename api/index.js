@@ -73,7 +73,17 @@ app.post('/refresh', async (req, res) => {
 
 app.post('/register', async (req, res) => {
   try {
-    const {email, password, firstName, lastName, role, image} = req.body;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      image,
+      aboutMe,
+      interests,
+    } = req.body;
+
     const newUser = new User({
       email,
       password,
@@ -81,6 +91,8 @@ app.post('/register', async (req, res) => {
       lastName,
       role,
       image,
+      aboutMe,
+      interests,
     });
     await newUser.save();
 
@@ -112,7 +124,12 @@ app.post('/login', async (req, res) => {
       {expiresIn: '1h'},
     );
 
-    res.status(200).json({token, role: user.role});
+    res.status(200).json({
+      token,
+      role: user.role,
+      aboutMe: user.aboutMe,
+      interests: user.interests,
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({message: 'Internal Server Error'});
@@ -584,19 +601,19 @@ app.post('/events/:eventId/cancel-request', async (req, res) => {
 
 app.get('/events/:eventId/requests', async (req, res) => {
   try {
-    const { eventId } = req.params;
+    const {eventId} = req.params;
     const event = await Event.findById(eventId).populate({
       path: 'requests.userId',
       select: 'firstName lastName image email',
     });
 
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     const requestsWithUserInfo = event.requests.map(request => ({
       requestId: request._id,
-      userId: request.userId?._id, 
+      userId: request.userId?._id,
       firstName: request.userId?.firstName || 'Unknown',
       lastName: request.userId?.lastName || 'Unknown',
       image: request.userId?.image || 'https://via.placeholder.com/150',
@@ -608,10 +625,9 @@ app.get('/events/:eventId/requests', async (req, res) => {
     res.status(200).json(requestsWithUserInfo);
   } catch (error) {
     console.error('Error fetching requests:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
-
 
 app.get('/event/:eventId/attendees', async (req, res) => {
   try {
@@ -681,7 +697,7 @@ app.post('/accept', async (req, res) => {
     event.requests = event.requests.filter(
       req => req.userId.toString() !== userId,
     );
-    user.events.push(eventId); 
+    user.events.push(eventId);
 
     await event.save({session});
     await user.save({session});
@@ -1081,21 +1097,21 @@ app.get('/event/:eventId/organizer', async (req, res) => {
 });
 
 app.get('/events/:eventId', async (req, res) => {
-  const { eventId } = req.params;
+  const {eventId} = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
-    return res.status(400).json({ message: 'Invalid event ID' });
+    return res.status(400).json({message: 'Invalid event ID'});
   }
 
   try {
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
     res.status(200).json(event);
   } catch (error) {
     console.error('Error fetching event:', error);
-    res.status(500).json({ message: 'Internal server error', error });
+    res.status(500).json({message: 'Internal server error', error});
   }
 });
 
@@ -1150,10 +1166,12 @@ app.post('/venues', async (req, res) => {
   try {
     const newVenue = new Venue(req.body);
     await newVenue.save();
-    res.status(201).json({ message: 'Venue created successfully', venue: newVenue });
+    res
+      .status(201)
+      .json({message: 'Venue created successfully', venue: newVenue});
   } catch (error) {
     console.error('Error creating venue:', error);
-    res.status(500).json({ message: 'Failed to create venue' });
+    res.status(500).json({message: 'Failed to create venue'});
   }
 });
 
@@ -1162,11 +1180,7 @@ app.post('/user/:userId/interests', async (req, res) => {
     const { userId } = req.params;
     const { interests } = req.body;
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { interests },
-      { new: true }
-    );
+    const user = await User.findByIdAndUpdate(userId, { interests }, { new: true });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -1178,83 +1192,80 @@ app.post('/user/:userId/interests', async (req, res) => {
   }
 });
 
-app.post('/user/:userId/interests', async (req, res) => {
+app.get('/user/:userId/interests', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { interests } = req.body;
-
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { interests },
-      { new: true }
-    );
-
+    const user = await User.findById(req.params.userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    res.status(200).json({ message: 'Interests saved successfully', user });
+    res.status(200).json({ interests: user.interests });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to save interests', error });
+    console.error('Error fetching interests:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 app.post('/events/:eventId/reviews', async (req, res) => {
   try {
-    const { eventId } = req.params;
-    const { userId, comment } = req.body;
+    const {eventId} = req.params;
+    const {userId, comment} = req.body;
     if (!userId || !comment) {
-      return res.status(400).json({ message: 'userId and comment are required.' });
+      return res
+        .status(400)
+        .json({message: 'userId and comment are required.'});
     }
 
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found.' });
+      return res.status(404).json({message: 'Event not found.'});
     }
 
-    const newReview = { userId, review: comment, date: new Date() };
+    const newReview = {userId, review: comment, date: new Date()};
     event.reviews.push(newReview);
     await event.save();
 
-    res.status(201).json({ message: 'Review added successfully', review: newReview });
+    res
+      .status(201)
+      .json({message: 'Review added successfully', review: newReview});
   } catch (error) {
     console.error('Error adding review:', error.message);
-    res.status(500).json({ message: 'Failed to add review.', error: error.message });
+    res
+      .status(500)
+      .json({message: 'Failed to add review.', error: error.message});
   }
 });
-
 
 app.get('/events/:eventId/reviews', async (req, res) => {
   try {
     const eventId = mongoose.Types.ObjectId(req.params.eventId);
     const event = await Event.findById(eventId).populate('reviews');
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
     res.json(event.reviews);
   } catch (error) {
     console.error('Error fetching event details:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({message: 'Internal server error'});
   }
 });
 
 app.put('/user/:userId/about', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { aboutMe } = req.body;
+    const {userId} = req.params;
+    const {aboutMe} = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { aboutMe },
-      { new: true }
+      {aboutMe},
+      {new: true},
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
     res.json(updatedUser);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update about me', error });
+    res.status(500).json({message: 'Failed to update about me', error});
   }
 });

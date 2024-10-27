@@ -1,7 +1,7 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import axios from 'axios';
-import {AuthContext} from '../AuthContext'; 
+import {AuthContext} from '../AuthContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   ALERT_TYPE,
@@ -30,6 +30,38 @@ const interests = [
 const InterestSelectionScreen = ({navigation}) => {
   const {userId} = useContext(AuthContext);
   const [selectedInterests, setSelectedInterests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserInterests = async () => {
+      try {
+        console.log('Fetching interests for user:', userId);
+        const response = await axios.get(
+          `https://biletixai.onrender.com/user/${userId}`,
+        );
+
+        if (response.data.user && response.data.user.interests) {
+          setSelectedInterests(response.data.user.interests);
+        }
+      } catch (error) {
+        console.error('Error fetching interests:', error);
+        Dialog.show({
+          type: ALERT_TYPE.DANGER,
+          title: 'Error!',
+          textBody: 'Failed to fetch your interests.',
+          button: 'Close',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchUserInterests();
+    } else {
+      console.warn('User ID is not available');
+    }
+  }, [userId]);
 
   const toggleInterest = interest => {
     if (selectedInterests.includes(interest)) {
@@ -50,9 +82,7 @@ const InterestSelectionScreen = ({navigation}) => {
     try {
       await axios.post(
         `https://biletixai.onrender.com/user/${userId}/interests`,
-        {
-          interests: selectedInterests,
-        },
+        {interests: selectedInterests},
       );
       Dialog.show({
         type: ALERT_TYPE.SUCCESS,
@@ -60,8 +90,9 @@ const InterestSelectionScreen = ({navigation}) => {
         textBody: 'İlgi alanlarınız kaydedildi!',
         button: 'Tamam',
       });
-      navigation.navigate('Home');
+      navigation.navigate('ProfileDetail');
     } catch (error) {
+      console.error('Error saving interests:', error);
       Dialog.show({
         type: ALERT_TYPE.DANGER,
         title: 'Hata!',
@@ -70,6 +101,14 @@ const InterestSelectionScreen = ({navigation}) => {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text>Loading interests...</Text>
+      </View>
+    );
+  }
 
   return (
     <AlertNotificationRoot>
@@ -113,7 +152,7 @@ const InterestSelectionScreen = ({navigation}) => {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                width: '45%', 
+                width: '45%',
               }}
               onPress={() => toggleInterest(interest)}>
               <Text
@@ -137,7 +176,7 @@ const InterestSelectionScreen = ({navigation}) => {
             marginTop: 30,
           }}>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Home')}
+            onPress={() => navigation.navigate('ProfileDetail')}
             style={{
               backgroundColor: '#007bff',
               paddingVertical: 10,

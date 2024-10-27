@@ -73,8 +73,8 @@ const ProfileDetailScreen = () => {
   const updateAboutMe = async () => {
     try {
       const url = `http://10.0.2.2:8000/user/${userId}/about`;
-      const response = await axios.put(url, { aboutMe: aboutText });
-  
+      const response = await axios.put(url, {aboutMe: aboutText});
+
       setUser(response.data);
       setIsModalVisible(false);
     } catch (error) {
@@ -88,11 +88,9 @@ const ProfileDetailScreen = () => {
       }
     }
   };
-  
-  
 
   const handleOpenModal = () => {
-    setAboutText(user?.user?.aboutMe || ''); 
+    setAboutText(user?.user?.aboutMe || '');
     setIsModalVisible(true);
   };
 
@@ -146,7 +144,14 @@ const ProfileDetailScreen = () => {
         </View>
 
         <View style={styles.interestsContainer}>
-          <Text style={styles.interestsTitle}>Interests</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.interestsTitle}>Interests</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('InterestSelectionScreen')}>
+              <Text style={styles.editText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.tagsContainer}>
             {user?.user?.interests?.map((interest, index) => (
               <View key={index} style={styles.tag}>
