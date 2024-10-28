@@ -28,7 +28,7 @@ const AdminEventScreen = () => {
   const fetchOrganizerEvents = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://10.0.2.2:8000/events`, {
+      const response = await axios.get(`https://biletixai.onrender.com/events`, {
         params: {organizerId: userId},
       });
 
