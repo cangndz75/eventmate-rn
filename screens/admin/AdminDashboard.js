@@ -10,15 +10,31 @@ import {
   SafeAreaView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 
 const AdminDashboard = () => {
   const navigation = useNavigation();
   const [recentParticipants, setRecentParticipants] = useState([]);
+  const [darkMode, setDarkMode] = useState(true); 
 
-  // Fetch recent participants
+  const dashboardItems = [
+    {title: 'Create', icon: 'add-circle-outline', route: 'AdminCreate'},
+    {title: 'My Events', icon: 'calendar-outline', route: 'AdminEvents'},
+    {title: 'Attends', icon: 'people-outline', route: 'Attends'},
+    {title: 'Venue', icon: 'bar-chart-outline', route: 'AdminCreateVenue'},
+    {title: 'Settings', icon: 'settings-outline', route: 'Settings'},
+  ];
+
+  useEffect(() => {
+    const loadThemePreference = async () => {
+      const savedMode = await AsyncStorage.getItem('theme');
+      setDarkMode(savedMode === 'dark'); 
+    };
+    loadThemePreference();
+  }, []);
+
   useEffect(() => {
     fetchRecentParticipants();
   }, []);
@@ -26,26 +42,25 @@ const AdminDashboard = () => {
   const fetchRecentParticipants = async () => {
     try {
       const response = await axios.get(
-        'http://10.0.2.2:8000/recent-participants',
+        'https://biletixai.onrender.com/recent-participants',
       );
       setRecentParticipants(response.data);
     } catch (error) {
-      console.error('Error fetching recent participants2:', error);
+      console.error('Error fetching recent participants:', error);
     }
   };
 
-const dashboardItems = [
-    {title: 'Create', icon: 'add-circle-outline', route: 'AdminCreate'},
-    {title: 'My Events', icon: 'calendar-outline', route: 'AdminEvents'},
-    {title: 'Attends', icon: 'people-outline', route: 'Attends'},
-    {title: 'Venue', icon: 'bar-chart-outline', route: 'AdminCreateVenue'},
-    {title: 'Settings', icon: 'settings-outline', route: 'Settings'},
-];
+  const toggleTheme = async () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    await AsyncStorage.setItem('theme', newMode ? 'dark' : 'light');
+  };
+
+  const styles = getStyles(darkMode); 
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollView}>
-        {/* Horizontal Dashboard Items */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -61,7 +76,20 @@ const dashboardItems = [
           ))}
         </ScrollView>
 
-        {/* Dashboard Cards */}
+        <View style={styles.themeToggleContainer}>
+          <Text style={styles.cardSubTitle}>
+            {darkMode ? 'Dark Mode' : 'Light Mode'}
+          </Text>
+          <TouchableOpacity style={styles.toggleSwitch} onPress={toggleTheme}>
+            <View
+              style={[
+                styles.toggleCircle,
+                darkMode ? styles.toggleCircleDark : styles.toggleCircleLight,
+              ]}
+            />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.dashboardGrid}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>$12,487</Text>
@@ -72,20 +100,8 @@ const dashboardItems = [
             <Text style={styles.cardTitle}>35%</Text>
             <Text style={styles.cardSubTitle}>Desktop users</Text>
           </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Dark Mode</Text>
-            <Text style={styles.cardSubTitle}>Enabled</Text>
-            <TouchableOpacity style={styles.toggleSwitch}>
-              <View style={styles.toggleCircle} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>New Sale!</Text>
-            <Text style={styles.cardSubTitle}>+24,685</Text>
-          </View>
         </View>
 
-        {/* Recent Participants */}
         <Text style={styles.recentTitle}>Recent Participants</Text>
         <FlatList
           horizontal
@@ -111,96 +127,107 @@ const dashboardItems = [
 
 export default AdminDashboard;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
-  scrollView: {
-    padding: 16,
-  },
-  horizontalScroll: {
-    marginBottom: 16,
-  },
-  dashboardItem: {
-    backgroundColor: '#444',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-    width: 100,
-  },
-  dashboardItemText: {
-    color: '#FFF',
-    marginTop: 8,
-    textAlign: 'center',
-    fontSize: 14,
-  },
-  dashboardGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  card: {
-    backgroundColor: '#333',
-    width: '48%',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 10,
-  },
-  highlightCard: {
-    backgroundColor: '#ff6b81',
-  },
-  cardTitle: {
-    color: '#FFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  cardSubTitle: {
-    color: '#ddd',
-    marginTop: 5,
-  },
-  cardPercentage: {
-    color: '#76e48f',
-    fontSize: 16,
-    marginTop: 8,
-  },
-  toggleSwitch: {
-    backgroundColor: '#555',
-    borderRadius: 20,
-    width: 50,
-    height: 25,
-    marginTop: 10,
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  toggleCircle: {
-    backgroundColor: '#03C03C',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  recentTitle: {
-    color: '#FFF',
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  participant: {
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  participantImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: '#FFF',
-  },
-  participantName: {
-    color: '#FFF',
-    marginTop: 6,
-    fontSize: 12,
-  },
-});
+const getStyles = darkMode =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: darkMode ? '#1a1a1a' : '#f8f8f8',
+    },
+    scrollView: {
+      padding: 16,
+    },
+    horizontalScroll: {
+      marginBottom: 16,
+    },
+    dashboardItem: {
+      backgroundColor: darkMode ? '#444' : '#ddd',
+      padding: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 10,
+      width: 100,
+    },
+    dashboardItemText: {
+      color: darkMode ? '#FFF' : '#333',
+      marginTop: 8,
+      textAlign: 'center',
+      fontSize: 14,
+    },
+    dashboardGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    card: {
+      backgroundColor: darkMode ? '#333' : '#FFF',
+      width: '48%',
+      borderRadius: 10,
+      padding: 20,
+      marginBottom: 10,
+    },
+    highlightCard: {
+      backgroundColor: darkMode ? '#ff6b81' : '#ffa1c5',
+    },
+    cardTitle: {
+      color: darkMode ? '#FFF' : '#333',
+      fontSize: 22,
+      fontWeight: 'bold',
+    },
+    cardSubTitle: {
+      color: darkMode ? '#ddd' : '#555',
+      marginTop: 5,
+    },
+    cardPercentage: {
+      color: darkMode ? '#76e48f' : '#4caf50',
+      fontSize: 16,
+      marginTop: 8,
+    },
+    themeToggleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 10,
+    },
+    toggleSwitch: {
+      backgroundColor: darkMode ? '#555' : '#ccc',
+      borderRadius: 20,
+      width: 50,
+      height: 25,
+      marginLeft: 10,
+      justifyContent: darkMode ? 'flex-end' : 'flex-start',
+      paddingHorizontal: 3,
+    },
+    toggleCircle: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+    },
+    toggleCircleDark: {
+      backgroundColor: '#03C03C',
+    },
+    toggleCircleLight: {
+      backgroundColor: '#FFF',
+    },
+    recentTitle: {
+      color: darkMode ? '#FFF' : '#333',
+      fontSize: 18,
+      marginBottom: 8,
+    },
+    participant: {
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    participantImage: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      borderWidth: 2,
+      borderColor: darkMode ? '#FFF' : '#333',
+    },
+    participantName: {
+      color: darkMode ? '#FFF' : '#333',
+      marginTop: 6,
+      fontSize: 12,
+    },
+  });
