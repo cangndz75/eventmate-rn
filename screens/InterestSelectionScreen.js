@@ -10,7 +10,7 @@ import {
 } from 'react-native-alert-notification';
 
 const interests = [
-  'Music Festivals',
+  'concert',
   'Cultural',
   'Seminars',
   'Sports',

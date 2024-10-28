@@ -38,6 +38,7 @@ import AdminCreateVenueScreen from '../screens/admin/AdminCreateVenueScreen';
 import InterestSelectionScreen from '../screens/InterestSelectionScreen';
 import SearchScreen from '../screens/SearchScreen';
 import ReviewScreen from '../screens/ReviewScreen';
+import NotificationScreen from '../screens/NotificationScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -262,6 +263,7 @@ const StackNavigator = () => {
           component={ReviewScreen}
           options={{headerShown: false}}
         />
+        <Stack.Screen name="NotificationScreen" component={NotificationScreen} options={{headerShadowVisible:false}} />
         <Stack.Screen
           name="AdminDashboard"
           component={AdminDashboard}

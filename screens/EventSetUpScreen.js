@@ -36,8 +36,8 @@ const EventSetUpScreen = () => {
   useEffect(() => {
     const fetchUserAndEventDetails = async () => {
       try {
-        const user = await User.findById(userId);
-        console.log('User data:', user);
+        const userResponse = await axios.get(`https://biletixai.onrender.com/users/${userId}`);
+        console.log('User data:', userResponse.data);
 
         if (item) {
           await fetchEventDetails();
