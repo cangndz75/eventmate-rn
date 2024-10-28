@@ -15,7 +15,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
-  const {role, userId} = useContext(AuthContext);
+  const {role, userId} = useContext(AuthContext); // Access role and userId
   const [eventData, setEventData] = useState(item || null);
   const [isBooked, setIsBooked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -48,6 +48,15 @@ const UpComingEvent = ({item}) => {
     setRefreshing(false);
   };
 
+  const handleNavigation = () => {
+    const targetScreen =
+      role === 'organizer' ? 'AdminEventSetUp' : 'EventSetUp';
+    navigation.navigate(targetScreen, {
+      item: eventData,
+      eventId: eventData._id,
+    });
+  };
+
   if (loading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -69,12 +78,7 @@ const UpComingEvent = ({item}) => {
 
   const renderEventItem = () => (
     <Pressable
-      onPress={() =>
-        navigation.navigate('EventSetUp', {
-          item: eventData,
-          eventId:eventData._id,
-        })
-      }
+      onPress={handleNavigation} // Call the handler here
       style={{
         backgroundColor: '#fff',
         padding: 16,

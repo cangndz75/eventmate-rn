@@ -18,7 +18,7 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {AuthContext} from '../AuthContext';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 
 const EventSetUpScreen = () => {
   const navigation = useNavigation();
@@ -36,7 +36,9 @@ const EventSetUpScreen = () => {
   useEffect(() => {
     const fetchUserAndEventDetails = async () => {
       try {
-        const userResponse = await axios.get(`https://biletixai.onrender.com/users/${userId}`);
+        const userResponse = await axios.get(
+          `https://biletixai.onrender.com/users/${userId}`,
+        );
         console.log('User data:', userResponse.data);
 
         if (item) {
@@ -55,28 +57,23 @@ const EventSetUpScreen = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const eventResponse = await axios.get(
-        `https://biletixai.onrender.com/events/${eventId}`
+      const response = await axios.get(
+        `https://biletixai.onrender.com/events/${eventId}`,
       );
-
-      if (eventResponse.status !== 200 || !eventResponse.data) {
-        throw new Error('Event data not found');
+      if (response.status === 200 && response.data) {
+        console.log('Event data:', response.data);
+        await fetchReviews();
+        await checkRequestStatus();
+      } else {
+        console.warn('Event not found or no data returned.');
+        Alert.alert('Error', 'Event not found.');
+        navigation.goBack();
       }
-
-      console.log('Event data:', eventResponse.data);
-
-      await fetchReviews();
-      await checkRequestStatus();
     } catch (error) {
-      console.error(
-        'Error fetching event details:',
-        error.response ? error.response.data : error.message
-      );
-
-      const errorMessage = error.response?.data?.message || 'Unexpected error occurred';
-      Alert.alert('Error', `Failed to load event details: ${errorMessage}`);
+      console.error('Error fetching event details:', error.message);
+      Alert.alert('Error', `Failed to load event details: ${error.message}`);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
@@ -87,8 +84,12 @@ const EventSetUpScreen = () => {
       );
       setReviews(response.data || []);
     } catch (error) {
-      console.error('Error fetching reviews:', error.response ? error.response.data : error.message);
-      const errorMessage = error.response?.data?.message || 'Unexpected error occurred';
+      console.error(
+        'Error fetching reviews:',
+        error.response ? error.response.data : error.message,
+      );
+      const errorMessage =
+        error.response?.data?.message || 'Unexpected error occurred';
       Alert.alert('Error', `Failed to load reviews: ${errorMessage}`);
     }
   };
@@ -102,19 +103,23 @@ const EventSetUpScreen = () => {
     try {
       const response = await axios.post(
         `https://biletixai.onrender.com/events/${eventId}/reviews`,
-        { userId, comment }
+        {userId, comment},
       );
 
       if (response.status === 201) {
-        setReviews(prev => [...prev, { userId, review: comment }]);
+        setReviews(prev => [...prev, {userId, review: comment}]);
         setComment(''); // Clear input
         ToastAndroid.show('Review added!', ToastAndroid.SHORT);
       } else {
         throw new Error('Failed to add review');
       }
     } catch (error) {
-      console.error('Error submitting review:', error.response ? error.response.data : error.message);
-      const errorMessage = error.response?.data?.message || 'Unexpected error occurred';
+      console.error(
+        'Error submitting review:',
+        error.response ? error.response.data : error.message,
+      );
+      const errorMessage =
+        error.response?.data?.message || 'Unexpected error occurred';
       Alert.alert('Error', `Failed to submit review: ${errorMessage}`);
     }
   };
@@ -127,8 +132,16 @@ const EventSetUpScreen = () => {
       const userRequest = response.data.find(req => req.userId === userId);
       setRequestStatus(userRequest ? userRequest.status : 'none');
     } catch (error) {
-      console.error('Error fetching requests:', error.response ? error.response.data : error.message);
-      ToastAndroid.show(`Failed to check request status: ${error.response ? error.response.data.message : error.message}`, ToastAndroid.SHORT);
+      console.error(
+        'Error fetching requests:',
+        error.response ? error.response.data : error.message,
+      );
+      ToastAndroid.show(
+        `Failed to check request status: ${
+          error.response ? error.response.data.message : error.message
+        }`,
+        ToastAndroid.SHORT,
+      );
     }
   };
 
@@ -153,11 +166,12 @@ const EventSetUpScreen = () => {
   );
 
   const renderReviewSection = () => (
-    <View style={{ marginVertical: 10 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Reviews</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('ReviewScreen', { eventId })}>
-          <Text style={{ color: 'blue' }}>See All</Text>
+    <View style={{marginVertical: 10}}>
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <Text style={{fontWeight: 'bold', fontSize: 18}}>Reviews</Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ReviewScreen', {eventId})}>
+          <Text style={{color: 'blue'}}>See All</Text>
         </TouchableOpacity>
       </View>
 
@@ -165,7 +179,14 @@ const EventSetUpScreen = () => {
         <Text>No reviews available.</Text>
       ) : (
         reviews.slice(0, 2).map((review, index) => (
-          <View key={index} style={{ backgroundColor: '#f0f0f0', padding: 10, marginVertical: 5, borderRadius: 8 }}>
+          <View
+            key={index}
+            style={{
+              backgroundColor: '#f0f0f0',
+              padding: 10,
+              marginVertical: 5,
+              borderRadius: 8,
+            }}>
             <Text>{review.review}</Text>
           </View>
         ))
@@ -237,7 +258,7 @@ const EventSetUpScreen = () => {
             name="arrow-back"
             size={24}
             color="#fff"
-            onPress={() => navigation.goBack()} 
+            onPress={() => navigation.goBack()}
           />
         </View>
 

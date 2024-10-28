@@ -28,16 +28,32 @@ const AdminEventScreen = () => {
   const fetchOrganizerEvents = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`https://biletixai.onrender.com/events`, {
-        params: {organizerId: userId},
-      });
+      const response = await axios.get(
+        `https://biletixai.onrender.com/events`,
+        {params: {organizerId: userId}},
+      );
 
-      console.log('Events fetched:', response.data);
-      setEvents(response.data);
+      if (response.status === 200 && response.data.length === 0) {
+        console.warn('No events found for this organizer.');
+        setEvents([]);
+      } else {
+        setEvents(response.data);
+      }
     } catch (error) {
       console.error('Error fetching events:', error);
+      if (error.response) {
+        if (error.response.status === 404) {
+          console.error('No events found for the given organizer ID.');
+        } else {
+          console.error(
+            `Server responded with status ${error.response.status}`,
+          );
+        }
+      } else {
+        console.error('Network error or server unreachable.');
+      }
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 

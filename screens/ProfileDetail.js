@@ -1,3 +1,4 @@
+import React, {useContext, useState, useCallback, useEffect} from 'react';
 import {
   Image,
   Pressable,
@@ -8,8 +9,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useContext, useState, useCallback, useEffect} from 'react';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,12 +21,13 @@ import ImageViewing from 'react-native-image-viewing';
 import {TextInput} from 'react-native';
 
 const ProfileDetailScreen = () => {
-  const [user, setUser] = useState('');
-  const navigation = useNavigation();
+  const [user, setUser] = useState(null); // Initialize as null
+  const [loading, setLoading] = useState(true); // Loading state
   const [visible, setVisible] = useState(false);
   const {userId, token, setToken, setUserId} = useContext(AuthContext);
   const [aboutText, setAboutText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const checkUserId = async () => {
@@ -48,26 +50,17 @@ const ProfileDetailScreen = () => {
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user data:', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Refresh the user data when the screen is focused
   useFocusEffect(
     useCallback(() => {
-      const fetchDataOnFocus = async () => {
-        const params = navigation
-          .getState()
-          .routes.find(route => route.name === 'ProfileDetail')?.params;
-
-        if (params?.refresh) {
-          console.log('Refreshing profile data');
-          await fetchUser();
-
-          navigation.setParams({refresh: false});
-        }
-      };
-
-      fetchDataOnFocus();
-    }, [navigation, userId]),
+      setLoading(true); // Start loading indicator
+      fetchUser(); // Fetch user data
+    }, [userId]),
   );
 
   const clearAuthToken = async () => {
@@ -84,7 +77,7 @@ const ProfileDetailScreen = () => {
   const updateAboutMe = async () => {
     try {
       const url = `http://10.0.2.2:8000/user/${userId}/about`;
-      const response = await axios.put(url, {aboutMe: aboutText});
+      await axios.put(url, {aboutMe: aboutText});
 
       setUser(prevState => ({
         ...prevState,
@@ -94,13 +87,6 @@ const ProfileDetailScreen = () => {
       setIsModalVisible(false);
     } catch (error) {
       console.error('Failed to update about me:', error.message);
-      if (error.response) {
-        console.error('Error details:', error.response.data);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error setting up request:', error.message);
-      }
     }
   };
 
@@ -112,6 +98,17 @@ const ProfileDetailScreen = () => {
   const images = [
     {uri: user?.user?.image || 'https://via.placeholder.com/150'},
   ];
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
+        <Text style={{marginTop: 10, fontSize: 16, color: '#666'}}>
+          Loading profile...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -185,9 +182,7 @@ const ProfileDetailScreen = () => {
           <Text style={styles.optionText}>My Bookings</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.optionContainer}
-          onPress={clearAuthToken}>
+        <TouchableOpacity style={styles.optionContainer} onPress={clearAuthToken}>
           <View style={styles.iconContainer}>
             <Ionicons name="log-out-outline" size={24} color={'red'} />
           </View>
@@ -233,6 +228,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9f9f9',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     alignItems: 'center',

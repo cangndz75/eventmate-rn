@@ -21,10 +21,10 @@ import axios from 'axios';
 import {AuthContext} from '../../AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
-import { EventContext } from '../../EventContext';
+import {EventContext} from '../../EventContext';
 
 const AdminEventSetUpScreen = () => {
-  const { updateEvent } = useContext(EventContext); 
+  const {updateEvent} = useContext(EventContext);
   const navigation = useNavigation();
   const route = useRoute();
   const {userId} = useContext(AuthContext);
@@ -45,21 +45,56 @@ const AdminEventSetUpScreen = () => {
   }, [organizer]);
 
   useEffect(() => {
+    const fetchAttendees = async () => {
+      if (!eventId) {
+        Alert.alert('Error', 'Invalid event ID.');
+        navigation.goBack();
+        return;
+      }
+
+      try {
+        console.log(
+          `Fetching attendees from: http://10.0.2.2:8000/event/${eventId}/attendees`,
+        );
+        const response = await axios.get(
+          `http://10.0.2.2:8000/event/${eventId}/attendees`,
+        );
+
+        if (response.status === 200) {
+          setAttendees(response.data || []);
+          console.log('Attendees fetched:', response.data);
+        } else {
+          Alert.alert('Error', 'No attendees found for this event.');
+        }
+      } catch (error) {
+        console.error('Failed to fetch attendees:', error.message);
+        const errorMessage =
+          error.response?.data?.message || 'Failed to load attendees.';
+        Alert.alert('Error', errorMessage);
+      }
+    };
+
     fetchAttendees();
   }, []);
 
   const fetchAttendees = async () => {
     if (!eventId) return;
+
     try {
       const response = await axios.get(
         `http://10.0.2.2:8000/event/${eventId}/attendees`,
       );
-      setAttendees(response.data);
+      if (response.status === 200) {
+        setAttendees(response.data || []);
+        console.log('Attendees fetched:', response.data);
+      } else {
+        Alert.alert('Error', 'Attendees not found.');
+      }
     } catch (error) {
-      console.error('Failed to fetch attendees:', error);
+      console.error('Failed to fetch attendees:', error.message);
+      Alert.alert('Error', 'Failed to load attendees.');
     }
   };
-  
 
   const openEditModal = () => {
     setEditModalVisible(true);
@@ -72,7 +107,7 @@ const AdminEventSetUpScreen = () => {
         Alert.alert('Error', 'No token found. Please log in again.');
         return;
       }
-  
+
       const response = await axios.put(
         `http://10.0.2.2:8000/event/${eventId}`,
         eventData,
@@ -81,26 +116,23 @@ const AdminEventSetUpScreen = () => {
             Authorization: `Bearer ${token.replace(/"/g, '')}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
-  
+
       if (response.status === 200) {
         Alert.alert('Success', 'Event updated successfully!');
         updateEvent(response.data);
-        navigation.replace('AdminEventSetUp', { item: response.data });
+        navigation.replace('AdminEventSetUp', {item: response.data});
       } else {
         Alert.alert('Error', 'Failed to update event.');
       }
     } catch (error) {
       console.error('Error updating event:', error.message);
-      if (error.response && error.response.status === 403) {
-        Alert.alert('Error', 'Unauthorized. Please log in again.');
-      } else {
-        Alert.alert('Error', 'An unexpected error occurred.');
-      }
+      const errorMessage =
+        error.response?.data?.message || 'An unexpected error occurred.';
+      Alert.alert('Error', errorMessage);
     }
   };
-  
 
   const generateDates = () => {
     const dates = [];
