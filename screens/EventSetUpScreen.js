@@ -11,6 +11,7 @@ import {
   ToastAndroid,
   Alert,
   FlatList,
+  Pressable,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -37,7 +38,7 @@ const EventSetUpScreen = () => {
     const fetchUserAndEventDetails = async () => {
       try {
         const userResponse = await axios.get(
-          `https://biletixai.onrender.com/users/${userId}`,
+          `https://biletixai.onrender.com/user/${userId}`,
         );
         console.log('User data:', userResponse.data);
 
@@ -70,8 +71,16 @@ const EventSetUpScreen = () => {
         navigation.goBack();
       }
     } catch (error) {
-      console.error('Error fetching event details:', error.message);
-      Alert.alert('Error', `Failed to load event details: ${error.message}`);
+      console.error(
+        'Error fetching event details:',
+        error.response ? error.response.data : error.message,
+      );
+      Alert.alert(
+        'Error',
+        `Failed to load event details: ${
+          error.response ? error.response.data.message : error.message
+        }`,
+      );
     } finally {
       setLoading(false);
     }
@@ -84,13 +93,7 @@ const EventSetUpScreen = () => {
       );
       setReviews(response.data || []);
     } catch (error) {
-      console.error(
-        'Error fetching reviews:',
-        error.response ? error.response.data : error.message,
-      );
-      const errorMessage =
-        error.response?.data?.message || 'Unexpected error occurred';
-      Alert.alert('Error', `Failed to load reviews: ${errorMessage}`);
+      // No alert or warning if reviews fail to load
     }
   };
 
@@ -142,6 +145,34 @@ const EventSetUpScreen = () => {
         }`,
         ToastAndroid.SHORT,
       );
+    }
+  };
+  const sendJoinRequest = async () => {
+    try {
+      await axios.post(`http://10.0.2.2:8000/events/${eventId}/request`, {
+        userId,
+        comment,
+      });
+      setRequestStatus('pending');
+      setModalVisible(false);
+      Alert.alert('Request Sent', 'Your join request is pending approval.');
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to send request.',
+      );
+    }
+  };
+
+  const cancelJoinRequest = async () => {
+    try {
+      await axios.post(
+        `http://10.0.2.2:8000/events/${eventId}/cancel-request`,
+        {userId},
+      );
+      setRequestStatus('none');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to cancel request.');
     }
   };
 
@@ -206,20 +237,96 @@ const EventSetUpScreen = () => {
     </View>
   );
 
-  const renderActionButton = () => (
-    <TouchableOpacity
-      onPress={() => setModalVisible(true)}
-      style={{
-        backgroundColor: requestStatus === 'none' ? 'green' : 'gray',
-        padding: 15,
-        margin: 10,
-        borderRadius: 8,
-      }}>
-      <Text style={{color: 'white', textAlign: 'center'}}>
-        {requestStatus === 'none' ? 'Join Event' : 'Pending'}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderActionButton = () => {
+    switch (requestStatus) {
+      case 'none':
+        return (
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={{
+              backgroundColor: 'green',
+              padding: 15,
+              margin: 10,
+              borderRadius: 4,
+            }}>
+            <Text
+              style={{
+                color: 'white',
+                textAlign: 'center',
+                fontSize: 15,
+                fontWeight: '500',
+              }}>
+              Join Event
+            </Text>
+          </TouchableOpacity>
+        );
+      case 'pending':
+        return (
+          <View style={{flexDirection: 'row', margin: 10}}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: 'gray',
+                padding: 15,
+                flex: 1,
+                marginRight: 5,
+                borderRadius: 4,
+              }}>
+              <Text
+                style={{
+                  color: 'white',
+                  textAlign: 'center',
+                  fontSize: 15,
+                  fontWeight: '500',
+                }}>
+                Pending
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={cancelJoinRequest}
+              style={{
+                backgroundColor: 'red',
+                padding: 15,
+                flex: 1,
+                marginLeft: 5,
+                borderRadius: 4,
+              }}>
+              <Text
+                style={{
+                  color: 'white',
+                  textAlign: 'center',
+                  fontSize: 15,
+                  fontWeight: '500',
+                }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        );
+      case 'accepted':
+        return (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ViewTicket', {eventId})}
+            style={{
+              backgroundColor: 'blue',
+              padding: 15,
+              margin: 10,
+              borderRadius: 4,
+            }}>
+            <Text
+              style={{
+                color: 'white',
+                textAlign: 'center',
+                fontSize: 15,
+                fontWeight: '500',
+              }}>
+              View Ticket
+            </Text>
+          </TouchableOpacity>
+        );
+      default:
+        return null;
+    }
+  };
 
   if (loading) {
     return (
@@ -367,6 +474,63 @@ const EventSetUpScreen = () => {
                   Submit Review
                 </Text>
               </TouchableOpacity>
+            </ModalContent>
+          </BottomModal>
+
+          <BottomModal
+            onBackdropPress={() => setModalVisible(false)}
+            swipeDirection={['up', 'down']}
+            swipeThreshold={200}
+            modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}
+            visible={modalVisible}
+            onTouchOutside={() => setModalVisible(false)}>
+            <ModalContent
+              style={{width: '100%', height: 400, backgroundColor: 'white'}}>
+              <View>
+                <Text style={{fontSize: 15, fontWeight: '500', color: 'gray'}}>
+                  Join Event
+                </Text>
+
+                <Text style={{marginTop: 25, color: 'gray'}}>
+                  Please enter a message to send with your join request.
+                </Text>
+
+                <View
+                  style={{
+                    borderColor: '#E0E0E0',
+                    borderWidth: 1,
+                    padding: 10,
+                    borderRadius: 10,
+                    height: 200,
+                    marginTop: 20,
+                  }}>
+                  <TextInput
+                    value={comment}
+                    onChangeText={text => setComment(text)}
+                    placeholder="Send a message to the host along with your request!"
+                    style={{height: 100, textAlignVertical: 'top'}}
+                  />
+                  <Pressable
+                    onPress={sendJoinRequest}
+                    style={{
+                      marginTop: 'auto',
+                      backgroundColor: 'green',
+                      borderRadius: 5,
+                      justifyContent: 'center',
+                      padding: 10,
+                    }}>
+                    <Text
+                      style={{
+                        color: 'white',
+                        textAlign: 'center',
+                        fontSize: 15,
+                        fontWeight: '500',
+                      }}>
+                      Send Request
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
             </ModalContent>
           </BottomModal>
         </View>

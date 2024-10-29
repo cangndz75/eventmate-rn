@@ -1100,21 +1100,23 @@ app.get('/event/:eventId/organizer', async (req, res) => {
 });
 
 app.get('/events/:eventId', async (req, res) => {
-  const {eventId} = req.params;
+  const { eventId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
-    return res.status(400).json({message: 'Invalid event ID'});
+    return res.status(400).json({ message: 'Invalid event ID' });
   }
 
   try {
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId).populate('organizer attendees');
+
     if (!event) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
     }
+
     res.status(200).json(event);
   } catch (error) {
-    console.error('Error fetching event:', error);
-    res.status(500).json({message: 'Internal server error', error});
+    console.error('Error fetching event:', error.message);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 

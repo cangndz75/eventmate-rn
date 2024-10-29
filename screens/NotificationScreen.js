@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useContext} from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -8,29 +8,34 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import {AuthContext} from '../AuthContext';
+import { AuthContext } from '../AuthContext';
 import axios from 'axios';
 import moment from 'moment';
 
 const NotificationScreen = () => {
-  const {userId} = useContext(AuthContext);
+  const { userId } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `https://biletixai.onrender.com/user/${userId}/notifications`,
+          `https://biletixai.onrender.com/user/${userId}/notifications`
         );
-        if (response.status === 200 && response.data.notifications) {
+        if (response.status === 200) {
           setNotifications(response.data.notifications);
         } else {
-          setNotifications([]);
+          setError('No notifications found.');
         }
       } catch (error) {
+        if (error.response && error.response.status === 404) {
+          setError('No notifications found for this user.');
+        } else {
+          setError('Error fetching notifications.');
+        }
         console.error('Error fetching notifications:', error);
-        setNotifications([]);
       } finally {
         setLoading(false);
       }
@@ -39,56 +44,16 @@ const NotificationScreen = () => {
     fetchNotifications();
   }, [userId]);
 
-  const handleAccept = async notificationId => {
-    try {
-      await axios.post(
-        `https://biletixai.onrender.com/notifications/${notificationId}/accept`,
-      );
-      setNotifications(prev =>
-        prev.filter(notification => notification._id !== notificationId),
-      );
-    } catch (error) {
-      console.error('Error accepting notification:', error);
-    }
-  };
-
-  const handleReject = async notificationId => {
-    try {
-      await axios.post(
-        `https://biletixai.onrender.com/notifications/${notificationId}/reject`,
-      );
-      setNotifications(prev =>
-        prev.filter(notification => notification._id !== notificationId),
-      );
-    } catch (error) {
-      console.error('Error rejecting notification:', error);
-    }
-  };
-
-  const renderNotification = ({item}) => (
+  const renderNotification = ({ item }) => (
     <View style={styles.notificationContainer}>
-      <Image source={{uri: item.from.image}} style={styles.profileImage} />
-      <View style={{flex: 1, marginLeft: 10}}>
+      <Image source={{ uri: item.from.image }} style={styles.profileImage} />
+      <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={styles.userName}>
           {item.from.firstName} {item.from.lastName}
         </Text>
         <Text style={styles.notificationMessage}>{item.message}</Text>
         <Text style={styles.timeAgo}>{moment(item.createdAt).fromNow()}</Text>
       </View>
-      {item.type === 'invite' && (
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.rejectButton}
-            onPress={() => handleReject(item._id)}>
-            <Text style={styles.buttonText}>Reject</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => handleAccept(item._id)}>
-            <Text style={styles.buttonText}>Accept</Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
   );
 
@@ -100,10 +65,10 @@ const NotificationScreen = () => {
     );
   }
 
-  if (notifications.length === 0) {
+  if (error) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No notifications yet!</Text>
+        <Text style={styles.emptyText}>{error}</Text>
       </View>
     );
   }
@@ -113,8 +78,7 @@ const NotificationScreen = () => {
       <FlatList
         data={notifications}
         renderItem={renderNotification}
-        keyExtractor={item => item._id}
-        contentContainerStyle={styles.listContainer}
+        keyExtractor={(item) => item._id}
       />
     </View>
   );

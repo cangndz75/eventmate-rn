@@ -53,7 +53,6 @@ const UpComingEvent = ({item}) => {
       role === 'organizer' ? 'AdminEventSetUp' : 'EventSetUp';
     navigation.navigate(targetScreen, {
       item: eventData,
-      eventId: eventData._id,
     });
   };
 

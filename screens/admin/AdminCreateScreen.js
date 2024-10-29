@@ -131,9 +131,7 @@ const AdminCreateScreen = () => {
   const refreshToken = async () => {
     try {
       const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-      if (!storedRefreshToken) {
-        throw new Error('No refresh token found');
-      }
+      if (!storedRefreshToken) throw new Error('No refresh token found');
   
       const response = await axios.post('http://10.0.2.2:8000/refresh', {
         token: storedRefreshToken.replace(/"/g, ''),
@@ -141,87 +139,48 @@ const AdminCreateScreen = () => {
   
       if (response.status === 200) {
         const newToken = response.data.token;
-        console.log('New token:', newToken);
-  
         await AsyncStorage.setItem('token', newToken);
         return newToken;
       } else {
         throw new Error('Failed to refresh token');
       }
     } catch (error) {
-      console.error('Token refresh error:', error.message);
       Alert.alert('Session expired', 'Please login again.');
-      navigation.navigate('Login'); 
+      navigation.navigate('Login');
       throw error;
     }
   };
   
-  const createEvent = async () => {
+  const createEvent = async (eventData) => {
     try {
-      if (!event || !taggedVenue || !selectedType || !noOfParticipants || !userId) {
-        return Alert.alert('Error', 'Please fill in all required fields.');
-      }
-  
-      let token = await AsyncStorage.getItem('token');
-      if (!token) {
-        return Alert.alert('Error', 'Authentication failed. Please login again.');
-      }
-      token = token.replace(/"/g, '');
-  
-      const eventData = {
-        title: event,
-        description: description || '',
-        tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-        location: taggedVenue,
-        date: date || '',
-        time: timeInterval || '',
-        eventType: selectedType.toLowerCase(),
-        totalParticipants: parseInt(noOfParticipants, 10),
-        organizer: userId,
-        images: images || [],
-        isPaid,
-        price: isPaid ? parseFloat(price) : 0,
-      };
-  
-      console.log('Sending event data:', eventData);
+      const token = await AsyncStorage.getItem('token'); // Retrieve token from storage
   
       const response = await axios.post(
-        'http://10.0.2.2:8000/createevent',
+        'https://biletixai.onrender.com/createevent',
         eventData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // Include token in headers
             'Content-Type': 'application/json',
           },
         }
       );
   
-      console.log('Event creation response:', response.data);
-  
-      if (response.status === 200) {
-        Alert.alert('Success', 'Event created successfully!', [
-          { text: 'OK', onPress: () => navigation.navigate('AdminDashboard') },
-        ]);
+      if (response.status === 201) {
+        Alert.alert('Success', 'Event created successfully!');
+      }
+    } catch (error) {
+      console.error('Event creation error:', error.message);
+      if (error.response && error.response.status === 403) {
+        Alert.alert('Error', 'Your session has expired. Please log in again.');
+        // Navigate to Login screen
+        navigation.navigate('Login');
       } else {
         Alert.alert('Error', 'Failed to create event. Please try again.');
       }
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-        console.log('Token expired, trying to refresh...');
-        try {
-          await refreshToken();
-          return createEvent();
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError.message);
-          Alert.alert('Error', 'Session expired. Please login again.');
-          navigation.navigate('Login');
-        }
-      } else {
-        console.error('Event creation error:', error.message);
-        Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-      }
     }
   };
+  
   
   
   const selectDate = selectedDate => {

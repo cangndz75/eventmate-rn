@@ -93,6 +93,7 @@ const ManageRequests = () => {
   };
   
   
+  
 
   const rejectRequest = async (requestId, eventId) => {
     try {
