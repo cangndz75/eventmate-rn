@@ -142,17 +142,19 @@ const AdminCreateScreen = () => {
       if (response.status === 200) {
         const newToken = response.data.token;
         console.log('New token:', newToken);
-        await AsyncStorage.setItem('token', JSON.stringify(newToken));
+  
+        await AsyncStorage.setItem('token', newToken);
         return newToken;
       } else {
         throw new Error('Failed to refresh token');
       }
     } catch (error) {
       console.error('Token refresh error:', error.message);
+      Alert.alert('Session expired', 'Please login again.');
+      navigation.navigate('Login'); 
       throw error;
     }
   };
-  
   
   const createEvent = async () => {
     try {
@@ -168,16 +170,16 @@ const AdminCreateScreen = () => {
   
       const eventData = {
         title: event,
-        description: description || '', // Optional field
-        tags: tags ? tags.split(',').map(tag => tag.trim()) : [], // Optional field
+        description: description || '',
+        tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
         location: taggedVenue,
-        date: date || '', // Optional field
-        time: timeInterval || '', // Optional field
+        date: date || '',
+        time: timeInterval || '',
         eventType: selectedType.toLowerCase(),
         totalParticipants: parseInt(noOfParticipants, 10),
         organizer: userId,
         images: images || [],
-        isPaid: isPaid,
+        isPaid,
         price: isPaid ? parseFloat(price) : 0,
       };
   
@@ -198,27 +200,28 @@ const AdminCreateScreen = () => {
   
       if (response.status === 200) {
         Alert.alert('Success', 'Event created successfully!', [
-          { text: 'OK', onPress: () => navigation.navigate('AdminEvents') },
+          { text: 'OK', onPress: () => navigation.navigate('AdminDashboard') },
         ]);
       } else {
         Alert.alert('Error', 'Failed to create event. Please try again.');
       }
     } catch (error) {
-      console.error('Event creation error:', error.message);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        Alert.alert(
-          'Error',
-          `Failed to create event: ${error.response.data.message}`
-        );
+      if (error.response && error.response.status === 403) {
+        console.log('Token expired, trying to refresh...');
+        try {
+          await refreshToken();
+          return createEvent();
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError.message);
+          Alert.alert('Error', 'Session expired. Please login again.');
+          navigation.navigate('Login');
+        }
       } else {
+        console.error('Event creation error:', error.message);
         Alert.alert('Error', 'An unexpected error occurred. Please try again.');
       }
     }
   };
-  
-  
-  
   
   
   const selectDate = selectedDate => {
