@@ -58,27 +58,26 @@ const EventSetUpScreen = () => {
   }, [item]);
 
   const fetchEventDetails = async () => {
+    try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');  // Handle missing token case
-      }
+      console.log('Fetched token:', token);  
+  
+      if (!token) throw new Error('Authentication token is missing');
   
       const response = await axios.get(
         `https://biletixai.onrender.com/events/${eventId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
   
-      if (response.status === 200) {
-        console.log('Event data:', response.data);
-        await fetchReviews();
-        await checkRequestStatus();
-      } else {
-        Alert.alert('Error', 'Event not found.');
-        navigation.goBack();
-      }
+      console.log('Event data:', response.data);
+    } catch (error) {
+      console.error('Error fetching event details:', error);
+      const errorMessage = error.response?.data?.message === 'Internal server error'
+        ? 'Server encountered an issue. Please try again later.'
+        : error.response?.data?.message || 'Error fetching event details.';
+      Alert.alert('Error', errorMessage);
     }
+  };
   
   
   

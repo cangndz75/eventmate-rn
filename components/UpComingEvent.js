@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
-  const {role, userId} = useContext(AuthContext); // Access role and userId
+  const {role, userId} = useContext(AuthContext); 
   const [isBooked, setIsBooked] = useState(false);
   const [eventData, setEventData] = useState(null);
   const [loading, setLoading] = useState(true);
