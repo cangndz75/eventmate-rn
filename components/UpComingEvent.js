@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState, useCallback} from 'react';
+import React, {useContext, useState, useCallback} from 'react';
 import {
   Image,
   Pressable,
@@ -12,12 +12,13 @@ import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UpComingEvent = ({item}) => {
   const navigation = useNavigation();
   const {role, userId} = useContext(AuthContext); // Access role and userId
-  const [eventData, setEventData] = useState(item || null);
   const [isBooked, setIsBooked] = useState(false);
+  const [eventData, setEventData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -30,17 +31,23 @@ const UpComingEvent = ({item}) => {
   const fetchEventData = async () => {
     setLoading(true);
     try {
+      const token = await AsyncStorage.getItem('token');
       const response = await axios.get(
         `https://biletixai.onrender.com/events/${item?._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       setEventData(response.data);
       setIsBooked(response.data?.attendees?.some(att => att._id === userId));
     } catch (error) {
-      console.error('Error fetching event data:', error);
+      console.error('Error fetching event data:', error.response?.data || error.message);
+      Alert.alert('Server Error', 'Unable to fetch event data. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
+  
 
   const onRefresh = async () => {
     setRefreshing(true);

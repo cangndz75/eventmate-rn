@@ -20,6 +20,7 @@ import {AuthContext} from '../AuthContext';
 import {BottomModal, ModalContent, SlideAnimation} from 'react-native-modals';
 import axios from 'axios';
 import {StyleSheet} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EventSetUpScreen = () => {
   const navigation = useNavigation();
@@ -53,34 +54,33 @@ const EventSetUpScreen = () => {
       }
     };
 
-    fetchUserAndEventDetails();
+    fetchUserAndEventDetails().finally(() => setLoading(false));
   }, [item]);
 
   const fetchEventDetails = async () => {
-    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');  // Handle missing token case
+      }
+  
       const response = await axios.get(
         `https://biletixai.onrender.com/events/${eventId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-      if (response.status === 200 && response.data) {
+  
+      if (response.status === 200) {
         console.log('Event data:', response.data);
         await fetchReviews();
         await checkRequestStatus();
       } else {
-        console.warn('Event not found.');
         Alert.alert('Error', 'Event not found.');
         navigation.goBack();
       }
-    } catch (error) {
-      console.error('Unexpected error:', error.message);
-      if (error.response && error.response.status === 500) {
-        Alert.alert('Server Error', 'There was a problem with the server. Please try again later.');
-      } else {
-        Alert.alert('Error', 'Something went wrong.');
-      }
-    } finally {
-      setLoading(false);
     }
-  };
+  
+  
   
 
   const fetchReviews = async () => {
@@ -95,28 +95,28 @@ const EventSetUpScreen = () => {
       Alert.alert('Error', 'Comment cannot be empty.');
       return;
     }
-
+  
     try {
       const response = await axios.post(
         `https://biletixai.onrender.com/events/${eventId}/reviews`,
-        {userId, comment},
+        { userId, comment }
       );
-
+  
       if (response.status === 201) {
-        setReviews(prev => [...prev, {userId, review: comment}]);
+        setReviews(prev => [...prev, { userId, review: comment }]);
         setComment('');
         ToastAndroid.show('Review added!', ToastAndroid.SHORT);
       } else {
         throw new Error('Failed to add review');
       }
     } catch (error) {
-      console.error(
-        'Error submitting review:',
-        error.response ? error.response.data : error.message,
-      );
-      Alert.alert('Error', 'Failed to submit review.');
+      console.error('Error submitting review:', error);
+      const errorMessage =
+        error.response?.data?.message || 'Failed to submit review.';
+      Alert.alert('Error', errorMessage);
     }
   };
+  
 
   const checkRequestStatus = async () => {
     try {
