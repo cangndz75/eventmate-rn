@@ -66,35 +66,28 @@ const EventSetUpScreen = () => {
         await fetchReviews();
         await checkRequestStatus();
       } else {
-        console.warn('Event not found or no data returned.');
+        console.warn('Event not found.');
         Alert.alert('Error', 'Event not found.');
         navigation.goBack();
       }
     } catch (error) {
-      console.error(
-        'Error fetching event details:',
-        error.response ? error.response.data : error.message,
-      );
-      Alert.alert(
-        'Error',
-        `Failed to load event details: ${
-          error.response ? error.response.data.message : error.message
-        }`,
-      );
+      console.error('Unexpected error:', error.message);
+      if (error.response && error.response.status === 500) {
+        Alert.alert('Server Error', 'There was a problem with the server. Please try again later.');
+      } else {
+        Alert.alert('Error', 'Something went wrong.');
+      }
     } finally {
       setLoading(false);
     }
   };
+  
 
   const fetchReviews = async () => {
-    try {
-      const response = await axios.get(
-        `https://biletixai.onrender.com/events/${eventId}/reviews`,
-      );
-      setReviews(response.data || []);
-    } catch (error) {
-      // No alert or warning if reviews fail to load
-    }
+    const response = await axios.get(
+      `https://biletixai.onrender.com/events/${eventId}/reviews`,
+    );
+    setReviews(response.data || []);
   };
 
   const submitReview = async () => {
@@ -111,7 +104,7 @@ const EventSetUpScreen = () => {
 
       if (response.status === 201) {
         setReviews(prev => [...prev, {userId, review: comment}]);
-        setComment(''); // Clear input
+        setComment('');
         ToastAndroid.show('Review added!', ToastAndroid.SHORT);
       } else {
         throw new Error('Failed to add review');
@@ -121,9 +114,7 @@ const EventSetUpScreen = () => {
         'Error submitting review:',
         error.response ? error.response.data : error.message,
       );
-      const errorMessage =
-        error.response?.data?.message || 'Unexpected error occurred';
-      Alert.alert('Error', `Failed to submit review: ${errorMessage}`);
+      Alert.alert('Error', 'Failed to submit review.');
     }
   };
 
@@ -139,14 +130,17 @@ const EventSetUpScreen = () => {
         'Error fetching requests:',
         error.response ? error.response.data : error.message,
       );
-      ToastAndroid.show(
-        `Failed to check request status: ${
-          error.response ? error.response.data.message : error.message
-        }`,
-        ToastAndroid.SHORT,
-      );
+      ToastAndroid.show('Failed to check request status.', ToastAndroid.SHORT);
     }
   };
+
+  const renderOrganizerName = () => {
+    const organizer = item.organizer;
+    return organizer
+      ? `${organizer.firstName || ''} ${organizer.lastName || ''}`.trim()
+      : 'Unknown Organizer';
+  };
+
   const sendJoinRequest = async () => {
     try {
       await axios.post(`http://10.0.2.2:8000/events/${eventId}/request`, {
@@ -163,7 +157,6 @@ const EventSetUpScreen = () => {
       );
     }
   };
-
   const cancelJoinRequest = async () => {
     try {
       await axios.post(
@@ -198,31 +191,16 @@ const EventSetUpScreen = () => {
 
   const renderReviewSection = () => (
     <View style={{marginVertical: 10}}>
-      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-        <Text style={{fontWeight: 'bold', fontSize: 18}}>Reviews</Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('ReviewScreen', {eventId})}>
-          <Text style={{color: 'blue'}}>See All</Text>
-        </TouchableOpacity>
-      </View>
-
+      <Text style={{fontWeight: 'bold', fontSize: 18}}>Reviews</Text>
       {reviews.length === 0 ? (
         <Text>No reviews available.</Text>
       ) : (
         reviews.slice(0, 2).map((review, index) => (
-          <View
-            key={index}
-            style={{
-              backgroundColor: '#f0f0f0',
-              padding: 10,
-              marginVertical: 5,
-              borderRadius: 8,
-            }}>
+          <View key={index} style={styles.reviewContainer}>
             <Text>{review.review}</Text>
           </View>
         ))
       )}
-
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Send your review"
@@ -405,8 +383,8 @@ const EventSetUpScreen = () => {
             </Text>
           </View>
 
-          <Text style={{fontWeight: 'bold', marginVertical: 10}}>
-            Hosted by: {item.organizer || 'Unknown Organizer'}
+          <Text style={styles.organizerText}>
+            Hosted by: {renderOrganizerName()}
           </Text>
           {renderGoingSection()}
 
@@ -476,7 +454,6 @@ const EventSetUpScreen = () => {
               </TouchableOpacity>
             </ModalContent>
           </BottomModal>
-
           <BottomModal
             onBackdropPress={() => setModalVisible(false)}
             swipeDirection={['up', 'down']}
@@ -490,11 +467,9 @@ const EventSetUpScreen = () => {
                 <Text style={{fontSize: 15, fontWeight: '500', color: 'gray'}}>
                   Join Event
                 </Text>
-
                 <Text style={{marginTop: 25, color: 'gray'}}>
                   Please enter a message to send with your join request.
                 </Text>
-
                 <View
                   style={{
                     borderColor: '#E0E0E0',

@@ -39,7 +39,44 @@ const HomeScreen = () => {
   };
 
   const filteredEvents = filterEventsByCategory(eventList, selectedCategory);
-
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));  // Set user state
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+  
+    const fetchEvents = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.get(
+          'https://biletixai.onrender.com/events',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+  
+        setEventList(response.data);
+        if (response.data.length > 0) {
+          setPopularEvent(response.data[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setErrorMessage('Failed to load events. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUserData(); 
+    fetchEvents();
+  }, []);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
