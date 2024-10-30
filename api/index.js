@@ -157,16 +157,21 @@ app.listen(port, () => {
 
 app.get('/user/:userId', async (req, res) => {
   try {
-    const {userId} = req.params;
-    const user = await User.findById(userId);
+    const { userId } = req.params;
+
+    const user = await User.findById(userId)
+      .populate('activities')
+      .populate('followers', 'firstName lastName username image') 
+      .populate('following', 'firstName lastName username image'); 
 
     if (!user) {
-      return res.status(404).json({message: 'User not found'});
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json({user});
+    res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({message: 'Error fetching user data'});
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ message: 'Error fetching user data', error: error.message });
   }
 });
 

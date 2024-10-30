@@ -60,27 +60,25 @@ const EventSetUpScreen = () => {
   const fetchEventDetails = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      console.log('Fetched token:', token);  
-  
+      console.log('Fetched token:', token);
+
       if (!token) throw new Error('Authentication token is missing');
-  
+
       const response = await axios.get(
         `https://biletixai.onrender.com/events/${eventId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {headers: {Authorization: `Bearer ${token}`}},
       );
-  
+
       console.log('Event data:', response.data);
     } catch (error) {
       console.error('Error fetching event details:', error);
-      const errorMessage = error.response?.data?.message === 'Internal server error'
-        ? 'Server encountered an issue. Please try again later.'
-        : error.response?.data?.message || 'Error fetching event details.';
+      const errorMessage =
+        error.response?.data?.message === 'Internal server error'
+          ? 'Server encountered an issue. Please try again later.'
+          : error.response?.data?.message || 'Error fetching event details.';
       Alert.alert('Error', errorMessage);
     }
   };
-  
-  
-  
 
   const fetchReviews = async () => {
     const response = await axios.get(
@@ -94,15 +92,15 @@ const EventSetUpScreen = () => {
       Alert.alert('Error', 'Comment cannot be empty.');
       return;
     }
-  
+
     try {
       const response = await axios.post(
         `https://biletixai.onrender.com/events/${eventId}/reviews`,
-        { userId, comment }
+        {userId, comment},
       );
-  
+
       if (response.status === 201) {
-        setReviews(prev => [...prev, { userId, review: comment }]);
+        setReviews(prev => [...prev, {userId, review: comment}]);
         setComment('');
         ToastAndroid.show('Review added!', ToastAndroid.SHORT);
       } else {
@@ -115,7 +113,6 @@ const EventSetUpScreen = () => {
       Alert.alert('Error', errorMessage);
     }
   };
-  
 
   const checkRequestStatus = async () => {
     try {
@@ -174,15 +171,20 @@ const EventSetUpScreen = () => {
       data={item.attendees}
       keyExtractor={(attendee, index) => attendee._id + index}
       renderItem={({item: attendee}) => (
-        <Image
-          source={{uri: attendee.image || 'https://via.placeholder.com/50'}}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            marginHorizontal: 5,
-          }}
-        />
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('EventAttendees', {eventId: item._id})
+          }>
+          <Image
+            source={{uri: attendee.image || 'https://via.placeholder.com/50'}}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              marginHorizontal: 5,
+            }}
+          />
+        </TouchableOpacity>
       )}
       contentContainerStyle={{marginVertical: 10}}
     />

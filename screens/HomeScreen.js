@@ -44,7 +44,7 @@ const HomeScreen = () => {
       try {
         const storedUser = await AsyncStorage.getItem('user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));  // Set user state
+          setUser(JSON.parse(storedUser));  
         }
       } catch (error) {
         console.error('Error fetching user data:', error);

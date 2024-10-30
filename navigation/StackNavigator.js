@@ -39,7 +39,8 @@ import InterestSelectionScreen from '../screens/InterestSelectionScreen';
 import SearchScreen from '../screens/SearchScreen';
 import ReviewScreen from '../screens/ReviewScreen';
 import NotificationScreen from '../screens/NotificationScreen';
-
+import ProfileViewScreen from '../screens/ProfileViewScreen';
+import EventAttendeesScreen from '../screens/EventAttendeesScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -244,15 +245,32 @@ const StackNavigator = () => {
           component={PeopleScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen name="Event" component={EventScreen} options={{headerShown:false}} />
-        <Stack.Screen name="EventSetUp" component={EventSetUpScreen} options={{headerShown:false}} />
+        <Stack.Screen
+          name="Event"
+          component={EventScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="EventSetUp"
+          component={EventSetUpScreen}
+          options={{headerShown: false}}
+        />
         <Stack.Screen name="Request" component={RequestChatRoom} />
         <Stack.Screen name="ChatRoom" component={ChatRoom} />
         <Stack.Screen name="Chats" component={ChatsScreen} />
         <Stack.Screen name="ProfileEditScreen" component={ProfileEditScreen} />
-        <Stack.Screen name="TicketDetailScreen" component={TicketDetailScreen} />
-        <Stack.Screen name="AdminCreateVenue" component={AdminCreateVenueScreen} />
-        <Stack.Screen name="InterestSelectionScreen" component={InterestSelectionScreen} />
+        <Stack.Screen
+          name="TicketDetailScreen"
+          component={TicketDetailScreen}
+        />
+        <Stack.Screen
+          name="AdminCreateVenue"
+          component={AdminCreateVenueScreen}
+        />
+        <Stack.Screen
+          name="InterestSelectionScreen"
+          component={InterestSelectionScreen}
+        />
         <Stack.Screen
           name="SearchScreen"
           component={SearchScreen}
@@ -263,7 +281,21 @@ const StackNavigator = () => {
           component={ReviewScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen name="NotificationScreen" component={NotificationScreen} options={{headerShadowVisible:false}} />
+        <Stack.Screen
+          name="NotificationScreen"
+          component={NotificationScreen}
+          options={{headerShadowVisible: false}}
+        />
+        <Stack.Screen
+          name="ProfileView"
+          component={ProfileViewScreen}
+          options={{headerShadowVisible: false}}
+        />
+        <Stack.Screen
+          name="EventAttendees"
+          component={EventAttendeesScreen}
+          options={{headerShadowVisible: false}}
+        />
         <Stack.Screen
           name="AdminDashboard"
           component={AdminDashboard}
