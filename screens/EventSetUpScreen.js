@@ -166,23 +166,25 @@ const EventSetUpScreen = () => {
   };
 
   const renderGoingSection = () => (
-    <FlatList
-      horizontal
-      data={item.attendees}
-      keyExtractor={(attendee, index) => attendee._id + index}
-      renderItem={({item: attendee}) => (
-        <Image
-          source={{uri: attendee.image || 'https://via.placeholder.com/50'}}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            marginHorizontal: 5,
-          }}
-        />
-      )}
-      contentContainerStyle={{marginVertical: 10}}
-    />
+    <TouchableOpacity onPress={() => navigation.navigate('EventAttendees', {eventId})}>
+      <FlatList
+        horizontal
+        data={item.attendees}
+        keyExtractor={(attendee, index) => attendee._id + index}
+        renderItem={({item: attendee}) => (
+          <Image
+            source={{uri: attendee.image || 'https://via.placeholder.com/50'}}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              marginHorizontal: 5,
+            }}
+          />
+        )}
+        contentContainerStyle={{marginVertical: 10}}
+      />
+    </TouchableOpacity>
   );
 
   const renderReviewSection = () => (

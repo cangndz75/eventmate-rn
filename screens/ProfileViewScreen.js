@@ -10,19 +10,20 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
-import { AuthContext } from '../AuthContext';
+import { useRoute } from '@react-navigation/native';
 
 const ProfileViewScreen = () => {
 
-  const {userId} = useContext(AuthContext);
+  const route = useRoute();
+  const {userId} = route.params;
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
-      setUserData(response.data.user);
+      const response = await axios.get(`https://biletixai.onrender.com/user/${userId}`);
+      setUserData(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
