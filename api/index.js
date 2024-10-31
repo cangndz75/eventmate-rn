@@ -129,9 +129,16 @@ app.post('/login', async (req, res) => {
 
     res.status(200).json({
       token,
+      userId: user._id,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      image: user.image,
       aboutMe: user.aboutMe,
       interests: user.interests,
+      followers: user.followers,
+      following: user.following,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -160,7 +167,7 @@ app.get('/user/:userId', async (req, res) => {
     const { userId } = req.params;
 
     const user = await User.findById(userId)
-      .populate('activities')
+      .populate('events')
       .populate('followers', 'firstName lastName username image') 
       .populate('following', 'firstName lastName username image'); 
 
@@ -609,14 +616,19 @@ app.post('/events/:eventId/cancel-request', async (req, res) => {
 
 app.get('/events/:eventId/requests', async (req, res) => {
   try {
-    const {eventId} = req.params;
+    const { eventId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID' });
+    }
+
     const event = await Event.findById(eventId).populate({
       path: 'requests.userId',
       select: 'firstName lastName image email',
     });
 
     if (!event) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
     }
 
     const requestsWithUserInfo = event.requests.map(request => ({
@@ -633,7 +645,7 @@ app.get('/events/:eventId/requests', async (req, res) => {
     res.status(200).json(requestsWithUserInfo);
   } catch (error) {
     console.error('Error fetching requests:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -769,6 +781,9 @@ app.post('/sendrequest', async (req, res) => {
 app.get('/getrequests/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
     console.log(`Fetching requests for userId: ${userId}`);
     const user = await User.findById(userId).populate(
       'requests.from', // Populate request sender details
@@ -1210,7 +1225,14 @@ app.post('/user/:userId/interests', async (req, res) => {
 
 app.get('/user/:userId/interests', async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId);
+    const userId = req.params.userId;
+    
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
+    const user = await User.findById(userId);
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

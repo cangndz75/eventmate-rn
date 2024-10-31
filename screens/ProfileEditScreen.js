@@ -16,7 +16,7 @@ import axios from 'axios';
 import {AuthContext} from '../AuthContext'; // Use the context for userId
 
 const ProfileEditScreen = () => {
-  const {userId} = useContext(AuthContext);
+  const { userId } = useContext(AuthContext);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -24,7 +24,8 @@ const ProfileEditScreen = () => {
   const fetchUserData = async () => {
     try {
       const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
-      setUserData(response.data.user);
+      console.log('Fetched user data:', response.data); // Log to check structure
+      setUserData(response.data.user || response.data); // Adjust if `user` key is absent
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -38,6 +39,7 @@ const ProfileEditScreen = () => {
 
   const handleUpdate = async () => {
     setIsUpdating(true);
+    console.log('Updating user data:', userData); 
     try {
       const response = await axios.put(`http://10.0.2.2:8000/user/${userId}`, {
         firstName: userData.firstName,
@@ -47,10 +49,10 @@ const ProfileEditScreen = () => {
         phone: userData.phone || '',
         country: userData.country || '',
       });
-
+  
       if (response.status === 200) {
         Alert.alert('Success', 'Profile updated successfully!');
-        await fetchUserData();
+        navigation.navigate('ProfileDetailScreen', { refresh: true }); 
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -59,24 +61,25 @@ const ProfileEditScreen = () => {
       setIsUpdating(false);
     }
   };
+  
 
   if (loading) {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#5c6bc0" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
-      <ScrollView contentContainerStyle={{padding: 20}}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
         {userData && (
           <>
-            <View style={{alignItems: 'center', marginBottom: 20}}>
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
               <Image
-                source={{uri: userData.image || 'https://via.placeholder.com/100'}}
-                style={{width: 100, height: 100, borderRadius: 50}}
+                source={{ uri: userData.image || 'https://via.placeholder.com/100' }}
+                style={{ width: 100, height: 100, borderRadius: 50 }}
               />
               <TouchableOpacity
                 style={{
@@ -94,7 +97,7 @@ const ProfileEditScreen = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 value={userData.firstName}
-                onChangeText={text => setUserData({...userData, firstName: text})}
+                onChangeText={text => setUserData({ ...userData, firstName: text })}
                 style={styles.input}
                 placeholder="First Name"
               />
@@ -103,7 +106,7 @@ const ProfileEditScreen = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 value={userData.lastName}
-                onChangeText={text => setUserData({...userData, lastName: text})}
+                onChangeText={text => setUserData({ ...userData, lastName: text })}
                 style={styles.input}
                 placeholder="Last Name"
               />
@@ -112,7 +115,7 @@ const ProfileEditScreen = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 value={userData.email}
-                onChangeText={text => setUserData({...userData, email: text})}
+                onChangeText={text => setUserData({ ...userData, email: text })}
                 style={styles.input}
                 placeholder="Email"
               />
@@ -122,9 +125,9 @@ const ProfileEditScreen = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 value={userData.password}
-                onChangeText={text => setUserData({...userData, password: text})}
+                onChangeText={text => setUserData({ ...userData, password: text })}
                 style={styles.input}
-                secureTextEntry={true}
+                secureTextEntry
                 placeholder="Password"
               />
               <MaterialIcons name="lock-outline" size={20} color="#555" />
@@ -133,7 +136,7 @@ const ProfileEditScreen = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 value={userData.phone || ''}
-                onChangeText={text => setUserData({...userData, phone: text})}
+                onChangeText={text => setUserData({ ...userData, phone: text })}
                 style={styles.input}
                 placeholder="Phone"
               />
@@ -142,7 +145,7 @@ const ProfileEditScreen = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 value={userData.country || ''}
-                onChangeText={text => setUserData({...userData, country: text})}
+                onChangeText={text => setUserData({ ...userData, country: text })}
                 style={styles.input}
                 placeholder="Country"
               />

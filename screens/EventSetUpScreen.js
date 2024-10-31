@@ -171,20 +171,15 @@ const EventSetUpScreen = () => {
       data={item.attendees}
       keyExtractor={(attendee, index) => attendee._id + index}
       renderItem={({item: attendee}) => (
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('EventAttendees', {eventId: item._id})
-          }>
-          <Image
-            source={{uri: attendee.image || 'https://via.placeholder.com/50'}}
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              marginHorizontal: 5,
-            }}
-          />
-        </TouchableOpacity>
+        <Image
+          source={{uri: attendee.image || 'https://via.placeholder.com/50'}}
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            marginHorizontal: 5,
+          }}
+        />
       )}
       contentContainerStyle={{marginVertical: 10}}
     />

@@ -37,14 +37,14 @@ const InterestSelectionScreen = ({navigation}) => {
       try {
         console.log('Fetching interests for user:', userId);
         const response = await axios.get(
-          `https://biletixai.onrender.com/user/${userId}`,
+          `https://biletixai.onrender.com/user/${userId}/interests`,
         );
 
         if (response.data.user && response.data.user.interests) {
           setSelectedInterests(response.data.user.interests);
         }
       } catch (error) {
-        console.error('Error fetching interests:', error);
+        console.error('Error fetching interests:', error.response ? error.response.data : error.message);
         Dialog.show({
           type: ALERT_TYPE.DANGER,
           title: 'Error!',
@@ -55,6 +55,7 @@ const InterestSelectionScreen = ({navigation}) => {
         setIsLoading(false);
       }
     };
+
 
     if (userId) {
       fetchUserInterests();
