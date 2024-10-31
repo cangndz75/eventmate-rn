@@ -20,52 +20,35 @@ import ImageViewing from 'react-native-image-viewing';
 import {TextInput} from 'react-native';
 
 const ProfileDetailScreen = () => {
-  const [user, setUser] = useState('');
-  const navigation = useNavigation();
+  const [user, setUser] = useState(null);
   const [visible, setVisible] = useState(false);
-  const {userId, token, setToken, setUserId} = useContext(AuthContext);
   const [aboutText, setAboutText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const {userId, token, setToken, setUserId} = useContext(AuthContext);
+  const navigation = useNavigation();
 
-  useEffect(() => {
-    const checkUserId = async () => {
-      const storedUserId = await AsyncStorage.getItem('userId');
-      if (!storedUserId) {
-        console.warn('User ID is undefined');
-        navigation.replace('Login');
-      }
-    };
-    checkUserId();
-  }, [userId, navigation]);
-
+  // Fetch user data if userId is available
   const fetchUser = async () => {
     try {
-      console.log('Fetching data for user:', userId);
-      if (!userId) {
-        throw new Error('User ID is undefined');
-      }
-      const response = await axios.get(`https://biletixai.onrender.com//user/${userId}`);
+      console.log('Fetching data for user ID:', userId);
+      if (!userId) throw new Error('User ID is undefined');
+
+      const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
+      console.log('User data fetched:', response.data);
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user data:', error.message);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchDataOnFocus = async () => {
-        const params = navigation
-          .getState()
-          .routes.find(route => route.name === 'ProfileDetail')?.params;
-        if (params?.refresh) {
-          console.log('Refreshing profile data');
-          await fetchUser();
-          navigation.setParams({refresh: false});
-        }
-      };
-      fetchDataOnFocus();
-    }, [navigation, userId]),
-  );
+  useEffect(() => {
+    if (userId) {
+      fetchUser();
+    } else {
+      console.warn('User ID is undefined, navigating to Login');
+      navigation.replace('Login');
+    }
+  }, [userId]);
 
   const clearAuthToken = async () => {
     try {
@@ -81,33 +64,24 @@ const ProfileDetailScreen = () => {
   const updateAboutMe = async () => {
     try {
       const url = `http://10.0.2.2:8000/user/${userId}/about`;
-      const response = await axios.put(url, {aboutMe: aboutText});
+      await axios.put(url, {aboutMe: aboutText});
 
       setUser(prevState => ({
         ...prevState,
-        user: {...prevState.user, aboutMe: aboutText},
+        aboutMe: aboutText,
       }));
       setIsModalVisible(false);
     } catch (error) {
       console.error('Failed to update about me:', error.message);
-      if (error.response) {
-        console.error('Error details:', error.response.data);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error setting up request:', error.message);
-      }
     }
   };
 
   const handleOpenModal = () => {
-    setAboutText(user?.user?.aboutMe || '');
+    setAboutText(user?.aboutMe || '');
     setIsModalVisible(true);
   };
 
-  const images = [
-    {uri: user?.user?.image || 'https://via.placeholder.com/150'},
-  ];
+  const images = [{uri: user?.image || 'https://via.placeholder.com/150'}];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -116,22 +90,18 @@ const ProfileDetailScreen = () => {
           <Pressable onPress={() => setVisible(true)}>
             <Image
               style={styles.profileImage}
-              source={{
-                uri: user?.user?.image || 'https://via.placeholder.com/150',
-              }}
+              source={{uri: user?.image || 'https://via.placeholder.com/150'}}
             />
           </Pressable>
 
-          <Text style={styles.userName}>
-            {user?.user?.firstName || 'User Name'}
-          </Text>
+          <Text style={styles.userName}>{user?.firstName || 'User Name'}</Text>
           <View style={styles.followContainer}>
             <Text style={styles.followText}>
-              {user?.user?.followers || 0} Followers
+              {user?.followers || 0} Followers
             </Text>
             <Text style={styles.followText}>|</Text>
             <Text style={styles.followText}>
-              {user?.user?.following || 0} Following
+              {user?.following || 0} Following
             </Text>
           </View>
 
@@ -150,7 +120,7 @@ const ProfileDetailScreen = () => {
             </TouchableOpacity>
           </View>
           <Text style={styles.aboutMeDescription}>
-            {user?.user?.aboutMe || 'Share something about yourself!'}
+            {user?.aboutMe || 'Share something about yourself!'}
           </Text>
         </View>
 
@@ -164,7 +134,7 @@ const ProfileDetailScreen = () => {
           </View>
 
           <View style={styles.tagsContainer}>
-            {user?.user?.interests?.map((interest, index) => (
+            {user?.interests?.map((interest, index) => (
               <View key={index} style={styles.tag}>
                 <Text style={styles.tagText}>{interest}</Text>
               </View>
@@ -176,7 +146,7 @@ const ProfileDetailScreen = () => {
           style={styles.optionContainer}
           onPress={() => navigation.navigate('BookingsScreen')}>
           <View style={styles.iconContainer}>
-            <AntDesign name="calendar" size={24} color={'green'} />
+            <AntDesign name="calendar" size={24} color="green" />
           </View>
           <Text style={styles.optionText}>My Bookings</Text>
         </TouchableOpacity>
@@ -185,7 +155,7 @@ const ProfileDetailScreen = () => {
           style={styles.optionContainer}
           onPress={clearAuthToken}>
           <View style={styles.iconContainer}>
-            <Ionicons name="log-out-outline" size={24} color={'red'} />
+            <Ionicons name="log-out-outline" size={24} color="red" />
           </View>
           <Text style={styles.optionText}>Logout</Text>
         </TouchableOpacity>
