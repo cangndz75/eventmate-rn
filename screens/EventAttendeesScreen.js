@@ -18,6 +18,7 @@ const EventAttendeesScreen = () => {
   const [attendees, setAttendees] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  const loggedInUserId = 'yourLoggedInUserId'; // Replace with actual logged-in user ID
 
   useEffect(() => {
     const fetchAttendees = async () => {
@@ -49,6 +50,7 @@ const EventAttendeesScreen = () => {
         <Text style={styles.username}>@{item.username}</Text>
       </View>
     </TouchableOpacity>
+    
   );
 
   if (loading) {

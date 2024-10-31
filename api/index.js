@@ -1307,3 +1307,38 @@ app.put('/user/:userId/about', async (req, res) => {
     res.status(500).json({message: 'Failed to update about me', error});
   }
 });
+
+app.post('/user/followRequest', async (req, res) => {
+  const { fromUserId, toUserId } = req.body;
+
+  try {
+    // Find the target user to receive the follow request notification
+    const targetUser = await User.findById(toUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Create the notification message
+    const notification = new Notification({
+      user: toUserId,
+      message: 'has sent you a follow request',
+      from: {
+        firstName: req.body.fromFirstName,
+        lastName: req.body.fromLastName,
+        image: req.body.fromImage,
+      },
+    });
+
+    // Save the notification
+    await notification.save();
+
+    // Optionally, add notification reference to target user's notifications array
+    targetUser.notifications.push(notification._id);
+    await targetUser.save();
+
+    res.status(200).json({ message: 'Follow request sent and notification created' });
+  } catch (error) {
+    console.error('Error creating follow request notification:', error);
+    res.status(500).json({ message: 'Failed to create follow request notification', error: error.message });
+  }
+});

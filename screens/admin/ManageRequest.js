@@ -2,24 +2,24 @@ import {SafeAreaView, View, Image, Pressable, Text, Alert} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {useRoute} from '@react-navigation/native';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 
 const ManageRequests = () => {
   const [option, setOption] = useState('Requests');
   const route = useRoute();
-
+  const navigation = useNavigation();
   const eventId = route?.params?.eventId;
 
   const [requests, setRequests] = useState([]);
   const [attendees, setAttendees] = useState([]);
-  const [invited, setInvited] = useState([]);
-  const [retired, setRetired] = useState([]);
+  const [invited] = useState([]);
+  const [retired] = useState([]);
 
   useEffect(() => {
     fetchRequests();
     fetchAttendees();
-  }, []);
+  }, [eventId]);
 
   const fetchRequests = async () => {
     try {
@@ -43,71 +43,37 @@ const ManageRequests = () => {
     }
   };
 
-  const updateRequestStatus = async (requestId, status) => {
-    try {
-      const response = await axios.patch(
-        `http://10.0.2.2:8000/requests/${requestId}`,
-        {status},
-      );
-
-      if (response.status === 200) {
-        Alert.alert('Success', `Request ${status}`);
-        fetchRequests();
-      }
-    } catch (error) {
-      console.error(`Failed to update request status to ${status}:`, error);
-      Alert.alert('Error', `Failed to update status to ${status}`);
-    }
-  };
-  
   const acceptRequest = async (userId, requestId, eventId) => {
     try {
-      const response = await axios.post('http://10.0.2.2:8000/accept', {
+      const response = await axios.post(`http://10.0.2.2:8000/accept`, {
         userId,
         requestId,
         eventId,
       });
-  
       if (response.status === 200) {
-        try {
-          const userEventResponse = await axios.post(`http://10.0.2.2:8000/users/${userId}/events`, {
-            eventId,
-          });
-  
-          if (userEventResponse.status === 200) {
-            Alert.alert('Success', 'Request accepted');
-            fetchRequests();
-          } else {
-            console.error('Failed to add event to user:', userEventResponse.data);
-            Alert.alert('Error', 'Failed to add event to user');
-          }
-        } catch (error) {
-          console.error('Failed to add event to user:', error.response ? error.response.data : error.message);
-          Alert.alert('Error', 'Failed to add event to user');
-        }
+        Alert.alert('Success', 'Request accepted');
+        fetchRequests();
+        fetchAttendees();
       }
     } catch (error) {
-      console.error('Failed to accept request:', error.response ? error.response.data : error.message);
+      console.error('Failed to accept request:', error);
       Alert.alert('Error', 'Failed to accept request');
     }
   };
-  
-  
-  
 
   const rejectRequest = async (requestId, eventId) => {
     try {
-      const response = await axios.post('http://10.0.2.2:8000/reject', {
+      const response = await axios.post(`http://10.0.2.2:8000/reject`, {
         requestId,
         eventId,
       });
-
       if (response.status === 200) {
         Alert.alert('Success', 'Request rejected');
+        fetchRequests();
       }
     } catch (error) {
       console.error('Failed to reject request:', error);
-      Alert.alert('Error', 'Failed to reject request');a
+      Alert.alert('Error', 'Failed to reject request');
     }
   };
 
@@ -118,78 +84,40 @@ const ManageRequests = () => {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 5,
             justifyContent: 'space-between',
           }}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color="white"
+            onPress={() => navigation.goBack()}
+          />
           <AntDesign name="plussquareo" size={24} color="white" />
         </View>
 
-        <View
-          style={{
-            marginTop: 15,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 5,
-            justifyContent: 'space-between',
-          }}>
-          <Text style={{fontSize: 20, fontWeight: '600', color: 'white'}}>
-            Manage
-          </Text>
-        </View>
-
-        <View
-          style={{
-            marginTop: 10,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 15,
-          }}>
-          <Pressable onPress={() => setOption('Requests')}>
-            <Text
-              style={{
-                fontWeight: '500',
-                color: option == 'Requests' ? '#1dd132' : 'white',
-              }}>
-              Requests ({requests?.length})
-            </Text>
-          </Pressable>
-
-          <Pressable onPress={() => setOption('Invited')}>
-            <Text
-              style={{
-                fontWeight: '500',
-                color: option == 'Invited' ? '#1dd132' : 'white',
-              }}>
-              Invited ({invited?.length})
-            </Text>
-          </Pressable>
-
-          <Pressable onPress={() => setOption('Playing')}>
-            <Text
-              style={{
-                fontWeight: '500',
-                color: option == 'Playing' ? '#1dd132' : 'white',
-              }}>
-              Playing ({attendees?.length})
-            </Text>
-          </Pressable>
-
-          <Pressable onPress={() => setOption('Retired')}>
-            <Text
-              style={{
-                fontWeight: '500',
-                color: option == 'Retired' ? '#1dd132' : 'white',
-              }}>
-              Retired ({retired?.length})
-            </Text>
-          </Pressable>
+        <View style={{marginTop: 15, flexDirection: 'row', gap: 15}}>
+          {['Requests', 'Invited', 'Playing', 'Retired'].map(tab => (
+            <Pressable key={tab} onPress={() => setOption(tab)}>
+              <Text
+                style={{
+                  fontWeight: '500',
+                  color: option === tab ? '#1dd132' : 'white',
+                }}>
+                {tab} (
+                {tab === 'Requests'
+                  ? requests.length
+                  : tab === 'Playing'
+                  ? attendees.length
+                  : 0}
+                )
+              </Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 
       <View style={{marginTop: 10, marginHorizontal: 15}}>
-        {option == 'Requests' && (
+        {option === 'Requests' && (
           <View>
             {requests.length === 0 ? (
               <View
@@ -225,9 +153,10 @@ const ManageRequests = () => {
                     />
 
                     <View style={{flex: 1}}>
-                      <Text style={{fontWeight: '600'}}>
-                        {item?.firstName} {item?.lastName}
-                      </Text>
+                      <Text
+                        style={{
+                          fontWeight: '600',
+                        }}>{`${item?.firstName} ${item?.lastName}`}</Text>
                       <View
                         style={{
                           paddingHorizontal: 10,
@@ -273,7 +202,6 @@ const ManageRequests = () => {
                           0 NO SHOWS
                         </Text>
                       </View>
-
                       <Text
                         style={{
                           marginTop: 10,
@@ -302,8 +230,8 @@ const ManageRequests = () => {
                       </Pressable>
 
                       <Pressable
-                        onPress={
-                          () => acceptRequest(item.userId, item._id, eventId) 
+                        onPress={() =>
+                          acceptRequest(item.userId, item._id, eventId)
                         }
                         style={{
                           padding: 10,
@@ -323,7 +251,7 @@ const ManageRequests = () => {
           </View>
         )}
 
-        {option == 'Playing' && (
+        {option === 'Playing' && (
           <View>
             {attendees.length === 0 ? (
               <View
@@ -355,10 +283,7 @@ const ManageRequests = () => {
                   </View>
 
                   <View>
-                    <Text>
-                      {item?.firstName} {item?.lastName}
-                    </Text>
-
+                    <Text>{`${item?.firstName} ${item?.lastName}`}</Text>
                     <View
                       style={{
                         paddingHorizontal: 10,
@@ -380,7 +305,7 @@ const ManageRequests = () => {
           </View>
         )}
 
-        {option == 'Invited' && (
+        {option === 'Invited' && (
           <View>
             {invited.length === 0 ? (
               <View
@@ -400,7 +325,7 @@ const ManageRequests = () => {
           </View>
         )}
 
-        {option == 'Retired' && (
+        {option === 'Retired' && (
           <View>
             {retired.length === 0 ? (
               <View
