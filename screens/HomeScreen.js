@@ -44,23 +44,23 @@ const HomeScreen = () => {
       try {
         const storedUser = await AsyncStorage.getItem('user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));  
+          setUser(JSON.parse(storedUser));
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-  
+
     const fetchEvents = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const response = await axios.get(
           'https://biletixai.onrender.com/events',
           {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+            headers: {Authorization: `Bearer ${token}`},
+          },
         );
-  
+
         setEventList(response.data);
         if (response.data.length > 0) {
           setPopularEvent(response.data[0]);
@@ -72,11 +72,11 @@ const HomeScreen = () => {
         setIsLoading(false);
       }
     };
-  
-    fetchUserData(); 
+
+    fetchUserData();
     fetchEvents();
   }, []);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -159,7 +159,8 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('NotificationScreen')}>
           <Ionicons name="notifications-outline" size={28} color="#333" />
         </TouchableOpacity>
       </View>
@@ -239,7 +240,11 @@ const HomeScreen = () => {
             onPress={() => navigation.navigate('Event', {item: popularEvent})}
             style={{borderRadius: 15, overflow: 'hidden'}}>
             <ImageBackground
-              source={{uri: popularEvent.organizerUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqG-InngmdJ4Ifg1hcdSKJM9y9vdYIobP1Ya-1f10vV2yclcqd"}}
+              source={{
+                uri:
+                  popularEvent.organizerUrl ||
+                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqG-InngmdJ4Ifg1hcdSKJM9y9vdYIobP1Ya-1f10vV2yclcqd',
+              }}
               style={{height: 200, justifyContent: 'flex-end', padding: 10}}>
               <View
                 style={{
@@ -282,16 +287,19 @@ const HomeScreen = () => {
               onPress={() => setSelectedCategory(category)}
               style={{
                 backgroundColor:
-                  selectedCategory === category ? '#7b61ff' : '#f5f5f5',
+                  selectedCategory === category ? '#4A3D8A' : 'transparent',
                 borderRadius: 20,
                 paddingVertical: 8,
                 paddingHorizontal: 15,
                 marginRight: 10,
+                borderColor:
+                  selectedCategory === category ? '#4A3D8A' : '#e0e0e0',
+                borderWidth: 1,
               }}>
               <Text
                 style={{
-                  color: selectedCategory === category ? 'white' : '#333',
-                  fontWeight: 'bold',
+                  color: selectedCategory === category ? 'white' : '#999',
+                  fontWeight: selectedCategory === category ? 'bold' : 'normal',
                 }}>
                 {category}
               </Text>

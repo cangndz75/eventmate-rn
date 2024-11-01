@@ -8,7 +8,6 @@ import {
   Image,
   StyleSheet,
   Alert,
-  ToastAndroid,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
@@ -18,7 +17,7 @@ const ReviewScreen = ({route, navigation}) => {
   const [reviews, setReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
   const [comment, setComment] = useState('');
-  const [averageScore, setAverageScore] = useState(0.0); 
+  const [averageScore, setAverageScore] = useState(0.0);
   const [selectedFilter, setSelectedFilter] = useState('All time');
 
   useEffect(() => {
@@ -32,16 +31,39 @@ const ReviewScreen = ({route, navigation}) => {
   }, [eventId]);
 
   const fetchReviews = async () => {
+    const response = await axios.get(
+      `https://biletixai.onrender.com/events/${eventId}/reviews`,
+    );
+    const reviewsData = response.data || [];
+    setReviews(reviewsData);
+    setFilteredReviews(reviewsData);
+    calculateAverageScore(reviewsData);
+  };
+
+  const submitReview = async () => {
+    if (!comment.trim()) {
+      Alert.alert('Error', 'Comment cannot be empty.');
+      return;
+    }
+
     try {
-      const response = await axios.get(
+      const response = await axios.post(
         `https://biletixai.onrender.com/events/${eventId}/reviews`,
+        {review: comment},
       );
-      const reviewsData = response.data || [];
-      setReviews(reviewsData);
-      setFilteredReviews(reviewsData);
-      calculateAverageScore(reviewsData);
+
+      if (response.status === 201) {
+        setReviews(prev => [...prev, {review: comment}]);
+        setComment('');
+        ToastAndroid.show('Review added!', ToastAndroid.SHORT);
+      } else {
+        throw new Error('Failed to add review');
+      }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.error('Error submitting review:', error);
+      const errorMessage =
+        error.response?.data?.message || 'Failed to submit review.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
@@ -52,37 +74,6 @@ const ReviewScreen = ({route, navigation}) => {
     }
     const totalScore = reviews.reduce((sum, review) => sum + review.rating, 0);
     setAverageScore(totalScore / reviews.length);
-  };
-
-  const applyFilter = filter => {
-    setSelectedFilter(filter);
-    let filtered;
-
-    const now = new Date();
-    switch (filter) {
-      case 'This month':
-        filtered = reviews.filter(review => {
-          const reviewDate = new Date(review.date);
-          return (
-            reviewDate.getMonth() === now.getMonth() &&
-            reviewDate.getFullYear() === now.getFullYear()
-          );
-        });
-        break;
-      case 'This year':
-        filtered = reviews.filter(
-          review => new Date(review.date).getFullYear() === now.getFullYear(),
-        );
-        break;
-      case 'This week':
-        const weekStart = new Date(now.setDate(now.getDate() - now.getDay())); // Start of the week
-        filtered = reviews.filter(review => new Date(review.date) >= weekStart);
-        break;
-      default:
-        filtered = reviews;
-    }
-    setFilteredReviews(filtered);
-    calculateAverageScore(filtered);
   };
 
   const renderReviewItem = ({item}) => (
@@ -110,21 +101,6 @@ const ReviewScreen = ({route, navigation}) => {
       </View>
     </View>
   );
-
-  const renderReviews = () => {
-    if (filteredReviews.length === 0) {
-      return <Text style={styles.noReviewsText}>No reviews available.</Text>;
-    }
-    return (
-      <FlatList
-        data={filteredReviews}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderReviewItem}
-        style={styles.reviewList}
-      />
-    );
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -135,7 +111,12 @@ const ReviewScreen = ({route, navigation}) => {
         />
         <Text style={styles.headerTitle}>Reviews</Text>
       </View>
-
+      <FlatList
+        data={reviews}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={renderReviewItem}
+        style={styles.reviewList}
+      />
       <View style={styles.averageScoreContainer}>
         <Text style={styles.averageScore}>{averageScore.toFixed(1)}</Text>
         <View style={styles.starsContainer}>
@@ -173,8 +154,6 @@ const ReviewScreen = ({route, navigation}) => {
           </TouchableOpacity>
         ))}
       </View>
-
-      {renderReviews()}
 
       <View style={styles.inputContainer}>
         <TextInput

@@ -1276,16 +1276,21 @@ app.post('/events/:eventId/reviews', async (req, res) => {
 app.get('/events/:eventId/reviews', async (req, res) => {
   try {
     const eventId = mongoose.Types.ObjectId(req.params.eventId);
-    const event = await Event.findById(eventId).populate('reviews');
+    
+    // event'i reviews alanıyla beraber çekiyoruz
+    const event = await Event.findById(eventId);
+    
     if (!event) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
     }
+
     res.json(event.reviews);
   } catch (error) {
-    console.error('Error fetching event details:', error);
-    res.status(500).json({message: 'Internal server error'});
+    console.error('Error fetching event reviews:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 app.put('/user/:userId/about', async (req, res) => {
   try {

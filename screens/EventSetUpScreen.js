@@ -100,8 +100,7 @@ const EventSetUpScreen = () => {
       );
 
       if (response.status === 201) {
-        setReviews(prev => [...prev, {userId, review: comment}]);
-        setComment('');
+        setComment(''); // Yorum alanını temizle
         ToastAndroid.show('Review added!', ToastAndroid.SHORT);
       } else {
         throw new Error('Failed to add review');
@@ -166,7 +165,8 @@ const EventSetUpScreen = () => {
   };
 
   const renderGoingSection = () => (
-    <TouchableOpacity onPress={() => navigation.navigate('EventAttendees', {eventId})}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate('EventAttendees', {eventId})}>
       <FlatList
         horizontal
         data={item.attendees}
@@ -189,16 +189,13 @@ const EventSetUpScreen = () => {
 
   const renderReviewSection = () => (
     <View style={{marginVertical: 10}}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('ReviewScreen', {eventId})}>
+        <Text style={{justifyContent: 'space-between', textAlign: 'right'}}>
+          See All
+        </Text>
+      </TouchableOpacity>
       <Text style={{fontWeight: 'bold', fontSize: 18}}>Reviews</Text>
-      {reviews.length === 0 ? (
-        <Text>No reviews available.</Text>
-      ) : (
-        reviews.slice(0, 2).map((review, index) => (
-          <View key={index} style={styles.reviewContainer}>
-            <Text>{review.review}</Text>
-          </View>
-        ))
-      )}
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Send your review"
