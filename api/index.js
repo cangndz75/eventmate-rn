@@ -15,6 +15,7 @@ const generateRoute = require('./routes/generateRoute');
 const axios = require('axios');
 const refreshTokens = [];
 const path = require('path');
+const { body, validationResult } = require('express-validator');
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -1243,35 +1244,47 @@ app.get('/user/:userId/interests', async (req, res) => {
   }
 });
 
-app.post('/events/:eventId/reviews', async (req, res) => {
-  try {
-    const {eventId} = req.params;
-    const {userId, comment} = req.body;
-    if (!userId || !comment) {
-      return res
-        .status(400)
-        .json({message: 'userId and comment are required.'});
+app.post(
+  '/events/:eventId/reviews',
+  [
+    body('userId')
+      .notEmpty()
+      .withMessage('User ID is required.')
+      .isMongoId()
+      .withMessage('Invalid User ID format.'),
+
+    body('comment')
+      .notEmpty()
+      .withMessage('Comment is required.')
+      .isString()
+      .withMessage('Comment must be a string.'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const event = await Event.findById(eventId);
-    if (!event) {
-      return res.status(404).json({message: 'Event not found.'});
+    try {
+      const { eventId } = req.params;
+      const { userId, comment } = req.body;
+
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found.' });
+      }
+
+      const newReview = { userId, review: comment, date: new Date() };
+      event.reviews.push(newReview);
+      await event.save();
+
+      res.status(201).json({ message: 'Review added successfully', review: newReview });
+    } catch (error) {
+      console.error('Error adding review:', error.message);
+      res.status(500).json({ message: 'Failed to add review.', error: error.message });
     }
-
-    const newReview = {userId, review: comment, date: new Date()};
-    event.reviews.push(newReview);
-    await event.save();
-
-    res
-      .status(201)
-      .json({message: 'Review added successfully', review: newReview});
-  } catch (error) {
-    console.error('Error adding review:', error.message);
-    res
-      .status(500)
-      .json({message: 'Failed to add review.', error: error.message});
   }
-});
+);
 
 app.get('/events/:eventId/reviews', async (req, res) => {
   try {

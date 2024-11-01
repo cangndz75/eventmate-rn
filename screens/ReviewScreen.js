@@ -31,14 +31,14 @@ const ReviewScreen = ({route, navigation}) => {
   }, [eventId]);
 
   const fetchReviews = async () => {
-    const response = await axios.get(
-      `https://biletixai.onrender.com/events/${eventId}/reviews`,
-    );
-    const reviewsData = response.data || [];
-    setReviews(reviewsData);
-    setFilteredReviews(reviewsData);
-    calculateAverageScore(reviewsData);
-  };
+      const response = await axios.get(
+        `https://biletixai.onrender.com/events/${eventId}/reviews`,
+      );
+      const reviewsData = response.data || [];
+      setReviews(reviewsData);
+      setFilteredReviews(reviewsData);
+      calculateAverageScore(reviewsData);
+    }
 
   const submitReview = async () => {
     if (!comment.trim()) {
@@ -154,6 +154,7 @@ const ReviewScreen = ({route, navigation}) => {
           </TouchableOpacity>
         ))}
       </View>
+
 
       <View style={styles.inputContainer}>
         <TextInput
