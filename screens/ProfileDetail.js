@@ -18,6 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ImageViewing from 'react-native-image-viewing';
 import {TextInput} from 'react-native';
+import {Button, Divider} from 'react-native-paper';
 
 const ProfileDetailScreen = () => {
   const [user, setUser] = useState(null);
@@ -104,12 +105,13 @@ const ProfileDetailScreen = () => {
               {user?.following || 0} Following
             </Text>
           </View>
-
-          <TouchableOpacity
-            style={styles.editProfileButton}
-            onPress={() => navigation.navigate('ProfileEditScreen')}>
+          <Button>
+            <Text>Follow</Text>
+          </Button>
+          <Divider style={{ height: 1, backgroundColor: 'black' }} />
+          <Button mode="outlined" onPress={() => navigation.navigate('ProfileEditScreen')}>
             <Text style={styles.editProfileText}>Edit Profile</Text>
-          </TouchableOpacity>
+          </Button>
         </View>
 
         <View style={styles.aboutMeContainer}>
