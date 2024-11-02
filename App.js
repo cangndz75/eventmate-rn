@@ -17,8 +17,7 @@ import {EventProvider} from './EventContext';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import CustomDrawerNavigator from './navigation/CustomDrawerNavigator';
-import * as eva from '@eva-design/eva';
-import {ApplicationProvider} from '@ui-kitten/components';
+import StackNavigator from './navigation/StackNavigator';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -30,18 +29,14 @@ function App() {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <SafeAreaProvider>
-        <ApplicationProvider {...eva} theme={eva.light}>
-          <AuthProvider>
-            <SocketProvider>
-              <EventProvider>
-                <NavigationContainer>
-                  <CustomDrawerNavigator />
-                </NavigationContainer>
-                <ModalPortal />
-              </EventProvider>
-            </SocketProvider>
-          </AuthProvider>
-        </ApplicationProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <EventProvider>
+              <StackNavigator />
+              <ModalPortal />
+            </EventProvider>
+          </SocketProvider>
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

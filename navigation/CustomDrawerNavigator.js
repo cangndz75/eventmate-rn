@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import ProfileDetailScreen from '../screens/ProfileDetail';
 import HomeScreen from '../screens/HomeScreen';
 import CustomDrawerContent from './CustomDrawerContent';
+import EventScreen from '../screens/EventScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -17,7 +18,7 @@ const CustomDrawerNavigator = () => {
         drawerStyle: {
           width: 250,
         },
-        headerShown: false, 
+        headerShown: false,
       }}>
       <Drawer.Screen
         name="Home"
@@ -34,6 +35,15 @@ const CustomDrawerNavigator = () => {
         options={{
           drawerIcon: ({color, size}) => (
             <Ionicons name="person-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Event"
+        component={EventScreen}
+        options={{
+          drawerIcon: ({color, size}) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />

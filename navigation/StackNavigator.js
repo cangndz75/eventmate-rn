@@ -191,7 +191,7 @@ const StackNavigator = () => {
     return (
       <Stack.Navigator>
         <Stack.Screen
-          name="Main"
+          name="Drawer"
           component={CustomDrawerNavigator}
           options={{headerShown: false}}
         />
