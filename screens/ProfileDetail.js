@@ -18,7 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ImageViewing from 'react-native-image-viewing';
 import {TextInput} from 'react-native';
-import {Button, Divider} from 'react-native-paper';
+import { Button, Divider } from "@ui-kitten/components";
 
 const ProfileDetailScreen = () => {
   const [user, setUser] = useState(null);
@@ -108,7 +108,7 @@ const ProfileDetailScreen = () => {
           <Button>
             <Text>Follow</Text>
           </Button>
-          <Divider style={{ height: 1, backgroundColor: 'black' }} />
+          <Divider />
           <Button mode="outlined" onPress={() => navigation.navigate('ProfileEditScreen')}>
             <Text style={styles.editProfileText}>Edit Profile</Text>
           </Button>
