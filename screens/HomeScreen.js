@@ -15,6 +15,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -37,7 +46,28 @@ const HomeScreen = () => {
     if (category === 'All') return events;
     return events.filter(event => event.eventType === category.toLowerCase());
   };
+  const active = useSharedValue(false);
+  const progress = useDerivedValue(() => {
+    return withTiming(active.value ? 1 : 0);
+  });
 
+  const animatedStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(
+      progress.value,
+      [0, 1],
+      [0, -10],
+      Extrapolation.CLAMP,
+    );
+    return {
+      transform: [
+        {perspective: 1000},
+        {scale: active.value ? withTiming(0.9) : withTiming(1)},
+        {translateX: active.value ? withSpring(50) : withTiming(0)}, 
+        {rotateY: `${rotateY}deg`},
+      ],
+      borderRadius: active.value ? withTiming(20) : withTiming(0), 
+    };
+  });
   const filteredEvents = filterEventsByCategory(eventList, selectedCategory);
   useEffect(() => {
     const fetchUserData = async () => {
@@ -54,12 +84,9 @@ const HomeScreen = () => {
     const fetchEvents = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get(
-          'https://biletixai.onrender.com/events',
-          {
-            headers: {Authorization: `Bearer ${token}`},
-          },
-        );
+        const response = await axios.get('https://biletixai.onrender.com/events', {
+          headers: {Authorization: `Bearer ${token}`},
+        });
 
         setEventList(response.data);
         if (response.data.length > 0) {
@@ -81,12 +108,9 @@ const HomeScreen = () => {
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get(
-          'https://biletixai.onrender.com/events',
-          {
-            headers: {Authorization: `Bearer ${token}`},
-          },
-        );
+        const response = await axios.get('https://biletixai.onrender.com/events', {
+          headers: {Authorization: `Bearer ${token}`},
+        });
 
         setEventList(response.data);
         if (response.data.length > 0) {
@@ -138,7 +162,11 @@ const HomeScreen = () => {
   }
 
   return (
-    <ScrollView style={{flex: 1, backgroundColor: '#f8f8f8', padding: 16}}>
+    <Animated.ScrollView
+      style={[
+        {flex: 1, backgroundColor: '#f8f8f8', padding: 16},
+        animatedStyle,
+      ]}>
       <View
         style={{
           flexDirection: 'row',
@@ -146,6 +174,14 @@ const HomeScreen = () => {
           alignItems: 'center',
           marginBottom: 20,
         }}>
+        <TouchableOpacity
+          onPress={() => {
+            active.value = !active.value;
+            navigation.openDrawer();
+          }}
+          style={{padding: 10}}>
+          <Ionicons name="menu-outline" size={28} color="#333" />
+        </TouchableOpacity>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Image
             source={{uri: 'https://example.com/profile.jpg'}}
@@ -460,7 +496,7 @@ const HomeScreen = () => {
         }}>
         <Text style={{fontSize: 14, color: '#888'}}>© 2024 EventMate</Text>
       </View>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 };
 

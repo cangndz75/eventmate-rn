@@ -8,45 +8,15 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import StackNavigator from './navigation/StackNavigator';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {NavigationContainer} from '@react-navigation/native';
 import {AuthProvider} from './AuthContext';
 import {ModalPortal} from 'react-native-modals';
 import {SocketProvider} from './SocketContext';
 import {EventProvider} from './EventContext';
-
-function Section({children, title}) {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import CustomDrawerNavigator from './navigation/CustomDrawerNavigator';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -56,14 +26,20 @@ function App() {
   };
 
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <EventProvider>
-          <StackNavigator />
-          <ModalPortal />
-        </EventProvider>
-      </SocketProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <EventProvider>
+              <NavigationContainer>
+                <CustomDrawerNavigator />
+              </NavigationContainer>
+              <ModalPortal />
+            </EventProvider>
+          </SocketProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

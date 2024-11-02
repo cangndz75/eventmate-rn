@@ -41,6 +41,7 @@ import ReviewScreen from '../screens/ReviewScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import ProfileViewScreen from '../screens/ProfileViewScreen';
 import EventAttendeesScreen from '../screens/EventAttendeesScreen';
+import CustomDrawerNavigator from './CustomDrawerNavigator';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -191,7 +192,7 @@ const StackNavigator = () => {
       <Stack.Navigator>
         <Stack.Screen
           name="Main"
-          component={BottomTabs}
+          component={CustomDrawerNavigator}
           options={{headerShown: false}}
         />
         <Stack.Screen

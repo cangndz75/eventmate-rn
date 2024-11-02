@@ -9,11 +9,11 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import React, {useContext, useState, useCallback, useEffect} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ImageViewing from 'react-native-image-viewing';
@@ -24,7 +24,7 @@ const ProfileDetailScreen = () => {
   const [visible, setVisible] = useState(false);
   const [aboutText, setAboutText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const {userId, token, setToken, setUserId} = useContext(AuthContext);
+  const {userId, setToken, setUserId} = useContext(AuthContext);
   const navigation = useNavigation();
 
   // Fetch user data if userId is available
@@ -46,7 +46,7 @@ const ProfileDetailScreen = () => {
       fetchUser();
     } else {
       console.warn('User ID is undefined, navigating to Login');
-      navigation.replace('Login');
+      navigation.navigate('Login');
     }
   }, [userId]);
 
@@ -55,7 +55,7 @@ const ProfileDetailScreen = () => {
       await AsyncStorage.removeItem('token');
       setToken('');
       setUserId('');
-      navigation.replace('Start');
+      navigation.navigate('Start');
     } catch (error) {
       console.log('Error during logout:', error);
     }
