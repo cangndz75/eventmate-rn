@@ -1388,50 +1388,30 @@ app.post('/user/followRequest', async (req, res) => {
   }
 });
 
-app.post('/communities', authenticateToken, upload.none(), async (req, res) => {
-  const {name, description, tags, isPrivate, headerImage, profileImage, links} =
-    req.body;
+app.post('/communities', authenticateToken, async (req, res) => {
+  const { name, description, tags, isPrivate, headerImage, profileImage, links } = req.body;
 
   // Check for required fields
   if (!name || !description) {
-    return res
-      .status(400)
-      .json({message: 'Community name and description are required.'});
+    return res.status(400).json({ message: 'Community name and description are required.' });
   }
 
   try {
-    // Parse tags and links from JSON strings, if applicable
-    const parsedTags = JSON.parse(tags || '[]');
-    const parsedLinks = JSON.parse(links || '[]');
-
     const newCommunity = new Community({
       name,
       description,
-      tags: parsedTags,
-      isPrivate: isPrivate === 'true', // Convert to boolean
+      tags,
+      isPrivate,
       headerImage,
       profileImage,
-      links: parsedLinks,
+      links,
     });
 
     await newCommunity.save();
     res.status(201).json(newCommunity);
   } catch (error) {
     console.error('Error creating community:', error);
-    res.status(500).json({message: 'Failed to create community.'});
-  }
-});
-
-app.get('/communities', async (req, res) => {
-  try {
-    const communities = await Community.find().populate(
-      'members',
-      'firstName lastName image',
-    );
-    res.status(200).json(communities);
-  } catch (error) {
-    console.error('Error fetching communities:', error);
-    res.status(500).json({message: 'Internal server error'});
+    res.status(500).json({ message: 'Failed to create community.' });
   }
 });
 
@@ -1440,7 +1420,7 @@ app.post(
   authenticateToken,
   async (req, res) => {
     const {communityId} = req.params;
-    const {answers} = req.body; // Answers for private community questions
+    const {answers} = req.body; 
     const userId = req.user.userId;
 
     try {
@@ -1450,10 +1430,8 @@ app.post(
         return res.status(404).json({message: 'Community not found'});
 
       if (community.isPrivate) {
-        // Private community: send a join request
         community.joinRequests.push({userId, answers, status: 'pending'});
       } else {
-        // Public community: add directly to members
         community.members.addToSet(userId);
       }
 
