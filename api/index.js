@@ -116,15 +116,15 @@ app.post('/register', async (req, res) => {
 
     // Generate token
     const token = jwt.sign(
-      { userId: newUser._id, role: newUser.role },
+      {userId: newUser._id, role: newUser.role},
       process.env.JWT_SECRET_KEY,
-      { expiresIn: '1h' },
+      {expiresIn: '1h'},
     );
 
-    res.status(201).json({ token, role: newUser.role });
+    res.status(201).json({token, role: newUser.role});
   } catch (error) {
     console.error('Error during registration:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
@@ -1388,34 +1388,39 @@ app.post('/user/followRequest', async (req, res) => {
   }
 });
 
-app.post('/communities', authenticateToken, async (req, res) => {
-  const { name, description, tags, isPrivate, headerImage, profileImage, links } = req.body;
-  
-  // Check if name and description are actually present
-  // Remove or comment out the following lines
+app.post('/communities', authenticateToken, upload.none(), async (req, res) => {
+  const {name, description, tags, isPrivate, headerImage, profileImage, links} =
+    req.body;
+
+  // Check for required fields
   if (!name || !description) {
-      return res.status(400).json({ message: 'Community name and description are requireddd.' });
+    return res
+      .status(400)
+      .json({message: 'Community name and description are required.'});
   }
 
-  // Your existing community creation logic
   try {
-      const newCommunity = new Community({
-          name,
-          description,
-          tags,
-          isPrivate,
-          headerImage,
-          profileImage,
-          links,
-      });
-      await newCommunity.save();
-      res.status(201).json(newCommunity);
+    // Parse tags and links from JSON strings, if applicable
+    const parsedTags = JSON.parse(tags || '[]');
+    const parsedLinks = JSON.parse(links || '[]');
+
+    const newCommunity = new Community({
+      name,
+      description,
+      tags: parsedTags,
+      isPrivate: isPrivate === 'true', // Convert to boolean
+      headerImage,
+      profileImage,
+      links: parsedLinks,
+    });
+
+    await newCommunity.save();
+    res.status(201).json(newCommunity);
   } catch (error) {
-      console.error('Error creating community:', error);
-      res.status(500).json({ message: 'Failed to create community.' });
+    console.error('Error creating community:', error);
+    res.status(500).json({message: 'Failed to create community.'});
   }
 });
-
 
 app.get('/communities', async (req, res) => {
   try {

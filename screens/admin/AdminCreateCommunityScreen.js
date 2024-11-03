@@ -14,6 +14,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {launchImageLibrary} from 'react-native-image-picker';
 
 const AdminCreateCommunityScreen = () => {
@@ -37,38 +38,73 @@ const AdminCreateCommunityScreen = () => {
   };
 
   const handleCreateCommunity = async () => {
-    const communityData = {
-      name: communityName,
-      description,
-      tags: tags.split(',').map(tag => tag.trim()),
-      isPrivate,
-      headerImage,
-      profileImage,
-      links: [link1, link2, link3].filter(link => link),
-    };
+    // Validate required fields
+    if (!communityName || !description) {
+      Alert.alert('Error', 'Community name and description are required.');
+      return;
+    }
 
-    console.log('Sending community data:', communityData);
+    const communityData = new FormData();
+    communityData.append('name', communityName); // Ensure the key is exactly as expected on the backend
+    communityData.append('description', description);
+    communityData.append(
+      'tags',
+      JSON.stringify(tags.split(',').map(tag => tag.trim())),
+    );
+    communityData.append('isPrivate', isPrivate);
 
-    const response = await axios.post(
-      'https://biletixai.onrender.com/communities',
-      communityData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
+    // Append images as files if they are URIs
+    if (headerImage) {
+      communityData.append('headerImage', {
+        uri: headerImage,
+        type: 'image/jpeg', // Adjust the type as necessary
+        name: 'header.jpg',
+      });
+    }
+
+    if (profileImage) {
+      communityData.append('profileImage', {
+        uri: profileImage,
+        type: 'image/jpeg', // Adjust the type as necessary
+        name: 'profile.jpg',
+      });
+    }
+
+    // Append links
+    communityData.append(
+      'links',
+      JSON.stringify([link1, link2, link3].filter(link => link)),
     );
 
-    if (response.status === 201) {
-      console.log('Community created:', response.data);
-      Alert.alert('Success', 'Community created successfully.', [
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.post(
+        'https://biletixai.onrender.com/communities',
+        communityData,
         {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
         },
-      ]);
-    } else {
-      Alert.alert('Error', 'Failed to create community.');
+      );
+
+      if (response.status === 201) {
+        Alert.alert('Success', 'Community created successfully.', [
+          {text: 'OK', onPress: () => navigation.goBack()},
+        ]);
+      } else {
+        Alert.alert('Error', 'Failed to create community.');
+      }
+    } catch (error) {
+      console.error(
+        'Error creating community:',
+        error.response?.data || error.message,
+      );
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to create community.',
+      );
     }
   };
 
