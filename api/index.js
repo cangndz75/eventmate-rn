@@ -86,6 +86,7 @@ app.post('/register', async (req, res) => {
       image,
       aboutMe,
       interests,
+      communityId,
     } = req.body;
 
     const newUser = new User({
@@ -97,20 +98,33 @@ app.post('/register', async (req, res) => {
       image,
       aboutMe,
       interests,
+      community: communityId || null, // Assign community ID if provided
     });
 
     await newUser.save();
 
+    // Add the user to the community's member list if communityId is provided
+    if (communityId) {
+      const community = await Community.findById(communityId);
+      if (community) {
+        community.members.push(newUser._id);
+        await community.save();
+      } else {
+        console.log('Community not found with provided ID');
+      }
+    }
+
+    // Generate token
     const token = jwt.sign(
-      {userId: newUser._id, role: newUser.role},
+      { userId: newUser._id, role: newUser.role },
       process.env.JWT_SECRET_KEY,
-      {expiresIn: '1h'},
+      { expiresIn: '1h' },
     );
 
-    res.status(201).json({token, role: newUser.role});
+    res.status(201).json({ token, role: newUser.role });
   } catch (error) {
     console.error('Error during registration:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 

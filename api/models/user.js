@@ -56,7 +56,7 @@ const userSchema = mongoose.Schema(
         requestedAt: {type: Date, default: Date.now},
       },
     ],
-    communities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Community' }],
+    community: { type: mongoose.Schema.Types.ObjectId, ref: 'Community' }, // Add community reference here
     notifications: [
       {
         type: {
