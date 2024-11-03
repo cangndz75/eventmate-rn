@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -12,93 +12,123 @@ import {
   Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
-import { pickImage } from "../../utils/uploadUtils";
+import {launchImageLibrary} from 'react-native-image-picker';
+
 const AdminCreateCommunityScreen = () => {
   const navigation = useNavigation();
   const [communityName, setCommunityName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
-  const [headerPhoto, setHeaderPhoto] = useState(null);
-  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [headerImage, setHeaderImage] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
   const [link1, setLink1] = useState('');
   const [link2, setLink2] = useState('');
   const [link3, setLink3] = useState('');
 
-  const handleCreateCommunity = async () => {
-    if (!communityName || !description) {
-      Alert.alert("Error", "Community name and description are required.");
-      return;
-    }
-
-    try {
-      const response = await axios.post('https://your-api-url.com/communities', {
-        communityName,
-        description,
-        tags,
-        isPrivate,
-        headerPhoto,
-        profilePhoto,
-        link1,
-        link2,
-        link3,
-      });
-
-      if (response.status === 201) {
-        Alert.alert("Success", "Community created successfully!");
-        navigation.goBack();
-      } else {
-        Alert.alert("Error", "Failed to create community.");
+  const pickImage = setImage => {
+    launchImageLibrary({mediaType: 'photo'}, response => {
+      if (response.assets) {
+        setImage(response.assets[0].uri);
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Something went wrong. Please try again.");
+    });
+  };
+
+  const handleCreateCommunity = async () => {
+    const communityData = {
+      name: communityName,
+      description,
+      tags: tags.split(',').map(tag => tag.trim()),
+      isPrivate,
+      headerImage,
+      profileImage,
+      links: [link1, link2, link3].filter(link => link),
+    };
+
+    console.log('Sending community data:', communityData);
+
+    const response = await axios.post(
+      'https://biletixai.onrender.com/communities',
+      communityData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    if (response.status === 201) {
+      console.log('Community created:', response.data);
+      Alert.alert('Success', 'Community created successfully.', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } else {
+      Alert.alert('Error', 'Failed to create community.');
     }
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>Create Community</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{flex: 1}}>
+      <ScrollView contentContainerStyle={{padding: 20}} style={{flex: 1}}>
+        <Text style={{fontSize: 24, fontWeight: 'bold', marginBottom: 20}}>
+          Create Community
+        </Text>
 
-        {/* Header Photo */}
-        <TouchableOpacity onPress={() => pickImage(setHeaderPhoto)} style={{ alignItems: 'center', marginBottom: 20 }}>
-          <View style={{
-            width: '100%',
-            height: 150,
-            backgroundColor: '#e0e0e0',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 10,
-          }}>
-            {headerPhoto ? (
-              <Image source={{ uri: headerPhoto }} style={{ width: '100%', height: '100%', borderRadius: 10 }} />
+        {/* Header Image Picker */}
+        <TouchableOpacity
+          onPress={() => pickImage(setHeaderImage)}
+          style={{alignItems: 'center', marginBottom: 20}}>
+          <View
+            style={{
+              width: '100%',
+              height: 150,
+              backgroundColor: '#e0e0e0',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 10,
+            }}>
+            {headerImage ? (
+              <Image
+                source={{uri: headerImage}}
+                style={{width: '100%', height: '100%', borderRadius: 10}}
+              />
             ) : (
               <Ionicons name="camera" size={50} color="#888" />
             )}
           </View>
-          <Text>Upload Header Photo</Text>
+          <Text>Upload Header Image</Text>
         </TouchableOpacity>
 
-        {/* Profile Photo */}
-        <TouchableOpacity onPress={() => pickImage(setProfilePhoto)} style={{ alignItems: 'center', marginBottom: 20 }}>
-          <View style={{
-            width: 100,
-            height: 100,
-            backgroundColor: '#e0e0e0',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 50,
-          }}>
-            {profilePhoto ? (
-              <Image source={{ uri: profilePhoto }} style={{ width: '100%', height: '100%', borderRadius: 50 }} />
+        {/* Profile Image Picker */}
+        <TouchableOpacity
+          onPress={() => pickImage(setProfileImage)}
+          style={{alignItems: 'center', marginBottom: 20}}>
+          <View
+            style={{
+              width: 100,
+              height: 100,
+              backgroundColor: '#e0e0e0',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 50,
+            }}>
+            {profileImage ? (
+              <Image
+                source={{uri: profileImage}}
+                style={{width: '100%', height: '100%', borderRadius: 50}}
+              />
             ) : (
               <Ionicons name="camera" size={50} color="#888" />
             )}
           </View>
-          <Text>Upload Profile Photo</Text>
+          <Text>Upload Profile Image</Text>
         </TouchableOpacity>
 
         {/* Community Name */}
@@ -106,13 +136,7 @@ const AdminCreateCommunityScreen = () => {
           placeholder="Community Name"
           value={communityName}
           onChangeText={setCommunityName}
-          style={{
-            borderWidth: 1,
-            borderColor: '#ccc',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 15,
-          }}
+          style={styles.inputStyle}
         />
 
         {/* Description */}
@@ -121,14 +145,7 @@ const AdminCreateCommunityScreen = () => {
           value={description}
           onChangeText={setDescription}
           multiline
-          style={{
-            borderWidth: 1,
-            borderColor: '#ccc',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 15,
-            height: 100,
-          }}
+          style={[styles.inputStyle, {height: 100}]}
         />
 
         {/* Tags */}
@@ -136,13 +153,7 @@ const AdminCreateCommunityScreen = () => {
           placeholder="Tags (comma separated)"
           value={tags}
           onChangeText={setTags}
-          style={{
-            borderWidth: 1,
-            borderColor: '#ccc',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 15,
-          }}
+          style={styles.inputStyle}
         />
 
         {/* Links */}
@@ -150,48 +161,36 @@ const AdminCreateCommunityScreen = () => {
           placeholder="Link 1"
           value={link1}
           onChangeText={setLink1}
-          style={{
-            borderWidth: 1,
-            borderColor: '#ccc',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 15,
-          }}
+          style={styles.inputStyle}
         />
         <TextInput
           placeholder="Link 2"
           value={link2}
           onChangeText={setLink2}
-          style={{
-            borderWidth: 1,
-            borderColor: '#ccc',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 15,
-          }}
+          style={styles.inputStyle}
         />
         <TextInput
           placeholder="Link 3"
           value={link3}
           onChangeText={setLink3}
-          style={{
-            borderWidth: 1,
-            borderColor: '#ccc',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 15,
-          }}
+          style={styles.inputStyle}
         />
 
         {/* Visibility Switch */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-          <Text style={{ fontSize: 16 }}>Make Community Private</Text>
-          <Switch value={isPrivate} onValueChange={setIsPrivate} style={{ marginLeft: 10 }} />
+        <View style={styles.switchContainer}>
+          <Text style={{fontSize: 16}}>Make Community Private</Text>
+          <Switch
+            value={isPrivate}
+            onValueChange={setIsPrivate}
+            style={{marginLeft: 10}}
+          />
         </View>
 
         {/* Create Button */}
-        <TouchableOpacity onPress={handleCreateCommunity} style={styles.createButton}>
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Create Community</Text>
+        <TouchableOpacity
+          onPress={handleCreateCommunity}
+          style={styles.createButtonStyle}>
+          <Text style={styles.buttonTextStyle}>Create Community</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -199,12 +198,29 @@ const AdminCreateCommunityScreen = () => {
 };
 
 const styles = {
-  createButton: {
-    backgroundColor: '#007bff',
+  inputStyle: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
     padding: 15,
-    borderRadius: 5,
+    marginBottom: 10,
+  },
+  buttonTextStyle: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  createButtonStyle: {
+    backgroundColor: '#007bff',
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginTop: 20,
     alignItems: 'center',
-    marginTop: 10,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
   },
 };
 

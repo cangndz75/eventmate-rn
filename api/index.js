@@ -1374,37 +1374,34 @@ app.post('/user/followRequest', async (req, res) => {
   }
 });
 
-app.post('/communities', async (req, res) => {
-  const {communityName, description, tags, isPrivate} = req.body;
-
-  // Perform validation
-  if (!communityName || !description) {
-    return res
-      .status(400)
-      .json({message: 'Community name and description are required.'});
+app.post('/communities', authenticateToken, async (req, res) => {
+  const { name, description, tags, isPrivate, headerImage, profileImage, links } = req.body;
+  
+  // Check if name and description are actually present
+  // Remove or comment out the following lines
+  if (!name || !description) {
+      return res.status(400).json({ message: 'Community name and description are requireddd.' });
   }
 
+  // Your existing community creation logic
   try {
-    // Insert the new community into the database
-    const newCommunity = {
-      communityName,
-      description,
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-      isPrivate,
-      createdAt: new Date(),
-    };
-
-    // Assuming you have a database function to insert a community
-    const result = await db.collection('communities').insertOne(newCommunity);
-
-    res.status(201).json(result.ops[0]); // Return the newly created community
+      const newCommunity = new Community({
+          name,
+          description,
+          tags,
+          isPrivate,
+          headerImage,
+          profileImage,
+          links,
+      });
+      await newCommunity.save();
+      res.status(201).json(newCommunity);
   } catch (error) {
-    console.error('Failed to create community:', error);
-    res
-      .status(500)
-      .json({message: 'An error occurred while creating the community.'});
+      console.error('Error creating community:', error);
+      res.status(500).json({ message: 'Failed to create community.' });
   }
 });
+
 
 app.get('/communities', async (req, res) => {
   try {
