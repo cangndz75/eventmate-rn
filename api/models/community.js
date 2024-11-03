@@ -30,7 +30,7 @@ const communitySchema = new mongoose.Schema(
         createdAt: {type: Date, default: Date.now},
       },
     ],
-    createdBy: {
+    organizer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,

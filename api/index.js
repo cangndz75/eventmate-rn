@@ -1390,11 +1390,7 @@ app.post('/user/followRequest', async (req, res) => {
 
 app.post('/communities', authenticateToken, async (req, res) => {
   const { name, description, tags, isPrivate, headerImage, profileImage, links } = req.body;
-
-  // Check for required fields
-  if (!name || !description) {
-    return res.status(400).json({ message: 'Community name and description are required.' });
-  }
+  const organizer = req.userId;
 
   try {
     const newCommunity = new Community({
@@ -1405,6 +1401,7 @@ app.post('/communities', authenticateToken, async (req, res) => {
       headerImage,
       profileImage,
       links,
+      organizer,
     });
 
     await newCommunity.save();

@@ -38,26 +38,24 @@ const AdminCreateCommunityScreen = () => {
   };
 
   const handleCreateCommunity = async () => {
-    // Validate required fields
     if (!communityName || !description) {
       Alert.alert('Error', 'Community name and description are required.');
       return;
     }
 
     const communityData = new FormData();
-    communityData.append('name', communityName); // Ensure the key is exactly as expected on the backend
-    communityData.append('description', description);
+    communityData.append('name', communityName.trim());
+    communityData.append('description', description.trim());
     communityData.append(
       'tags',
       JSON.stringify(tags.split(',').map(tag => tag.trim())),
     );
     communityData.append('isPrivate', isPrivate);
 
-    // Append images as files if they are URIs
     if (headerImage) {
       communityData.append('headerImage', {
         uri: headerImage,
-        type: 'image/jpeg', // Adjust the type as necessary
+        type: 'image/jpeg',
         name: 'header.jpg',
       });
     }
@@ -65,12 +63,11 @@ const AdminCreateCommunityScreen = () => {
     if (profileImage) {
       communityData.append('profileImage', {
         uri: profileImage,
-        type: 'image/jpeg', // Adjust the type as necessary
+        type: 'image/jpeg',
         name: 'profile.jpg',
       });
     }
 
-    // Append links
     communityData.append(
       'links',
       JSON.stringify([link1, link2, link3].filter(link => link)),
@@ -117,7 +114,6 @@ const AdminCreateCommunityScreen = () => {
           Create Community
         </Text>
 
-        {/* Header Image Picker */}
         <TouchableOpacity
           onPress={() => pickImage(setHeaderImage)}
           style={{alignItems: 'center', marginBottom: 20}}>
@@ -142,7 +138,6 @@ const AdminCreateCommunityScreen = () => {
           <Text>Upload Header Image</Text>
         </TouchableOpacity>
 
-        {/* Profile Image Picker */}
         <TouchableOpacity
           onPress={() => pickImage(setProfileImage)}
           style={{alignItems: 'center', marginBottom: 20}}>
@@ -167,15 +162,12 @@ const AdminCreateCommunityScreen = () => {
           <Text>Upload Profile Image</Text>
         </TouchableOpacity>
 
-        {/* Community Name */}
         <TextInput
           placeholder="Community Name"
           value={communityName}
           onChangeText={setCommunityName}
           style={styles.inputStyle}
         />
-
-        {/* Description */}
         <TextInput
           placeholder="Description"
           value={description}
@@ -183,16 +175,12 @@ const AdminCreateCommunityScreen = () => {
           multiline
           style={[styles.inputStyle, {height: 100}]}
         />
-
-        {/* Tags */}
         <TextInput
           placeholder="Tags (comma separated)"
           value={tags}
           onChangeText={setTags}
           style={styles.inputStyle}
         />
-
-        {/* Links */}
         <TextInput
           placeholder="Link 1"
           value={link1}
@@ -212,7 +200,6 @@ const AdminCreateCommunityScreen = () => {
           style={styles.inputStyle}
         />
 
-        {/* Visibility Switch */}
         <View style={styles.switchContainer}>
           <Text style={{fontSize: 16}}>Make Community Private</Text>
           <Switch
@@ -222,7 +209,6 @@ const AdminCreateCommunityScreen = () => {
           />
         </View>
 
-        {/* Create Button */}
         <TouchableOpacity
           onPress={handleCreateCommunity}
           style={styles.createButtonStyle}>
