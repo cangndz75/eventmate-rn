@@ -8,6 +8,7 @@ const User = require('./models/user');
 const Event = require('./models/event');
 const Message = require('./models/message');
 const Venue = require('./models/venue');
+const Community = require('./models/community');
 const moment = require('moment');
 const app = express();
 const port = process.env.PORT || 8000;
@@ -15,7 +16,7 @@ const generateRoute = require('./routes/generateRoute');
 const axios = require('axios');
 const refreshTokens = [];
 const path = require('path');
-const { body, validationResult } = require('express-validator');
+const {body, validationResult} = require('express-validator');
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -101,15 +102,15 @@ app.post('/register', async (req, res) => {
     await newUser.save();
 
     const token = jwt.sign(
-      { userId: newUser._id, role: newUser.role },
+      {userId: newUser._id, role: newUser.role},
       process.env.JWT_SECRET_KEY,
-      { expiresIn: '1h' }
+      {expiresIn: '1h'},
     );
 
-    res.status(201).json({ token, role: newUser.role });
+    res.status(201).json({token, role: newUser.role});
   } catch (error) {
     console.error('Error during registration:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
@@ -165,21 +166,23 @@ app.listen(port, () => {
 
 app.get('/user/:userId', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const {userId} = req.params;
 
     const user = await User.findById(userId)
       .populate('events')
-      .populate('followers', 'firstName lastName username image') 
-      .populate('following', 'firstName lastName username image'); 
+      .populate('followers', 'firstName lastName username image')
+      .populate('following', 'firstName lastName username image');
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
     res.status(200).json(user);
   } catch (error) {
     console.error('Error fetching user data:', error);
-    res.status(500).json({ message: 'Error fetching user data', error: error.message });
+    res
+      .status(500)
+      .json({message: 'Error fetching user data', error: error.message});
   }
 });
 
@@ -617,10 +620,10 @@ app.post('/events/:eventId/cancel-request', async (req, res) => {
 
 app.get('/events/:eventId/requests', async (req, res) => {
   try {
-    const { eventId } = req.params;
+    const {eventId} = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(eventId)) {
-      return res.status(400).json({ message: 'Invalid event ID' });
+      return res.status(400).json({message: 'Invalid event ID'});
     }
 
     const event = await Event.findById(eventId).populate({
@@ -629,7 +632,7 @@ app.get('/events/:eventId/requests', async (req, res) => {
     });
 
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     const requestsWithUserInfo = event.requests.map(request => ({
@@ -646,7 +649,7 @@ app.get('/events/:eventId/requests', async (req, res) => {
     res.status(200).json(requestsWithUserInfo);
   } catch (error) {
     console.error('Error fetching requests:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
@@ -783,7 +786,7 @@ app.get('/getrequests/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
+      return res.status(400).json({message: 'Invalid user ID'});
     }
     console.log(`Fetching requests for userId: ${userId}`);
     const user = await User.findById(userId).populate(
@@ -1121,20 +1124,22 @@ app.get('/event/:eventId/organizer', async (req, res) => {
 });
 
 app.get('/events/:eventId', async (req, res) => {
-  const { eventId } = req.params;
+  const {eventId} = req.params;
 
-  console.log('Fetching event with ID:', eventId); 
+  console.log('Fetching event with ID:', eventId);
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
-    return res.status(400).json({ message: 'Invalid event ID' });
+    return res.status(400).json({message: 'Invalid event ID'});
   }
 
   try {
-    const event = await Event.findById(eventId).populate('organizer').populate('attendees');
+    const event = await Event.findById(eventId)
+      .populate('organizer')
+      .populate('attendees');
 
     if (!event) {
-      console.warn('Event not found.'); 
-      return res.status(404).json({ message: 'Event not found' });
+      console.warn('Event not found.');
+      return res.status(404).json({message: 'Event not found'});
     }
 
     res.status(200).json(event);
@@ -1209,38 +1214,38 @@ app.post('/venues', async (req, res) => {
 
 app.post('/user/:userId/interests', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { interests } = req.body;
+    const {userId} = req.params;
+    const {interests} = req.body;
 
-    const user = await User.findByIdAndUpdate(userId, { interests }, { new: true });
+    const user = await User.findByIdAndUpdate(userId, {interests}, {new: true});
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
-    res.status(200).json({ message: 'Interests saved successfully', user });
+    res.status(200).json({message: 'Interests saved successfully', user});
   } catch (error) {
-    res.status(500).json({ message: 'Failed to save interests', error });
+    res.status(500).json({message: 'Failed to save interests', error});
   }
 });
 
 app.get('/user/:userId/interests', async (req, res) => {
   try {
     const userId = req.params.userId;
-    
+
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID format' });
+      return res.status(400).json({message: 'Invalid user ID format'});
     }
-    
+
     const user = await User.findById(userId);
-    
+
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
-    res.status(200).json({ interests: user.interests });
+    res.status(200).json({interests: user.interests});
   } catch (error) {
     console.error('Error fetching interests:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: 'Internal Server Error'});
   }
 });
 
@@ -1262,48 +1267,51 @@ app.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({errors: errors.array()});
     }
 
     try {
-      const { eventId } = req.params;
-      const { userId, comment } = req.body;
+      const {eventId} = req.params;
+      const {userId, comment} = req.body;
 
       const event = await Event.findById(eventId);
       if (!event) {
-        return res.status(404).json({ message: 'Event not found.' });
+        return res.status(404).json({message: 'Event not found.'});
       }
 
-      const newReview = { userId, review: comment, date: new Date() };
+      const newReview = {userId, review: comment, date: new Date()};
       event.reviews.push(newReview);
       await event.save();
 
-      res.status(201).json({ message: 'Review added successfully', review: newReview });
+      res
+        .status(201)
+        .json({message: 'Review added successfully', review: newReview});
     } catch (error) {
       console.error('Error adding review:', error.message);
-      res.status(500).json({ message: 'Failed to add review.', error: error.message });
+      res
+        .status(500)
+        .json({message: 'Failed to add review.', error: error.message});
     }
-  }
+  },
 );
 
 app.get('/events/:eventId/reviews', async (req, res) => {
   try {
     const eventId = mongoose.Types.ObjectId(req.params.eventId);
-    
+
     // event'i reviews alanıyla beraber çekiyoruz
     const event = await Event.findById(eventId);
-    
+
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     res.json(event.reviews);
   } catch (error) {
     console.error('Error fetching event reviews:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({message: 'Internal server error'});
   }
 });
-
 
 app.put('/user/:userId/about', async (req, res) => {
   try {
@@ -1327,13 +1335,13 @@ app.put('/user/:userId/about', async (req, res) => {
 });
 
 app.post('/user/followRequest', async (req, res) => {
-  const { fromUserId, toUserId } = req.body;
+  const {fromUserId, toUserId} = req.body;
 
   try {
     // Find the target user to receive the follow request notification
     const targetUser = await User.findById(toUserId);
     if (!targetUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({message: 'User not found'});
     }
 
     // Create the notification message
@@ -1354,9 +1362,184 @@ app.post('/user/followRequest', async (req, res) => {
     targetUser.notifications.push(notification._id);
     await targetUser.save();
 
-    res.status(200).json({ message: 'Follow request sent and notification created' });
+    res
+      .status(200)
+      .json({message: 'Follow request sent and notification created'});
   } catch (error) {
     console.error('Error creating follow request notification:', error);
-    res.status(500).json({ message: 'Failed to create follow request notification', error: error.message });
+    res.status(500).json({
+      message: 'Failed to create follow request notification',
+      error: error.message,
+    });
   }
 });
+
+app.post('/communities', async (req, res) => {
+  const {communityName, description, tags, isPrivate} = req.body;
+
+  // Perform validation
+  if (!communityName || !description) {
+    return res
+      .status(400)
+      .json({message: 'Community name and description are required.'});
+  }
+
+  try {
+    // Insert the new community into the database
+    const newCommunity = {
+      communityName,
+      description,
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+      isPrivate,
+      createdAt: new Date(),
+    };
+
+    // Assuming you have a database function to insert a community
+    const result = await db.collection('communities').insertOne(newCommunity);
+
+    res.status(201).json(result.ops[0]); // Return the newly created community
+  } catch (error) {
+    console.error('Failed to create community:', error);
+    res
+      .status(500)
+      .json({message: 'An error occurred while creating the community.'});
+  }
+});
+
+app.get('/communities', async (req, res) => {
+  try {
+    const communities = await Community.find().populate(
+      'members',
+      'firstName lastName image',
+    );
+    res.status(200).json(communities);
+  } catch (error) {
+    console.error('Error fetching communities:', error);
+    res.status(500).json({message: 'Internal server error'});
+  }
+});
+
+app.post(
+  '/communities/:communityId/join',
+  authenticateToken,
+  async (req, res) => {
+    const {communityId} = req.params;
+    const {answers} = req.body; // Answers for private community questions
+    const userId = req.user.userId;
+
+    try {
+      const community = await Community.findById(communityId);
+
+      if (!community)
+        return res.status(404).json({message: 'Community not found'});
+
+      if (community.isPrivate) {
+        // Private community: send a join request
+        community.joinRequests.push({userId, answers, status: 'pending'});
+      } else {
+        // Public community: add directly to members
+        community.members.addToSet(userId);
+      }
+
+      await community.save();
+      res.status(200).json({
+        message: community.isPrivate ? 'Join request sent' : 'Joined community',
+      });
+    } catch (error) {
+      console.error('Error joining community:', error);
+      res.status(500).json({message: 'Internal server error'});
+    }
+  },
+);
+
+app.get(
+  '/communities/:communityId/requests',
+  authenticateToken,
+  async (req, res) => {
+    const {communityId} = req.params;
+
+    try {
+      const community = await Community.findById(communityId).populate(
+        'joinRequests.userId',
+        'firstName lastName image',
+      );
+
+      if (!community)
+        return res.status(404).json({message: 'Community not found'});
+
+      if (req.user.userId !== community.createdBy.toString()) {
+        return res.status(403).json({message: 'Unauthorized access'});
+      }
+
+      const pendingRequests = community.joinRequests.filter(
+        request => request.status === 'pending',
+      );
+      res.status(200).json(pendingRequests);
+    } catch (error) {
+      console.error('Error fetching join requests:', error);
+      res.status(500).json({message: 'Internal server error'});
+    }
+  },
+);
+app.post(
+  '/communities/:communityId/accept-request',
+  authenticateToken,
+  async (req, res) => {
+    const {communityId} = req.params;
+    const {requestId} = req.body;
+
+    try {
+      const community = await Community.findById(communityId);
+
+      if (!community)
+        return res.status(404).json({message: 'Community not found'});
+
+      if (req.user.userId !== community.createdBy.toString()) {
+        return res.status(403).json({message: 'Unauthorized access'});
+      }
+
+      const request = community.joinRequests.id(requestId);
+      if (!request) return res.status(404).json({message: 'Request not found'});
+
+      request.status = 'accepted';
+      community.members.push(request.userId);
+
+      await community.save();
+      res.status(200).json({message: 'Request accepted'});
+    } catch (error) {
+      console.error('Error accepting request:', error);
+      res.status(500).json({message: 'Internal server error'});
+    }
+  },
+);
+
+app.post(
+  '/communities/:communityId/reject-request',
+  authenticateToken,
+  async (req, res) => {
+    const {communityId} = req.params;
+    const {requestId} = req.body;
+
+    try {
+      const community = await Community.findById(communityId);
+
+      if (!community)
+        return res.status(404).json({message: 'Community not found'});
+
+      if (req.user.userId !== community.createdBy.toString()) {
+        return res.status(403).json({message: 'Unauthorized access'});
+      }
+
+      const request = community.joinRequests.id(requestId);
+      if (!request) return res.status(404).json({message: 'Request not found'});
+
+      request.status = 'rejected';
+
+      await community.save();
+      res.status(200).json({message: 'Request rejected'});
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      res.status(500).json({message: 'Internal server error'});
+    }
+  },
+);

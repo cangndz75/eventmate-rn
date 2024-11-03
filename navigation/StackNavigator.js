@@ -42,6 +42,8 @@ import NotificationScreen from '../screens/NotificationScreen';
 import ProfileViewScreen from '../screens/ProfileViewScreen';
 import EventAttendeesScreen from '../screens/EventAttendeesScreen';
 import CustomDrawerNavigator from './CustomDrawerNavigator';
+import AdminCreateCommunityScreen from '../screens/admin/AdminCreateCommunityScreen';
+import CommunityScreen from '../screens/CommunityScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -285,6 +287,16 @@ const StackNavigator = () => {
         <Stack.Screen
           name="NotificationScreen"
           component={NotificationScreen}
+          options={{headerShadowVisible: false}}
+        />
+        <Stack.Screen
+          name="CommunityScreen"
+          component={CommunityScreen}
+          options={{headerShadowVisible: false}}
+        />
+        <Stack.Screen
+          name="AdminCreateCommunity"
+          component={AdminCreateCommunityScreen}
           options={{headerShadowVisible: false}}
         />
         <Stack.Screen

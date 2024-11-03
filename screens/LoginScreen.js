@@ -24,28 +24,38 @@ const LoginScreen = () => {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
+    setIsLoading(true);
     try {
-      const response = await axios.post('https://biletixai.onrender.com/login', { 
-        email, 
-        password 
-      });
-      const { token, userId, role } = response.data;
-  
+      const response = await axios.post(
+        'https://biletixai.onrender.com/login',
+        {
+          email,
+          password,
+        },
+      );
+      const {token, userId, role} = response.data;
+
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('userId', String(userId));
       await AsyncStorage.setItem('role', role);
-  
+
       setToken(token);
       setUserId(userId);
       setRole(role);
-  
-      navigation.navigate('Main');
+
+      // Check the user's role and navigate accordingly
+      if (role === 'organizer') {
+        navigation.navigate('AdminDashboard');
+      } else {
+        navigation.navigate('Main');
+      }
     } catch (error) {
       console.error('Login failed:', error);
       Alert.alert('Error', 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
-  
 
   return (
     <KeyboardAvoidingView
