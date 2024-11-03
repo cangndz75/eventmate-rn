@@ -1390,7 +1390,14 @@ app.post('/user/followRequest', async (req, res) => {
 
 app.post('/communities', authenticateToken, async (req, res) => {
   const { name, description, tags, isPrivate, headerImage, profileImage, links } = req.body;
-  const organizer = req.userId;
+  const organizer = req.userId; 
+
+  console.log('Request Body:', req.body);
+  console.log('Organizer (userId):', organizer);
+
+  if (!name || !description || !organizer) {
+    return res.status(400).json({ message: 'Name, description, and organizer are required.' });
+  }
 
   try {
     const newCommunity = new Community({
