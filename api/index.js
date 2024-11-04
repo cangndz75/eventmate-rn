@@ -34,18 +34,15 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({message: 'No token provided'});
+    return res.status(401).json({ message: 'Token bulunamadı' });
   }
 
   jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
     if (err) {
-      console.error('Token verification error:', err.message);
-      if (err.name === 'TokenExpiredError') {
-        return res.status(403).json({message: 'Token expired'});
-      }
-      return res.status(403).json({message: 'Invalid token'});
+      console.error('Token doğrulama hatası:', err.message);
+      return res.status(403).json({ message: 'Token geçersiz' });
     }
-    req.user = user;
+    req.user = { userId: user.userId }; 
     next();
   });
 };
@@ -1352,13 +1349,11 @@ app.post('/user/followRequest', async (req, res) => {
   const {fromUserId, toUserId} = req.body;
 
   try {
-    // Find the target user to receive the follow request notification
     const targetUser = await User.findById(toUserId);
     if (!targetUser) {
       return res.status(404).json({message: 'User not found'});
     }
 
-    // Create the notification message
     const notification = new Notification({
       user: toUserId,
       message: 'has sent you a follow request',
@@ -1369,10 +1364,8 @@ app.post('/user/followRequest', async (req, res) => {
       },
     });
 
-    // Save the notification
     await notification.save();
 
-    // Optionally, add notification reference to target user's notifications array
     targetUser.notifications.push(notification._id);
     await targetUser.save();
 
@@ -1389,14 +1382,13 @@ app.post('/user/followRequest', async (req, res) => {
 });
 
 app.post('/communities', authenticateToken, async (req, res) => {
-  const { name, description, tags, isPrivate, headerImage, profileImage, links } = req.body;
-  const organizer = req.userId; 
+  const { name, description, tags, isPrivate, headerImage, profileImage, link, organizer } = req.body;
 
   console.log('Request Body:', req.body);
-  console.log('Organizer (userId):', organizer);
+  console.log('Kullanıcı ID (token üzerinden):', req.user.userId);
 
-  if (!name || !description || !organizer) {
-    return res.status(400).json({ message: 'Name, description, and organizer are required.' });
+  if (!name || !description) {
+    return res.status(400).json({ message: 'Name and description are required.' });
   }
 
   try {
@@ -1407,15 +1399,15 @@ app.post('/communities', authenticateToken, async (req, res) => {
       isPrivate,
       headerImage,
       profileImage,
-      links,
-      organizer,
+      links: link,
+      organizer: req.user.userId, 
     });
 
     await newCommunity.save();
     res.status(201).json(newCommunity);
   } catch (error) {
-    console.error('Error creating community:', error);
-    res.status(500).json({ message: 'Failed to create community.' });
+    console.error('Topluluk oluşturma hatası:', error);
+    res.status(500).json({ message: 'Topluluk oluşturulamadı.' });
   }
 });
 
@@ -1541,3 +1533,18 @@ app.post(
     }
   },
 );
+
+app.get('/communities', async (req, res) => {
+  try {
+    const communities = await Community.find().populate('members', 'firstName lastName');
+    const communitiesWithDetails = communities.map(community => ({
+      ...community.toObject(),
+      membersCount: community.members ? community.members.length : 0,
+    }));
+    
+    res.status(200).json(communitiesWithDetails);
+  } catch (error) {
+    console.error('Toplulukları çekerken hata:', error);
+    res.status(500).json({ message: 'Toplulukları getirme işlemi başarısız.' });
+  }
+});

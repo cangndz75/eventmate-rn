@@ -84,7 +84,7 @@ const HomeScreen = () => {
     const fetchEvents = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('https://biletixai.onrender.com/events', {
+        const response = await axios.get('http://10.0.2.2:8000/events', {
           headers: {Authorization: `Bearer ${token}`},
         });
 
@@ -108,7 +108,7 @@ const HomeScreen = () => {
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('https://biletixai.onrender.com/events', {
+        const response = await axios.get('http://10.0.2.2:8000/events', {
           headers: {Authorization: `Bearer ${token}`},
         });
 

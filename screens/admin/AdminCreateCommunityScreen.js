@@ -36,41 +36,52 @@ const AdminCreateCommunityScreen = () => {
   };
 
   const handleCreateCommunity = async () => {
-    const token = await AsyncStorage.getItem('token');
-  
-    const communityData = {
-      name: communityName.trim(),
-      description: description.trim(),
-      tags: tags.split(',').map(tag => tag.trim()),
-      isPrivate,
-      link,
-    };
-  
     try {
+      const token = await AsyncStorage.getItem('token'); 
+      const userId = await AsyncStorage.getItem('userId'); 
+  
+      if (!communityName || !description) {
+        Alert.alert('Hata', 'Topluluk adı ve açıklama gereklidir.');
+        return;
+      }
+  
+      const communityData = {
+        name: communityName.trim(),
+        description: description.trim(),
+        tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+        isPrivate,
+        headerImage: headerImage ? headerImage : null,
+        profileImage: profileImage ? profileImage : null,
+        link,
+        organizer: userId,
+      };
+  
       const response = await axios.post(
         'https://biletixai.onrender.com/communities',
         communityData,
         {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         }
       );
   
       if (response.status === 201) {
-        Alert.alert('Success', 'Community created successfully!');
-        navigation.goBack();
+        Alert.alert('Başarılı', 'Topluluk başarıyla oluşturuldu!');
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to create community.');
+        Alert.alert('Hata', 'Topluluk oluşturulamadı. Tekrar deneyin.');
       }
     } catch (error) {
-      console.error('Error creating community:', error.response?.data || error.message);
-      Alert.alert('Error', error.response?.data.message || 'Failed to create community.');
+      console.error('Topluluk oluşturma hatası:', error.message);
+      if (error.response && error.response.status === 403) {
+        Alert.alert('Hata', 'Oturum süreniz doldu. Lütfen yeniden giriş yapın.');
+        navigation.navigate('Login'); // Giriş ekranına yönlendirme
+      } else {
+        Alert.alert('Hata', 'Topluluk oluşturulamadı. Tekrar deneyin.');
+      }
     }
   };
-  
-
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
       <KeyboardAvoidingView
