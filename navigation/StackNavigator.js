@@ -44,6 +44,7 @@ import EventAttendeesScreen from '../screens/EventAttendeesScreen';
 import CustomDrawerNavigator from './CustomDrawerNavigator';
 import AdminCreateCommunityScreen from '../screens/admin/AdminCreateCommunityScreen';
 import CommunityScreen from '../screens/CommunityScreen';
+import CommunityDetailScreen from '../screens/CommunityDetailScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -307,6 +308,11 @@ const StackNavigator = () => {
         <Stack.Screen
           name="EventAttendees"
           component={EventAttendeesScreen}
+          options={{headerShadowVisible: false}}
+        />
+        <Stack.Screen
+          name="CommunityDetailScreen"
+          component={CommunityDetailScreen}
           options={{headerShadowVisible: false}}
         />
         <Stack.Screen

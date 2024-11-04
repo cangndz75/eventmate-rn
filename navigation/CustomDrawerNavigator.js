@@ -5,6 +5,7 @@ import ProfileDetailScreen from '../screens/ProfileDetail';
 import HomeScreen from '../screens/HomeScreen';
 import CustomDrawerContent from './CustomDrawerContent';
 import EventScreen from '../screens/EventScreen';
+import CommunityScreen from '../screens/CommunityScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -41,6 +42,15 @@ const CustomDrawerNavigator = () => {
       <Drawer.Screen
         name="Event"
         component={EventScreen}
+        options={{
+          drawerIcon: ({color, size}) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="CommunityScreen"
+        component={CommunityScreen}
         options={{
           drawerIcon: ({color, size}) => (
             <Ionicons name="calendar-outline" size={size} color={color} />

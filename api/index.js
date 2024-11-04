@@ -1381,11 +1381,15 @@ app.post('/user/followRequest', async (req, res) => {
   }
 });
 
-app.post('/communities', authenticateToken, async (req, res) => {
-  const { name, description, tags, isPrivate, headerImage, profileImage, link, organizer } = req.body;
+const express = require('express');
+const router = express.Router();
+const Community = require('../models/Community');
+const User = require('../models/User');
+const { authenticateToken } = require('../middleware/authenticate');
 
-  console.log('Request Body:', req.body);
-  console.log('Kullanıcı ID (token üzerinden):', req.user.userId);
+app.post('/communities', authenticateToken, async (req, res) => {
+  const { name, description, tags, isPrivate, headerImage, profileImage, link } = req.body;
+  const organizerId = req.user.userId;
 
   if (!name || !description) {
     return res.status(400).json({ message: 'Name and description are required.' });
@@ -1400,14 +1404,46 @@ app.post('/communities', authenticateToken, async (req, res) => {
       headerImage,
       profileImage,
       links: link,
-      organizer: req.user.userId, 
+      organizer: organizerId,
     });
 
-    await newCommunity.save();
-    res.status(201).json(newCommunity);
+    const savedCommunity = await newCommunity.save();
+
+    await User.findByIdAndUpdate(
+      organizerId,
+      { $push: { communities: savedCommunity._id } },
+      { new: true }
+    );
+
+    res.status(201).json(savedCommunity);
   } catch (error) {
     console.error('Topluluk oluşturma hatası:', error);
     res.status(500).json({ message: 'Topluluk oluşturulamadı.' });
+  }
+});
+
+
+app.get('/communities', authenticateToken, async (req, res) => {
+  const userRole = req.user.role;
+  const userId = req.user.userId;
+
+  try {
+    let communities;
+    if (userRole === 'user') {
+      communities = await Community.find().populate('members', 'firstName lastName');
+    } else if (userRole === 'organizer') {
+      communities = await Community.find({ organizer: userId }).populate('members', 'firstName lastName');
+    }
+
+    const communitiesWithDetails = communities.map(community => ({
+      ...community.toObject(),
+      membersCount: community.members ? community.members.length : 0,
+    }));
+
+    res.status(200).json(communitiesWithDetails);
+  } catch (error) {
+    console.error('Toplulukları çekerken hata:', error);
+    res.status(500).json({ message: 'Toplulukları getirme işlemi başarısız.' });
   }
 });
 
@@ -1534,17 +1570,32 @@ app.post(
   },
 );
 
-app.get('/communities', async (req, res) => {
+app.get('/communities/:communityId', authenticateToken, async (req, res) => {
+  const { communityId } = req.params;
+
+  console.log('Fetching community with ID:', communityId);
+
+  if (!mongoose.Types.ObjectId.isValid(communityId)) {
+    return res.status(400).json({ message: 'Invalid community ID' });
+  }
+
   try {
-    const communities = await Community.find().populate('members', 'firstName lastName');
-    const communitiesWithDetails = communities.map(community => ({
-      ...community.toObject(),
-      membersCount: community.members ? community.members.length : 0,
-    }));
-    
-    res.status(200).json(communitiesWithDetails);
+    // Community modelini ilişkili verilerle birlikte alın
+    const community = await Community.findById(communityId)
+      .populate('organizer', 'firstName lastName')  
+      .populate('members', 'firstName lastName');
+
+    if (!community) {
+      console.warn('Community not found.');
+      return res.status(404).json({ message: 'Community not found' });
+    }
+
+    res.status(200).json(community);
   } catch (error) {
-    console.error('Toplulukları çekerken hata:', error);
-    res.status(500).json({ message: 'Toplulukları getirme işlemi başarısız.' });
+    console.error('Error fetching community details:', error);
+    res.status(500).json({
+      message: 'Failed to fetch community details',
+      error: error.message,
+    });
   }
 });
