@@ -6,10 +6,13 @@ import HomeScreen from '../screens/HomeScreen';
 import CustomDrawerContent from './CustomDrawerContent';
 import EventScreen from '../screens/EventScreen';
 import CommunityScreen from '../screens/CommunityScreen';
+import AdminCommunityScreen from '../screens/admin/AdminCommunityScreen';
 
 const Drawer = createDrawerNavigator();
 
 const CustomDrawerNavigator = () => {
+  const userRole = 'organizer'; 
+
   return (
     <Drawer.Navigator
       drawerContent={props => <CustomDrawerContent {...props} />}
@@ -50,7 +53,7 @@ const CustomDrawerNavigator = () => {
       />
       <Drawer.Screen
         name="CommunityScreen"
-        component={CommunityScreen}
+        component={userRole === 'organizer' ? AdminCommunityScreen : CommunityScreen}
         options={{
           drawerIcon: ({color, size}) => (
             <Ionicons name="calendar-outline" size={size} color={color} />

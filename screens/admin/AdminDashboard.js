@@ -23,7 +23,7 @@ const AdminDashboard = () => {
     {title: 'Create', icon: 'add-circle-outline', route: 'AdminCreate'},
     {title: 'My Events', icon: 'calendar-outline', route: 'AdminEvents'},
     {title: 'Attends', icon: 'people-outline', route: 'Attends'},
-    {title: 'Communities', icon: 'people-outline', route: 'CommunityScreen'},
+    {title: 'Communities', icon: 'people-outline', route: 'AdminCommunityScreen'},
     {title: 'My Communities', icon: 'people-outline', route: 'AdminCreateCommunity'},
     {title: 'Venue', icon: 'bar-chart-outline', route: 'AdminCreateVenue'},
     {title: 'Settings', icon: 'settings-outline', route: 'Settings'},

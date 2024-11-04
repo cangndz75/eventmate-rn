@@ -45,6 +45,7 @@ import CustomDrawerNavigator from './CustomDrawerNavigator';
 import AdminCreateCommunityScreen from '../screens/admin/AdminCreateCommunityScreen';
 import CommunityScreen from '../screens/CommunityScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
+import AdminManageCommunityScreen from '../screens/admin/AdminManageCommunityScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -193,133 +194,150 @@ const StackNavigator = () => {
   function MainStack() {
     return (
       <Stack.Navigator>
+      <Stack.Screen
+        name="Drawer"
+        component={CustomDrawerNavigator}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="VenueInfo"
+        component={VenueInfoScreen}
+        options={{headerShown: false}}
+      />
+      {role === 'organizer' && (
+        <>
         <Stack.Screen
-          name="Drawer"
-          component={CustomDrawerNavigator}
+          name="AdminCreate"
+          component={AdminCreateScreen}
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="VenueInfo"
-          component={VenueInfoScreen}
-          options={{headerShown: false}}
-        />
-        {role === 'organizer' && (
-          <>
-            <Stack.Screen
-              name="AdminCreate"
-              component={AdminCreateScreen}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="AdminEvents"
-              component={AdminEventScreen}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="AdminEventSetUp"
-              component={AdminEventSetUpScreen}
-              options={{headerShown: false}}
-            />
-          </>
-        )}
-        <Stack.Screen
-          name="TagVenue"
-          component={TagVenueScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen name="Time" component={SelectTimeScreen} />
-        <Stack.Screen
-          name="EventSetup"
-          component={EventSetUpScreen}
+          name="AdminEvents"
+          component={AdminEventScreen}
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="Attendees"
-          component={AttendeesScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
-        <Stack.Screen
-          name="ManageRequest"
-          component={ManageRequests}
+          name="AdminEventSetUp"
+          component={AdminEventSetUpScreen}
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="People"
-          component={PeopleScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="Event"
-          component={EventScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="EventSetUp"
-          component={EventSetUpScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen name="Request" component={RequestChatRoom} />
-        <Stack.Screen name="ChatRoom" component={ChatRoom} />
-        <Stack.Screen name="Chats" component={ChatsScreen} />
-        <Stack.Screen name="ProfileEditScreen" component={ProfileEditScreen} />
-        <Stack.Screen
-          name="TicketDetailScreen"
-          component={TicketDetailScreen}
-        />
-        <Stack.Screen
-          name="AdminCreateVenue"
-          component={AdminCreateVenueScreen}
-        />
-        <Stack.Screen
-          name="InterestSelectionScreen"
-          component={InterestSelectionScreen}
-        />
-        <Stack.Screen
-          name="SearchScreen"
-          component={SearchScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="ReviewScreen"
-          component={ReviewScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="NotificationScreen"
-          component={NotificationScreen}
-          options={{headerShadowVisible: false}}
-        />
-        <Stack.Screen
-          name="CommunityScreen"
-          component={CommunityScreen}
-          options={{headerShadowVisible: false}}
-        />
-        <Stack.Screen
-          name="AdminCreateCommunity"
+          name="AdminCommunity"
           component={AdminCreateCommunityScreen}
-          options={{headerShadowVisible: false}}
-        />
-        <Stack.Screen
-          name="ProfileView"
-          component={ProfileViewScreen}
-          options={{headerShadowVisible: false}}
-        />
-        <Stack.Screen
-          name="EventAttendees"
-          component={EventAttendeesScreen}
-          options={{headerShadowVisible: false}}
-        />
-        <Stack.Screen
-          name="CommunityDetailScreen"
-          component={CommunityDetailScreen}
-          options={{headerShadowVisible: false}}
-        />
-        <Stack.Screen
-          name="AdminDashboard"
-          component={AdminDashboard}
           options={{headerShown: false}}
         />
+        </>
+      )}
+      {role !== 'organizer' && (
+        <Stack.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{headerShown: false}}
+        />
+      )}
+      <Stack.Screen
+        name="TagVenue"
+        component={TagVenueScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen name="Time" component={SelectTimeScreen} />
+      <Stack.Screen
+        name="EventSetup"
+        component={EventSetUpScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Attendees"
+        component={AttendeesScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+      <Stack.Screen
+        name="ManageRequest"
+        component={ManageRequests}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="People"
+        component={PeopleScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Event"
+        component={EventScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="AdminManageCommunityScreen"
+        component={AdminManageCommunityScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="EventSetUp"
+        component={EventSetUpScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen name="Request" component={RequestChatRoom} />
+      <Stack.Screen name="ChatRoom" component={ChatRoom} />
+      <Stack.Screen name="Chats" component={ChatsScreen} />
+      <Stack.Screen name="ProfileEditScreen" component={ProfileEditScreen} />
+      <Stack.Screen
+        name="TicketDetailScreen"
+        component={TicketDetailScreen}
+      />
+      <Stack.Screen
+        name="AdminCreateVenue"
+        component={AdminCreateVenueScreen}
+      />
+      <Stack.Screen
+        name="InterestSelectionScreen"
+        component={InterestSelectionScreen}
+      />
+      <Stack.Screen
+        name="SearchScreen"
+        component={SearchScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="ReviewScreen"
+        component={ReviewScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="NotificationScreen"
+        component={NotificationScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="CommunityScreen"
+        component={CommunityScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="AdminCreateCommunity"
+        component={AdminCreateCommunityScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="ProfileView"
+        component={ProfileViewScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="EventAttendees"
+        component={EventAttendeesScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="CommunityDetailScreen"
+        component={CommunityDetailScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="AdminDashboard"
+        component={AdminDashboard}
+        options={{headerShown: false}}
+      />
       </Stack.Navigator>
     );
   }
