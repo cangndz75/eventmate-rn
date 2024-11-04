@@ -1442,24 +1442,26 @@ app.post(
     try {
       const community = await Community.findById(communityId);
 
-      if (!community)
+      if (!community) {
         return res.status(404).json({message: 'Community not found'});
+      }
 
       if (community.isPrivate) {
         community.joinRequests.push({userId, answers, status: 'pending'});
+        await community.save();
+        return res.status(200).json({message: 'Join request sent'});
       } else {
-        community.members.addToSet(userId);
+        if (!community.members.includes(userId)) {
+          community.members.push(userId);
+          await community.save();
+        }
+        return res.status(200).json({message: 'Joined community'});
       }
-
-      await community.save();
-      res.status(200).json({
-        message: community.isPrivate ? 'Join request sent' : 'Joined community',
-      });
     } catch (error) {
       console.error('Error joining community:', error);
       res.status(500).json({message: 'Internal server error'});
     }
-  },
+  }
 );
 
 app.get(
@@ -1471,25 +1473,26 @@ app.get(
     try {
       const community = await Community.findById(communityId).populate(
         'joinRequests.userId',
-        'firstName lastName image',
+        'firstName lastName image'
       );
 
-      if (!community)
+      if (!community) {
         return res.status(404).json({message: 'Community not found'});
+      }
 
-      if (req.user.userId !== community.createdBy.toString()) {
+      if (req.user.userId !== community.organizer.toString()) {
         return res.status(403).json({message: 'Unauthorized access'});
       }
 
       const pendingRequests = community.joinRequests.filter(
-        request => request.status === 'pending',
+        request => request.status === 'pending'
       );
       res.status(200).json(pendingRequests);
     } catch (error) {
       console.error('Error fetching join requests:', error);
       res.status(500).json({message: 'Internal server error'});
     }
-  },
+  }
 );
 app.post(
   '/communities/:communityId/accept-request',
@@ -1501,18 +1504,21 @@ app.post(
     try {
       const community = await Community.findById(communityId);
 
-      if (!community)
+      if (!community) {
         return res.status(404).json({message: 'Community not found'});
+      }
 
-      if (req.user.userId !== community.createdBy.toString()) {
+      if (req.user.userId !== community.organizer.toString()) {
         return res.status(403).json({message: 'Unauthorized access'});
       }
 
       const request = community.joinRequests.id(requestId);
-      if (!request) return res.status(404).json({message: 'Request not found'});
+      if (!request) {
+        return res.status(404).json({message: 'Request not found'});
+      }
 
       request.status = 'accepted';
-      community.members.push(request.userId);
+      community.members.addToSet(request.userId);
 
       await community.save();
       res.status(200).json({message: 'Request accepted'});
@@ -1520,7 +1526,7 @@ app.post(
       console.error('Error accepting request:', error);
       res.status(500).json({message: 'Internal server error'});
     }
-  },
+  }
 );
 
 app.post(
@@ -1533,15 +1539,18 @@ app.post(
     try {
       const community = await Community.findById(communityId);
 
-      if (!community)
+      if (!community) {
         return res.status(404).json({message: 'Community not found'});
+      }
 
-      if (req.user.userId !== community.createdBy.toString()) {
+      if (req.user.userId !== community.organizer.toString()) {
         return res.status(403).json({message: 'Unauthorized access'});
       }
 
       const request = community.joinRequests.id(requestId);
-      if (!request) return res.status(404).json({message: 'Request not found'});
+      if (!request) {
+        return res.status(404).json({message: 'Request not found'});
+      }
 
       request.status = 'rejected';
 
@@ -1551,7 +1560,7 @@ app.post(
       console.error('Error rejecting request:', error);
       res.status(500).json({message: 'Internal server error'});
     }
-  },
+  }
 );
 
 app.get('/communities/:communityId', async (req, res) => {

@@ -54,7 +54,7 @@ const CommunityScreen = () => {
         },
       );
       if (response.status === 200) {
-        Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
+        Alert.alert('Başarılı', 'Topluluğa başarıla katıldınız!');
       }
     } catch (error) {
       console.error('Topluluğa katılırken hata:', error.message);

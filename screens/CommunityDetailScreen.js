@@ -7,33 +7,44 @@ import {
   ScrollView,
   Alert,
   StyleSheet,
+  TextInput,
   Linking,
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {BottomModal, SlideAnimation, ModalContent} from 'react-native-modals';
 
 const CommunityDetailScreen = () => {
   const [community, setCommunityDetail] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [answers, setAnswers] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    gender: '',
+    age: '',
+    reason: '',
+  });
+
   const navigation = useNavigation();
   const route = useRoute();
   const {communityId} = route.params;
 
   useEffect(() => {
     const fetchCommunityDetails = async () => {
-        try {
-          const response = await axios.get(
-            `https://biletixai.onrender.com/communities/${communityId}`
-          );
-          setCommunityDetail(response.data);
-        } catch (error) {
-          console.error('Topluluk detaylarını çekerken hata:', error.message);
-          Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
-        }
-      };
-      
-  
+      try {
+        const response = await axios.get(
+          `https://biletixai.onrender.com/communities/${communityId}`,
+        );
+        setCommunityDetail(response.data);
+      } catch (error) {
+        console.error('Topluluk detaylarını çekerken hata:', error.message);
+        Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
+      }
+    };
+
     if (communityId) {
       fetchCommunityDetails();
     } else {
@@ -42,20 +53,41 @@ const CommunityDetailScreen = () => {
   }, [communityId]);
 
   const joinCommunity = async () => {
-    try {
-      const response = await axios.post(
-        `https://biletixai.onrender.com/communities/${communityId}/join`,
-      );
-      if (response.status === 200) {
-        Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
-      }
-    } catch (error) {
-      console.error('Topluluğa katılırken hata:', error.message);
-      if (error.response && error.response.status === 400) {
-        Alert.alert('Hata', 'Zaten bu topluluğa katıldınız.');
-      } else {
+    if (community?.isPrivate) {
+      setModalVisible(true);
+    } else {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.post(
+          `https://biletixai.onrender.com/communities/${communityId}/join`,
+          {},
+          {headers: {Authorization: `Bearer ${token}`}},
+        );
+        if (response.status === 200) {
+          Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
+        }
+      } catch (error) {
+        console.error('Topluluğa katılırken hata:', error.message);
         Alert.alert('Hata', 'Topluluğa katılırken bir sorun oluştu.');
       }
+    }
+  };
+
+  const submitAnswers = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.post(
+        `https://biletixai.onrender.com/communities/${communityId}/join`,
+        {answers},
+        {headers: {Authorization: `Bearer ${token}`}},
+      );
+      if (response.status === 200) {
+        Alert.alert('Başarılı', 'Başvuru gönderildi. Onay bekleniyor.');
+        setModalVisible(false);
+      }
+    } catch (error) {
+      console.error('Başvuru gönderirken hata:', error.message);
+      Alert.alert('Hata', 'Başvuru gönderilirken bir sorun oluştu.');
     }
   };
 
@@ -97,7 +129,11 @@ const CommunityDetailScreen = () => {
         </View>
 
         <TouchableOpacity style={styles.joinButton} onPress={joinCommunity}>
-          <Text style={styles.joinButtonText}>Topluluğa Katıl</Text>
+          <Text style={styles.joinButtonText}>
+            {community.isPrivate
+              ? 'Soruları Cevapla ve Katıl'
+              : 'Topluluğa Katıl'}
+          </Text>
         </TouchableOpacity>
 
         <Text style={styles.description}>{community.description}</Text>
@@ -121,6 +157,54 @@ const CommunityDetailScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+
+      <BottomModal
+        visible={modalVisible}
+        onTouchOutside={() => setModalVisible(false)}
+        modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+        <ModalContent style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Topluluğa Katıl</Text>
+          <TextInput
+            placeholder="Adınız"
+            value={answers.name}
+            onChangeText={text => setAnswers({...answers, name: text})}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Email Adresiniz"
+            value={answers.email}
+            onChangeText={text => setAnswers({...answers, email: text})}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Telefon Numaranız"
+            value={answers.phone}
+            onChangeText={text => setAnswers({...answers, phone: text})}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Cinsiyetiniz"
+            value={answers.gender}
+            onChangeText={text => setAnswers({...answers, gender: text})}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Yaşınız"
+            value={answers.age}
+            onChangeText={text => setAnswers({...answers, age: text})}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Katılma Sebebiniz"
+            value={answers.reason}
+            onChangeText={text => setAnswers({...answers, reason: text})}
+            style={styles.input}
+          />
+          <TouchableOpacity style={styles.submitButton} onPress={submitAnswers}>
+            <Text style={styles.submitButtonText}>Gönder</Text>
+          </TouchableOpacity>
+        </ModalContent>
+      </BottomModal>
     </ScrollView>
   );
 };
@@ -150,11 +234,6 @@ const styles = StyleSheet.create({
   },
   joinButtonText: {color: '#fff', fontWeight: 'bold'},
   description: {fontSize: 16, color: 'gray', marginVertical: 10},
-  socialLinks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
   linkText: {color: '#007bff', marginRight: 10, marginBottom: 5},
   tabContainer: {
     flexDirection: 'row',
@@ -167,6 +246,26 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   tabButtonText: {fontWeight: 'bold'},
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+  },
+  modalTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 15},
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  submitButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  submitButtonText: {color: 'white', fontWeight: 'bold'},
 });
 
 export default CommunityDetailScreen;

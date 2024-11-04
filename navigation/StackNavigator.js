@@ -228,13 +228,11 @@ const StackNavigator = () => {
         />
         </>
       )}
-      {role !== 'organizer' && (
         <Stack.Screen
         name="Community"
         component={CommunityScreen}
         options={{headerShown: false}}
         />
-      )}
       <Stack.Screen
         name="TagVenue"
         component={TagVenueScreen}

@@ -53,7 +53,7 @@ const CustomDrawerNavigator = () => {
       />
       <Drawer.Screen
         name="CommunityScreen"
-        component={userRole === 'organizer' ? AdminCommunityScreen : CommunityScreen}
+        component={CommunityScreen}
         options={{
           drawerIcon: ({color, size}) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
