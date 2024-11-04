@@ -1427,7 +1427,7 @@ app.get('/communities', async (req, res) => {
     res.status(200).json(communities);
   } catch (error) {
     console.error('Error fetching communities:', error);
-    res.status(500).json({ message: 'Failed to retrieve communities.' });
+    res.status(500).json({message: 'Failed to retrieve communities.'});
   }
 });
 
@@ -1554,24 +1554,23 @@ app.post(
   },
 );
 
-app.get('/communities/:communityId', authenticateToken, async (req, res) => {
-  const {communityId} = req.params;
+app.get('/communities/:communityId', async (req, res) => {
+  const { communityId } = req.params;
 
   console.log('Fetching community with ID:', communityId);
 
   if (!mongoose.Types.ObjectId.isValid(communityId)) {
-    return res.status(400).json({message: 'Invalid community ID'});
+    return res.status(400).json({ message: 'Invalid community ID' });
   }
 
   try {
-    // Community modelini ilişkili verilerle birlikte alın
     const community = await Community.findById(communityId)
       .populate('organizer', 'firstName lastName')
       .populate('members', 'firstName lastName');
 
     if (!community) {
       console.warn('Community not found.');
-      return res.status(404).json({message: 'Community not found'});
+      return res.status(404).json({ message: 'Community not found' });
     }
 
     res.status(200).json(community);

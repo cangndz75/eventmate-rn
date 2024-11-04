@@ -22,21 +22,18 @@ const CommunityDetailScreen = () => {
 
   useEffect(() => {
     const fetchCommunityDetails = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await axios.get(
-          `https://biletixai.onrender.com/communities/${communityId}`,
-          {
-            headers: {Authorization: `Bearer ${token}`},
-          },
-        );
-        setCommunityDetail(response.data);
-      } catch (error) {
-        console.error('Topluluk detaylarını çekerken hata:', error.message);
-        Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
-      }
-    };
-
+        try {
+          const response = await axios.get(
+            `https://biletixai.onrender.com/communities/${communityId}`
+          );
+          setCommunityDetail(response.data);
+        } catch (error) {
+          console.error('Topluluk detaylarını çekerken hata:', error.message);
+          Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
+        }
+      };
+      
+  
     if (communityId) {
       fetchCommunityDetails();
     } else {
