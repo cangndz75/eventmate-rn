@@ -1381,12 +1381,6 @@ app.post('/user/followRequest', async (req, res) => {
   }
 });
 
-const express = require('express');
-const router = express.Router();
-const Community = require('../models/Community');
-const User = require('../models/User');
-const { authenticateToken } = require('../middleware/authenticate');
-
 app.post('/communities', authenticateToken, async (req, res) => {
   const { name, description, tags, isPrivate, headerImage, profileImage, link } = req.body;
   const organizerId = req.user.userId;
