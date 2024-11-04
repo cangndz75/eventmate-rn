@@ -10,10 +10,10 @@ const communitySchema = new Schema(
     tags: [String],
     isPrivate: { type: Boolean, default: false },
     links: [String],
-    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     joinRequests: [
       {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        userId: { type: Schema.Types.ObjectId, ref: 'User' },
         answers: { type: Map, of: String },
         status: {
           type: String,
@@ -22,11 +22,11 @@ const communitySchema = new Schema(
         },
       },
     ],
-    organizer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
+    organizer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    events: [{ type: Schema.Types.ObjectId, ref: 'Event' }],
     posts: [
       {
-        author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        author: { type: Schema.Types.ObjectId, ref: 'User' },
         content: String,
         image: String,
         createdAt: { type: Date, default: Date.now },

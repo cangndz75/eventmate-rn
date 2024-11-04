@@ -43,7 +43,6 @@ const LoginScreen = () => {
       setUserId(userId);
       setRole(role);
 
-      // Check the user's role and navigate accordingly
       if (role === 'organizer') {
         navigation.navigate('AdminDashboard');
       } else {

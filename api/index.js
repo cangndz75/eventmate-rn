@@ -1,4 +1,5 @@
 const express = require('express');
+const router = express.Router();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -17,7 +18,6 @@ const axios = require('axios');
 const refreshTokens = [];
 const path = require('path');
 const {body, validationResult} = require('express-validator');
-
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -30,19 +30,19 @@ mongoose
   .catch(error => console.log('Connection error:', error));
 
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token)
+    return res.status(401).json({message: 'Access token is missing.'});
 
-  if (!token) {
-    return res.status(401).json({ message: 'Token bulunamadı' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) {
-      console.error('Token doğrulama hatası:', err.message);
-      return res.status(403).json({ message: 'Token geçersiz' });
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({message: 'Token expired'});
+      } else {
+        return res.status(401).json({message: 'Token malformed'});
+      }
     }
-    req.user = { userId: user.userId }; 
+    req.user = user;
     next();
   });
 };
@@ -1382,11 +1382,14 @@ app.post('/user/followRequest', async (req, res) => {
 });
 
 app.post('/communities', authenticateToken, async (req, res) => {
-  const { name, description, tags, isPrivate, headerImage, profileImage, link } = req.body;
+  const {name, description, tags, isPrivate, headerImage, profileImage, links} =
+    req.body;
   const organizerId = req.user.userId;
 
   if (!name || !description) {
-    return res.status(400).json({ message: 'Name and description are required.' });
+    return res
+      .status(400)
+      .json({message: 'Name and description are required.'});
   }
 
   try {
@@ -1397,7 +1400,7 @@ app.post('/communities', authenticateToken, async (req, res) => {
       isPrivate,
       headerImage,
       profileImage,
-      links: link,
+      links,
       organizer: organizerId,
     });
 
@@ -1405,39 +1408,26 @@ app.post('/communities', authenticateToken, async (req, res) => {
 
     await User.findByIdAndUpdate(
       organizerId,
-      { $push: { communities: savedCommunity._id } },
-      { new: true }
+      {$push: {communities: savedCommunity._id}},
+      {new: true},
     );
 
     res.status(201).json(savedCommunity);
   } catch (error) {
     console.error('Topluluk oluşturma hatası:', error);
-    res.status(500).json({ message: 'Topluluk oluşturulamadı.' });
+    res.status(500).json({message: 'Topluluk oluşturulamadı.'});
   }
 });
 
-
-app.get('/communities', authenticateToken, async (req, res) => {
-  const userRole = req.user.role;
-  const userId = req.user.userId;
-
+app.get('/communities', async (req, res) => {
   try {
-    let communities;
-    if (userRole === 'user') {
-      communities = await Community.find().populate('members', 'firstName lastName');
-    } else if (userRole === 'organizer') {
-      communities = await Community.find({ organizer: userId }).populate('members', 'firstName lastName');
-    }
-
-    const communitiesWithDetails = communities.map(community => ({
-      ...community.toObject(),
-      membersCount: community.members ? community.members.length : 0,
-    }));
-
-    res.status(200).json(communitiesWithDetails);
+    const communities = await Community.find()
+      .populate('members', 'firstName lastName')
+      .populate('organizer', 'firstName lastName');
+    res.status(200).json(communities);
   } catch (error) {
-    console.error('Toplulukları çekerken hata:', error);
-    res.status(500).json({ message: 'Toplulukları getirme işlemi başarısız.' });
+    console.error('Error fetching communities:', error);
+    res.status(500).json({ message: 'Failed to retrieve communities.' });
   }
 });
 
@@ -1446,7 +1436,7 @@ app.post(
   authenticateToken,
   async (req, res) => {
     const {communityId} = req.params;
-    const {answers} = req.body; 
+    const {answers} = req.body;
     const userId = req.user.userId;
 
     try {
@@ -1565,23 +1555,23 @@ app.post(
 );
 
 app.get('/communities/:communityId', authenticateToken, async (req, res) => {
-  const { communityId } = req.params;
+  const {communityId} = req.params;
 
   console.log('Fetching community with ID:', communityId);
 
   if (!mongoose.Types.ObjectId.isValid(communityId)) {
-    return res.status(400).json({ message: 'Invalid community ID' });
+    return res.status(400).json({message: 'Invalid community ID'});
   }
 
   try {
     // Community modelini ilişkili verilerle birlikte alın
     const community = await Community.findById(communityId)
-      .populate('organizer', 'firstName lastName')  
+      .populate('organizer', 'firstName lastName')
       .populate('members', 'firstName lastName');
 
     if (!community) {
       console.warn('Community not found.');
-      return res.status(404).json({ message: 'Community not found' });
+      return res.status(404).json({message: 'Community not found'});
     }
 
     res.status(200).json(community);
