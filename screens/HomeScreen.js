@@ -62,10 +62,10 @@ const HomeScreen = () => {
       transform: [
         {perspective: 1000},
         {scale: active.value ? withTiming(0.9) : withTiming(1)},
-        {translateX: active.value ? withSpring(50) : withTiming(0)}, 
+        {translateX: active.value ? withSpring(50) : withTiming(0)},
         {rotateY: `${rotateY}deg`},
       ],
-      borderRadius: active.value ? withTiming(20) : withTiming(0), 
+      borderRadius: active.value ? withTiming(20) : withTiming(0),
     };
   });
   const filteredEvents = filterEventsByCategory(eventList, selectedCategory);
@@ -483,6 +483,66 @@ const HomeScreen = () => {
           source={{uri: 'https://picsum.photos/200'}}
           style={{width: 100, height: 100, resizeMode: 'contain'}}
         />
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          backgroundColor: '#fff',
+          borderRadius: 10,
+          padding: 15,
+          marginVertical: 20,
+          shadowColor: '#000',
+          shadowOffset: {width: 0, height: 2},
+          shadowOpacity: 0.1,
+          shadowRadius: 5,
+          elevation: 5,
+        }}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            borderWidth: 2,
+            borderColor: '#7b61ff',
+            paddingVertical: 15,
+            alignItems: 'center',
+            marginRight: 10,
+            borderRadius: 10,
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}
+          onPress={() => console.log('Topluluk Oluştur Pressed')}>
+          <Ionicons
+            name="people-outline"
+            size={18}
+            color="#7b61ff"
+            style={{marginRight: 5}}
+          />
+          <Text style={{color: '#7b61ff', fontWeight: 'bold', fontSize: 16}}>
+            Topluluk Oluştur
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: '#ff8c42',
+            paddingVertical: 15,
+            alignItems: 'center',
+            marginLeft: 10,
+            borderRadius: 10,
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}
+          onPress={() => console.log('Organizatör Ol Pressed')}>
+          <Ionicons
+            name="person-add-outline"
+            size={18}
+            color="#fff"
+            style={{marginRight: 5}}
+          />
+          <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>
+            Organizatör Ol
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View
