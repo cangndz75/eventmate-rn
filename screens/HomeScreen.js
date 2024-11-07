@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import Animated, {
@@ -58,14 +58,17 @@ const HomeScreen = () => {
       [0, -10],
       Extrapolation.CLAMP,
     );
+    const scale = withTiming(active.value ? 0.9 : 1);
+    const translateX = active.value ? withSpring(50) : withTiming(0);
+    const borderRadius = withTiming(active.value ? 20 : 0);
     return {
       transform: [
         {perspective: 1000},
-        {scale: active.value ? withTiming(0.9) : withTiming(1)},
-        {translateX: active.value ? withSpring(50) : withTiming(0)},
+        {scale},
+        {translateX},
         {rotateY: `${rotateY}deg`},
       ],
-      borderRadius: active.value ? withTiming(20) : withTiming(0),
+      borderRadius,
     };
   });
   const filteredEvents = filterEventsByCategory(eventList, selectedCategory);
@@ -356,8 +359,6 @@ const HomeScreen = () => {
             <Text style={{color: '#7b61ff', fontWeight: 'bold'}}>See all</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Event Listesi veya "No Events" Görünümü */}
         <View style={{flex: 1}}>
           {filteredEvents.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>

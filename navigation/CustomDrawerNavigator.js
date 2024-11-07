@@ -7,7 +7,7 @@ import CustomDrawerContent from './CustomDrawerContent';
 import EventScreen from '../screens/EventScreen';
 import CommunityScreen from '../screens/CommunityScreen';
 import AdminCommunityScreen from '../screens/admin/AdminCommunityScreen';
-
+import FavoritesScreen from '../screens/FavoritesScreen';
 const Drawer = createDrawerNavigator();
 
 const CustomDrawerNavigator = () => {
@@ -54,6 +54,15 @@ const CustomDrawerNavigator = () => {
       <Drawer.Screen
         name="CommunityScreen"
         component={CommunityScreen}
+        options={{
+          drawerIcon: ({color, size}) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Favorites"
+        component={FavoritesScreen}
         options={{
           drawerIcon: ({color, size}) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
