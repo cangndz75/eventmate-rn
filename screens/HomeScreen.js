@@ -83,7 +83,16 @@ const HomeScreen = () => {
         console.error('Error fetching user data:', error);
       }
     };
-
+    const bottomBarStyle = useAnimatedStyle(() => {
+      return {
+        transform: [
+          {
+            translateY: interpolate(scrollY.value, [0, 50], [100, 0], Extrapolation.CLAMP),
+          },
+        ],
+        opacity: interpolate(scrollY.value, [0, 50], [0, 1], Extrapolation.CLAMP),
+      };
+    });
     const fetchEvents = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
@@ -315,7 +324,6 @@ const HomeScreen = () => {
       </View>
 
       <View style={{flex: 1, backgroundColor: '#f8f8f8', padding: 16}}>
-        {/* Kategori başlıkları */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -558,6 +566,8 @@ const HomeScreen = () => {
         <Text style={{fontSize: 14, color: '#888'}}>© 2024 EventMate</Text>
       </View>
     </Animated.ScrollView>
+    
+    
   );
 };
 
