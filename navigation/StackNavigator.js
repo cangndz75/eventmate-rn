@@ -46,6 +46,8 @@ import AdminCreateCommunityScreen from '../screens/admin/AdminCreateCommunityScr
 import CommunityScreen from '../screens/CommunityScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
 import AdminManageCommunityScreen from '../screens/admin/AdminManageCommunityScreen';
+import AdminCommunityScreen from '../screens/admin/AdminCommunityScreen';
+import AdminCommunityDetailScreen from '../screens/admin/AdminCommunityDetailScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -329,6 +331,16 @@ const StackNavigator = () => {
       <Stack.Screen
         name="CommunityDetailScreen"
         component={CommunityDetailScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="AdminCommunityScreen"
+        component={AdminCommunityScreen}
+        options={{headerShadowVisible: false}}
+      />
+      <Stack.Screen
+        name="AdminCommunityDetailScreen"
+        component={AdminCommunityDetailScreen}
         options={{headerShadowVisible: false}}
       />
       <Stack.Screen

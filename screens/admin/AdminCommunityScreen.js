@@ -42,6 +42,10 @@ const AdminCommunityScreen = () => {
     navigation.navigate('AdminManageCommunityScreen', {communityId});
   };
 
+  const handleViewDetails = communityId => {
+    navigation.navigate('AdminCommunityDetailScreen', {communityId});
+  };
+
   return (
     <ScrollView>
       {communities.map(community => (
@@ -81,6 +85,17 @@ const AdminCommunityScreen = () => {
               }
               )
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleViewDetails(community._id)}
+            style={{
+              marginTop: 10,
+              backgroundColor: '#28a745',
+              paddingVertical: 5,
+              paddingHorizontal: 10,
+              borderRadius: 5,
+            }}>
+            <Text style={{color: 'white'}}>Detayları Görüntüle</Text>
           </TouchableOpacity>
         </View>
       ))}

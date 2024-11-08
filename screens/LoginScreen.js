@@ -28,25 +28,22 @@ const LoginScreen = () => {
     try {
       const response = await axios.post(
         'https://biletixai.onrender.com/login',
-        {
-          email,
-          password,
-        },
+        { email, password }
       );
-      const {token, userId, role} = response.data;
-
+      const { token, userId, role } = response.data;
+  
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('userId', String(userId));
       await AsyncStorage.setItem('role', role);
-
+  
       setToken(token);
       setUserId(userId);
       setRole(role);
-
+  
       if (role === 'organizer') {
         navigation.navigate('AdminDashboard');
       } else {
-        navigation.navigate('Main');
+        navigation.navigate('HomeScreen');
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -55,6 +52,7 @@ const LoginScreen = () => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <KeyboardAvoidingView

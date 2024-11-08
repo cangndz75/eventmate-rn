@@ -153,14 +153,14 @@ const AdminCreateScreen = () => {
   
   const createEvent = async (eventData) => {
     try {
-      const token = await AsyncStorage.getItem('token'); // Retrieve token from storage
+      const token = await AsyncStorage.getItem('token');
   
       const response = await axios.post(
         'https://biletixai.onrender.com/createevent',
         eventData,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include token in headers
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }
@@ -173,7 +173,6 @@ const AdminCreateScreen = () => {
       console.error('Event creation error:', error.message);
       if (error.response && error.response.status === 403) {
         Alert.alert('Error', 'Your session has expired. Please log in again.');
-        // Navigate to Login screen
         navigation.navigate('Login');
       } else {
         Alert.alert('Error', 'Failed to create event. Please try again.');

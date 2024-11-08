@@ -95,12 +95,11 @@ app.post('/register', async (req, res) => {
       image,
       aboutMe,
       interests,
-      community: communityId || null, // Assign community ID if provided
+      community: communityId || null,
     });
 
     await newUser.save();
 
-    // Add the user to the community's member list if communityId is provided
     if (communityId) {
       const community = await Community.findById(communityId);
       if (community) {
@@ -111,7 +110,6 @@ app.post('/register', async (req, res) => {
       }
     }
 
-    // Generate token
     const token = jwt.sign(
       {userId: newUser._id, role: newUser.role},
       process.env.JWT_SECRET_KEY,
@@ -1602,5 +1600,45 @@ app.get('/communities/:communityId', async (req, res) => {
       message: 'Failed to fetch community details',
       error: error.message,
     });
+  }
+});
+
+app.put('/communities/:communityId/name', authenticateToken, async (req, res) => {
+  const { communityId } = req.params;
+  const { name } = req.body;
+
+  console.log('Update request for community name:', name);
+
+  try {
+    const community = await Community.findByIdAndUpdate(communityId, { name }, { new: true });
+    if (!community) {
+      console.error('Community not found for ID:', communityId);
+      return res.status(404).json({ message: 'Community not found' });
+    }
+
+    res.status(200).json(community);
+  } catch (error) {
+    console.error('Error updating community name:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.put('/communities/:communityId/description', authenticateToken, async (req, res) => {
+  const { communityId } = req.params;
+  const { description } = req.body;
+
+  console.log('Update request for community description:', description);
+
+  try {
+    const community = await Community.findByIdAndUpdate(communityId, { description }, { new: true });
+    if (!community) {
+      console.error('Community not found for ID:', communityId);
+      return res.status(404).json({ message: 'Community not found' });
+    }
+
+    res.status(200).json(community);
+  } catch (error) {
+    console.error('Error updating community description:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });

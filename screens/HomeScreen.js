@@ -76,18 +76,20 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        } else if (userId) {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        const token = await AsyncStorage.getItem('token');
+        if (storedUserId && token) {
           const response = await axios.get(
-            `https://biletixai.onrender.com/user/${userId}`,
+            `https://biletixai.onrender.com/user/${storedUserId}`,
+            {headers: {Authorization: `Bearer ${token}`}},
           );
           setUser(response.data);
-          await AsyncStorage.setItem('user', JSON.stringify(response.data));
+        } else {
+          navigation.navigate('Login');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
+        navigation.navigate('Login');
       }
     };
     const fetchEvents = async () => {
