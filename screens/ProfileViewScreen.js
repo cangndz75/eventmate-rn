@@ -15,11 +15,12 @@ import {AuthContext} from '../AuthContext';
 
 const ProfileViewScreen = () => {
   const route = useRoute();
-  const {userId} = route.params; // Profile being viewed
+  const {userId} = route.params;
   const {userId: loggedInUserId} = useContext(AuthContext);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('About');
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const fetchUserData = async () => {
     try {
@@ -57,6 +58,7 @@ const ProfileViewScreen = () => {
       );
 
       if (response.status === 200) {
+        setIsFollowing(true);
         Alert.alert('Request Sent', 'Follow request sent successfully!');
       }
     } catch (error) {
@@ -64,7 +66,6 @@ const ProfileViewScreen = () => {
       Alert.alert('Error', 'Failed to send follow request.');
     }
   };
-
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -106,8 +107,11 @@ const ProfileViewScreen = () => {
         <View style={styles.actions}>
           <TouchableOpacity
             style={styles.followButton}
-            onPress={handleFollowRequest}>
-            <Text style={styles.followButtonText}>+ Follow</Text>
+            onPress={handleFollowRequest}
+            disabled={isFollowing}>
+            <Text style={styles.followButtonText}>
+              {isFollowing ? 'Following' : '+ Follow'}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.messageButton}>
             <Text style={styles.messageButtonText}>Messages</Text>

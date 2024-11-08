@@ -27,7 +27,6 @@ const ProfileDetailScreen = () => {
   const {userId, setToken, setUserId} = useContext(AuthContext);
   const navigation = useNavigation();
 
-  // Fetch user data if userId is available
   const fetchUser = async () => {
     try {
       console.log('Fetching data for user ID:', userId);

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import Animated, {
@@ -31,6 +31,7 @@ const HomeScreen = () => {
   const [eventList, setEventList] = useState([]);
   const [popularEvent, setPopularEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const {userId} = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [errorMessage, setErrorMessage] = useState(null);
@@ -78,27 +79,26 @@ const HomeScreen = () => {
         const storedUser = await AsyncStorage.getItem('user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
+        } else if (userId) {
+          const response = await axios.get(
+            `https://biletixai.onrender.com/user/${userId}`,
+          );
+          setUser(response.data);
+          await AsyncStorage.setItem('user', JSON.stringify(response.data));
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-    const bottomBarStyle = useAnimatedStyle(() => {
-      return {
-        transform: [
-          {
-            translateY: interpolate(scrollY.value, [0, 50], [100, 0], Extrapolation.CLAMP),
-          },
-        ],
-        opacity: interpolate(scrollY.value, [0, 50], [0, 1], Extrapolation.CLAMP),
-      };
-    });
     const fetchEvents = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('http://10.0.2.2:8000/events', {
-          headers: {Authorization: `Bearer ${token}`},
-        });
+        const response = await axios.get(
+          'https://biletixai.onrender.com/events',
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          },
+        );
 
         setEventList(response.data);
         if (response.data.length > 0) {
@@ -120,9 +120,12 @@ const HomeScreen = () => {
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('http://10.0.2.2:8000/events', {
-          headers: {Authorization: `Bearer ${token}`},
-        });
+        const response = await axios.get(
+          'https://biletixai.onrender.com/events',
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          },
+        );
 
         setEventList(response.data);
         if (response.data.length > 0) {
@@ -130,7 +133,7 @@ const HomeScreen = () => {
         }
       } catch (error) {
         console.error('Error fetching events:', error);
-        setErrorMessage('Failed to load events. Please try again later.'); // Set error message
+        setErrorMessage('Failed to load events. Please try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -354,7 +357,6 @@ const HomeScreen = () => {
           ))}
         </ScrollView>
 
-        {/* Popular bölüm */}
         <View
           style={{
             flexDirection: 'row',
@@ -566,8 +568,6 @@ const HomeScreen = () => {
         <Text style={{fontSize: 14, color: '#888'}}>© 2024 EventMate</Text>
       </View>
     </Animated.ScrollView>
-    
-    
   );
 };
 

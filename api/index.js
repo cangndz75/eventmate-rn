@@ -1346,36 +1346,49 @@ app.put('/user/:userId/about', async (req, res) => {
 });
 
 app.post('/user/followRequest', async (req, res) => {
-  const {fromUserId, toUserId} = req.body;
+  const { fromUserId, toUserId } = req.body;
 
   try {
     const targetUser = await User.findById(toUserId);
-    if (!targetUser) {
-      return res.status(404).json({message: 'User not found'});
+    const followingUser = await User.findById(fromUserId);
+
+    if (!targetUser || !followingUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    const notification = new Notification({
-      user: toUserId,
-      message: 'has sent you a follow request',
-      from: {
-        firstName: req.body.fromFirstName,
-        lastName: req.body.fromLastName,
-        image: req.body.fromImage,
-      },
-    });
+    if (targetUser.isPrivate) {
+      targetUser.friendRequests.push({
+        from: fromUserId,
+        status: 'pending',
+        requestedAt: Date.now(),
+      });
 
-    await notification.save();
+      const notification = {
+        type: 'friendRequest',
+        from: fromUserId,
+        message: `${followingUser.firstName} ${followingUser.lastName} has sent you a follow request`,
+        createdAt: Date.now(),
+      };
+      targetUser.notifications.push(notification);
 
-    targetUser.notifications.push(notification._id);
-    await targetUser.save();
+      await targetUser.save();
+      res.status(200).json({ message: 'Follow request sent successfully' });
+    } else {
+      if (!targetUser.followers.includes(fromUserId)) {
+        targetUser.followers.push(fromUserId);
+      }
+      if (!followingUser.following.includes(toUserId)) {
+        followingUser.following.push(toUserId);
+      }
 
-    res
-      .status(200)
-      .json({message: 'Follow request sent and notification created'});
+      await targetUser.save();
+      await followingUser.save();
+      res.status(200).json({ message: 'User followed successfully' });
+    }
   } catch (error) {
-    console.error('Error creating follow request notification:', error);
+    console.error('Error handling follow request:', error);
     res.status(500).json({
-      message: 'Failed to create follow request notification',
+      message: 'Failed to handle follow request',
       error: error.message,
     });
   }

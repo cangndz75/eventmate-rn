@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -17,17 +17,44 @@ const CommunityScreen = () => {
   const [communities, setCommunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null); // Kullanıcı bilgilerini tutmak için
   const navigation = useNavigation();
+
+  // Kullanıcı bilgilerini ve token'i yükleme
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem('token');
+        const storedUser = await AsyncStorage.getItem('user');
+
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } else {
+          Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
+          navigation.navigate('Login'); // Giriş ekranına yönlendirme
+        }
+      } catch (error) {
+        console.error('Kullanıcı verilerini yüklerken hata:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchCommunities();
     }, []),
   );
+
   const fetchCommunities = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://biletixai.onrender.com/communities');
+      const response = await axios.get(
+        'https://biletixai.onrender.com/communities',
+      );
       setCommunities(response.data);
     } catch (error) {
       console.error('Toplulukları çekerken hata:', error.message);
@@ -44,8 +71,12 @@ const CommunityScreen = () => {
   };
 
   const handleJoinCommunity = async communityId => {
+    if (!token) {
+      Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
+      return;
+    }
+
     try {
-      const token = await AsyncStorage.getItem('token');
       const response = await axios.post(
         `https://biletixai.onrender.com/communities/${communityId}/join`,
         {},
@@ -53,8 +84,10 @@ const CommunityScreen = () => {
           headers: {Authorization: `Bearer ${token}`},
         },
       );
+
       if (response.status === 200) {
-        Alert.alert('Başarılı', 'Topluluğa başarıla katıldınız!');
+        Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
+        fetchCommunities(); // Toplulukları yenile
       }
     } catch (error) {
       console.error('Topluluğa katılırken hata:', error.message);
@@ -104,7 +137,14 @@ const CommunityScreen = () => {
         </View>
       </View>
       <Pressable
-        onPress={() => handleJoinCommunity(community._id)}
+        onPress={() =>
+          community.isPrivate
+            ? Alert.alert(
+                'Gizli Topluluk',
+                'Soruları yanıtlayarak katılma isteği gönderebilirsiniz.',
+              )
+            : handleJoinCommunity(community._id)
+        }
         style={{
           marginTop: 10,
           backgroundColor: '#007bff',
@@ -112,7 +152,9 @@ const CommunityScreen = () => {
           borderRadius: 5,
           alignItems: 'center',
         }}>
-        <Text style={{color: 'white'}}>Topluluğa Katıl</Text>
+        <Text style={{color: 'white'}}>
+          {community.isPrivate ? 'Katılma İsteği Gönder' : 'Topluluğa Katıl'}
+        </Text>
       </Pressable>
     </Pressable>
   );
