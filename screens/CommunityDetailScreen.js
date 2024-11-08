@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,20 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BottomModal, SlideAnimation, ModalContent} from 'react-native-modals';
 
 const CommunityDetailScreen = () => {
   const [community, setCommunityDetail] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isJoined, setIsJoined] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [token, setToken] = useState(null);
   const [answers, setAnswers] = useState({
     name: '',
     email: '',
@@ -32,36 +39,62 @@ const CommunityDetailScreen = () => {
   const route = useRoute();
   const {communityId} = route.params;
 
-  useEffect(() => {
-    const fetchCommunityDetails = async () => {
-      try {
-        const response = await axios.get(
-          `https://biletixai.onrender.com/communities/${communityId}`,
-        );
-        setCommunityDetail(response.data);
-      } catch (error) {
-        console.error('Topluluk detaylarını çekerken hata:', error.message);
-        Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
-      }
-    };
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAuthData = async () => {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        const storedToken = await AsyncStorage.getItem('token');
+        if (storedUserId && storedToken) {
+          setUserId(storedUserId);
+          setToken(storedToken);
+        } else {
+          Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
+          navigation.navigate('Login');
+        }
+      };
 
-    if (communityId) {
-      fetchCommunityDetails();
-    } else {
-      Alert.alert('Hata', "Topluluk ID'si bulunamadı.");
-    }
-  }, [communityId]);
+      const fetchCommunityDetails = async () => {
+        try {
+          const response = await axios.get(
+            `https://biletixai.onrender.com/communities/${communityId}`,
+          );
+          setCommunityDetail(response.data);
+          setIsJoined(response.data.isJoined);
+        } catch (error) {
+          console.error('Topluluk detaylarını çekerken hata:', error.message);
+          Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
+        }
+      };
+
+      fetchAuthData();
+      if (communityId) {
+        fetchCommunityDetails();
+      } else {
+        Alert.alert('Hata', "Topluluk ID'si bulunamadı.");
+      }
+    }, [communityId]),
+  );
 
   const joinCommunity = async () => {
+    if (!userId || !token) {
+      Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
+      navigation.navigate('Login');
+      return;
+    }
+
     try {
-      const token = await AsyncStorage.getItem('token');
       const response = await axios.post(
         `https://biletixai.onrender.com/communities/${communityId}/join`,
-        {},
+        {
+          userId,
+          answers,
+        },
         {headers: {Authorization: `Bearer ${token}`}},
       );
+
       if (response.status === 200) {
         Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
+        setIsJoined(true);
       }
     } catch (error) {
       console.error('Topluluğa katılırken hata:', error.message);
@@ -70,14 +103,13 @@ const CommunityDetailScreen = () => {
   };
 
   const submitAnswers = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
-        navigation.navigate('Login');
-        return;
-      }
+    if (!userId || !token) {
+      Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
+      navigation.navigate('Login');
+      return;
+    }
 
+    try {
       const response = await axios.post(
         `https://biletixai.onrender.com/communities/${communityId}/accept-request`,
         {requestId: communityId, answers},
@@ -100,12 +132,7 @@ const CommunityDetailScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Community Details</Text>
-      </View>
+
 
       <Image
         source={{
@@ -134,10 +161,17 @@ const CommunityDetailScreen = () => {
         <TouchableOpacity
           style={styles.joinButton}
           onPress={
-            community.isPrivate ? () => setModalVisible(true) : joinCommunity
-          }>
+            isJoined
+              ? null
+              : community.isPrivate
+              ? () => setModalVisible(true)
+              : joinCommunity
+          }
+          disabled={isJoined}>
           <Text style={styles.joinButtonText}>
-            {community.isPrivate
+            {isJoined
+              ? 'Katıldı'
+              : community.isPrivate
               ? 'Soruları Cevapla ve Katıl'
               : 'Topluluğa Katıl'}
           </Text>

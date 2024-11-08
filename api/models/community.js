@@ -7,10 +7,10 @@ const communitySchema = new Schema(
     description: {type: String, required: true},
     profileImage: {type: String},
     headerImage: {type: String},
-    tags: [String],
+    tags: {type: [String], default: []},
     isPrivate: {type: Boolean, default: false},
-    links: [String],
-    members: [{type: Schema.Types.ObjectId, ref: 'User'}],
+    links: {type: [String], default: []},
+    members: [{type: Schema.Types.ObjectId, ref: 'User', default: []}],
     joinRequests: [
       {
         userId: {type: Schema.Types.ObjectId, ref: 'User'},
@@ -24,7 +24,7 @@ const communitySchema = new Schema(
       },
     ],
     organizer: {type: Schema.Types.ObjectId, ref: 'User', required: true},
-    events: [{type: Schema.Types.ObjectId, ref: 'Event'}],
+    events: [{type: Schema.Types.ObjectId, ref: 'Event', default: []}],
     posts: [
       {
         author: {type: Schema.Types.ObjectId, ref: 'User'},

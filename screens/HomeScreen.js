@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -73,50 +73,52 @@ const HomeScreen = () => {
     };
   });
   const filteredEvents = filterEventsByCategory(eventList, selectedCategory);
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const storedUserId = await AsyncStorage.getItem('userId');
-        const token = await AsyncStorage.getItem('token');
-        if (storedUserId && token) {
-          const response = await axios.get(
-            `https://biletixai.onrender.com/user/${storedUserId}`,
-            {headers: {Authorization: `Bearer ${token}`}},
-          );
-          setUser(response.data);
-        } else {
-          navigation.navigate('Login');
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (userId && token) {
+        const response = await axios.get(
+          `https://biletixai.onrender.com/user/${userId}`,
+          {headers: {Authorization: `Bearer ${token}`}},
+        );
+        setUser(response.data);
+      } else {
         navigation.navigate('Login');
       }
-    };
-    const fetchEvents = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await axios.get(
-          'https://biletixai.onrender.com/events',
-          {
-            headers: {Authorization: `Bearer ${token}`},
-          },
-        );
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      navigation.navigate('Login');
+    }
+  };
 
-        setEventList(response.data);
-        if (response.data.length > 0) {
-          setPopularEvent(response.data[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        setErrorMessage('Failed to load events. Please try again later.');
-      } finally {
-        setIsLoading(false);
+  const fetchEvents = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(
+        'https://biletixai.onrender.com/events',
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
+      );
+
+      setEventList(response.data);
+      if (response.data.length > 0) {
+        setPopularEvent(response.data[0]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setErrorMessage('Failed to load events. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchUserData();
-    fetchEvents();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+      fetchEvents();
+    }, []),
+  );
 
   useEffect(() => {
     const fetchData = async () => {
