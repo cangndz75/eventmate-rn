@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useEffect} from 'react';
+import React, {useCallback, useState, useEffect, useContext} from 'react';
 import {
   View,
   Text,
@@ -12,36 +12,45 @@ import {
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {AuthContext} from '../AuthContext';
 
 const CommunityScreen = () => {
   const [communities, setCommunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [token, setToken] = useState(null);
-  const [user, setUser] = useState(null); // Kullanıcı bilgilerini tutmak için
+  const [user, setUser] = useState(null);
   const navigation = useNavigation();
+  const {userId, setToken, setUserId} = useContext(AuthContext);
 
-  // Kullanıcı bilgilerini ve token'i yükleme
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem('token');
-        const storedUser = await AsyncStorage.getItem('user');
+  const fetchUserData = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem('token');
+      const storedUserId = await AsyncStorage.getItem('userId');
 
-        if (storedToken && storedUser) {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-        } else {
-          Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
-          navigation.navigate('Login'); // Giriş ekranına yönlendirme
-        }
-      } catch (error) {
-        console.error('Kullanıcı verilerini yüklerken hata:', error);
+      if (storedToken && storedUserId) {
+        const response = await axios.get(
+          `http://10.0.2.2:8000/user/${storedUserId}`,
+          {
+            headers: {Authorization: `Bearer ${storedToken}`},
+          },
+        );
+        setUser(response.data);
+      } else {
+        Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
+        navigation.navigate('Login');
       }
-    };
+    } catch (error) {
+      console.error('Kullanıcı verilerini yüklerken hata:', error);
+    }
+  };
 
-    loadUserData();
-  }, []);
+  useEffect(() => {
+    if (userId) {
+      fetchUserData();
+    } else {
+      navigation.navigate('Login');
+    }
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -68,31 +77,6 @@ const CommunityScreen = () => {
     setRefreshing(true);
     await fetchCommunities();
     setRefreshing(false);
-  };
-
-  const handleJoinCommunity = async communityId => {
-    if (!token) {
-      Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `https://biletixai.onrender.com/communities/${communityId}/join`,
-        {},
-        {
-          headers: {Authorization: `Bearer ${token}`},
-        },
-      );
-
-      if (response.status === 200) {
-        Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
-        fetchCommunities(); // Toplulukları yenile
-      }
-    } catch (error) {
-      console.error('Topluluğa katılırken hata:', error.message);
-      Alert.alert('Hata', 'Topluluğa katılırken bir sorun oluştu.');
-    }
   };
 
   const handleNavigation = communityId => {
@@ -137,14 +121,7 @@ const CommunityScreen = () => {
         </View>
       </View>
       <Pressable
-        onPress={() =>
-          community.isPrivate
-            ? Alert.alert(
-                'Gizli Topluluk',
-                'Soruları yanıtlayarak katılma isteği gönderebilirsiniz.',
-              )
-            : handleJoinCommunity(community._id)
-        }
+        onPress={() => handleNavigation(community._id)}
         style={{
           marginTop: 10,
           backgroundColor: '#007bff',
@@ -152,9 +129,7 @@ const CommunityScreen = () => {
           borderRadius: 5,
           alignItems: 'center',
         }}>
-        <Text style={{color: 'white'}}>
-          {community.isPrivate ? 'Katılma İsteği Gönder' : 'Topluluğa Katıl'}
-        </Text>
+        <Text style={{color: 'white'}}>Detay</Text>
       </Pressable>
     </Pressable>
   );

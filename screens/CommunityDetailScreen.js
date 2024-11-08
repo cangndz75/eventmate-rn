@@ -53,34 +53,37 @@ const CommunityDetailScreen = () => {
   }, [communityId]);
 
   const joinCommunity = async () => {
-    if (community?.isPrivate) {
-      setModalVisible(true);
-    } else {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await axios.post(
-          `https://biletixai.onrender.com/communities/${communityId}/join`,
-          {},
-          {headers: {Authorization: `Bearer ${token}`}},
-        );
-        if (response.status === 200) {
-          Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
-        }
-      } catch (error) {
-        console.error('Topluluğa katılırken hata:', error.message);
-        Alert.alert('Hata', 'Topluluğa katılırken bir sorun oluştu.');
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.post(
+        `https://biletixai.onrender.com/communities/${communityId}/join`,
+        {},
+        {headers: {Authorization: `Bearer ${token}`}},
+      );
+      if (response.status === 200) {
+        Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
       }
+    } catch (error) {
+      console.error('Topluluğa katılırken hata:', error.message);
+      Alert.alert('Hata', 'Topluluğa katılırken bir sorun oluştu.');
     }
   };
 
   const submitAnswers = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
+        navigation.navigate('Login');
+        return;
+      }
+
       const response = await axios.post(
-        `https://biletixai.onrender.com/communities/${communityId}/join`,
-        {answers},
+        `https://biletixai.onrender.com/communities/${communityId}/accept-request`,
+        {requestId: communityId, answers},
         {headers: {Authorization: `Bearer ${token}`}},
       );
+
       if (response.status === 200) {
         Alert.alert('Başarılı', 'Başvuru gönderildi. Onay bekleniyor.');
         setModalVisible(false);
@@ -128,7 +131,11 @@ const CommunityDetailScreen = () => {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.joinButton} onPress={joinCommunity}>
+        <TouchableOpacity
+          style={styles.joinButton}
+          onPress={
+            community.isPrivate ? () => setModalVisible(true) : joinCommunity
+          }>
           <Text style={styles.joinButtonText}>
             {community.isPrivate
               ? 'Soruları Cevapla ve Katıl'

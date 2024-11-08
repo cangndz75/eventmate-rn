@@ -1448,31 +1448,31 @@ app.post(
   '/communities/:communityId/join',
   authenticateToken,
   async (req, res) => {
-    const {communityId} = req.params;
-    const {answers} = req.body;
+    const { communityId } = req.params;
+    const { answers } = req.body;
     const userId = req.user.userId;
 
     try {
       const community = await Community.findById(communityId);
 
       if (!community) {
-        return res.status(404).json({message: 'Community not found'});
+        return res.status(404).json({ message: 'Community not found' });
       }
 
-      if (community.isPrivate) {
-        community.joinRequests.push({userId, answers, status: 'pending'});
-        await community.save();
-        return res.status(200).json({message: 'Join request sent'});
-      } else {
+      if (!community.isPrivate) {
         if (!community.members.includes(userId)) {
           community.members.push(userId);
           await community.save();
         }
-        return res.status(200).json({message: 'Joined community'});
+        return res.status(200).json({ message: 'Joined community' });
       }
+
+      community.joinRequests.push({ userId, answers, status: 'pending' });
+      await community.save();
+      return res.status(200).json({ message: 'Join request sent' });
     } catch (error) {
       console.error('Error joining community:', error);
-      res.status(500).json({message: 'Internal server error'});
+      res.status(500).json({ message: 'Internal server error' });
     }
   }
 );
@@ -1511,8 +1511,8 @@ app.post(
   '/communities/:communityId/accept-request',
   authenticateToken,
   async (req, res) => {
-    const {communityId} = req.params;
-    const {requestId} = req.body;
+    const { communityId } = req.params;
+    const { answers } = req.body;
 
     try {
       const community = await Community.findById(communityId);
