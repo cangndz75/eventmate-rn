@@ -1,18 +1,25 @@
-import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import {DrawerContentScrollView, DrawerItem, DrawerItemList} from '@react-navigation/drawer';
+import React, {useContext} from 'react';
+import {View, Text, Image, StyleSheet} from 'react-native';
+import {
+  DrawerContentScrollView,
+  DrawerItemList,
+} from '@react-navigation/drawer';
+import {AuthContext} from '../AuthContext';
 
 const CustomDrawerContent = props => {
+  const {user} = useContext(AuthContext);
+
   return (
     <DrawerContentScrollView {...props}>
       <View style={{padding: 20}}>
         <Image
-          source={{uri: 'https://example.com/profile.jpg'}}
+          source={{
+            uri: user?.profileImage || 'https://example.com/profile.jpg',
+          }}
           style={{width: 60, height: 60, borderRadius: 30}}
         />
         <Text style={{fontSize: 20, fontWeight: 'bold', marginVertical: 10}}>
-          Rakha Wibowo
+          {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
         </Text>
       </View>
       <DrawerItemList {...props} />

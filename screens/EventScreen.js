@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect, useRef} from 'react';
+import React, {useState, useContext, useEffect, useRef, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,16 +9,17 @@ import {
   TextInput,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import UpComingEvent from '../components/UpComingEvent';
 import FilterModal from '../components/FilterModal';
 
 const EventScreen = () => {
-  const {user} = useContext(AuthContext);
-  const navigation = useNavigation(); // Navigasyon hook'u
+  const [user, setUser] = useState(null);
+  const navigation = useNavigation();
   const route = useRoute();
+  const {userId} = useContext(AuthContext);
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,24 @@ const EventScreen = () => {
   useEffect(() => {
     fetchEvents();
   }, [selectedCategory]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, []),
+  );
+  const fetchUserData = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (userId && token) {
+      const response = await axios.get(
+        `https://biletixai.onrender.com/user/${userId}`,
+        {headers: {Authorization: `Bearer ${token}`}},
+      );
+      setUser(response.data);
+    } else {
+      navigation.navigate('Login');
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -58,8 +77,9 @@ const EventScreen = () => {
     <View style={{padding: 12, backgroundColor: '#7b61ff'}}>
       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>
-          {user?.firstName || 'Guest'}
+          {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
         </Text>
+
         <Ionicons name="notifications-outline" size={24} color="white" />
       </View>
 
@@ -80,7 +100,12 @@ const EventScreen = () => {
           style={{flex: 1, marginLeft: 10}}
           editable={false}
         />
-        <Ionicons onPress={() => setFilterModalVisible(true)} name="filter-outline" size={24} color="#7b61ff" />
+        <Ionicons
+          onPress={() => setFilterModalVisible(true)}
+          name="filter-outline"
+          size={24}
+          color="#7b61ff"
+        />
       </Pressable>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>

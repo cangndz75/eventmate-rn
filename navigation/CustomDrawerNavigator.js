@@ -6,12 +6,12 @@ import HomeScreen from '../screens/HomeScreen';
 import CustomDrawerContent from './CustomDrawerContent';
 import EventScreen from '../screens/EventScreen';
 import CommunityScreen from '../screens/CommunityScreen';
-import AdminCommunityScreen from '../screens/admin/AdminCommunityScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
+
 const Drawer = createDrawerNavigator();
 
 const CustomDrawerNavigator = () => {
-  const userRole = 'organizer'; 
+  const userRole = 'organizer';
 
   return (
     <Drawer.Navigator
