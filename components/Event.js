@@ -1,11 +1,13 @@
 import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import Feather from 'react-native-vector-icons/Feather';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import {useNavigation} from '@react-navigation/native';
+import {AuthContext} from '../AuthContext';
 
 const Event = ({item}) => {
   const navigation = useNavigation();
+  const {user} = useContext(AuthContext);
 
   return (
     <Pressable
@@ -16,8 +18,7 @@ const Event = ({item}) => {
         backgroundColor: 'white',
         borderRadius: 10,
       }}
-      onPress={() => navigation.navigate('Event', {item})} 
-    >
+      onPress={() => navigation.navigate('Event', {item, user})}>
       <View
         style={{
           flexDirection: 'row',

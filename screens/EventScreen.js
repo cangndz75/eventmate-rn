@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useContext, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,17 +9,16 @@ import {
   TextInput,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import axios from 'axios';
 import {AuthContext} from '../AuthContext';
 import UpComingEvent from '../components/UpComingEvent';
 import FilterModal from '../components/FilterModal';
 
 const EventScreen = () => {
-  const [user, setUser] = useState(null);
+  const {user} = useContext(AuthContext);
   const navigation = useNavigation();
   const route = useRoute();
-  const {userId} = useContext(AuthContext);
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,28 +34,11 @@ const EventScreen = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, [selectedCategory]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserData();
-    }, []),
-  );
-  const fetchUserData = async () => {
-    const token = await AsyncStorage.getItem('token');
-    if (userId && token) {
-      const response = await axios.get(
-        `https://biletixai.onrender.com/user/${userId}`,
-        {headers: {Authorization: `Bearer ${token}`}},
-      );
-      setUser(response.data);
-    } else {
-      navigation.navigate('Login');
-    }
-  };
+  }, []);
 
   const fetchEvents = async () => {
     try {
+      setLoading(true);
       const response = await axios.get('https://biletixai.onrender.com/events');
       setEvents(response.data);
     } catch (error) {
@@ -79,7 +61,6 @@ const EventScreen = () => {
         <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>
           {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
         </Text>
-
         <Ionicons name="notifications-outline" size={24} color="white" />
       </View>
 
