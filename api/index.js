@@ -10,6 +10,7 @@ const Event = require('./models/event');
 const Message = require('./models/message');
 const Venue = require('./models/venue');
 const Community = require('./models/community');
+const Post = require('./models/post');
 const moment = require('moment');
 const app = express();
 const port = process.env.PORT || 8000;
