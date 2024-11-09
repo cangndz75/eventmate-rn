@@ -1657,30 +1657,102 @@ app.post('/communities/:communityId/send-request', async (req, res) => {
   }
 });
 
-app.post('/posts/create', async (req, res) => {
+app.post('/posts/create', authenticateToken, async (req, res) => {
   const { description, imageUrl, userId } = req.body;
+
+  if (!description || !userId) {
+    return res.status(400).json({ message: 'Description and user ID are required.' });
+  }
 
   try {
     const newPost = new Post({
-      description: description,
-      imageUrl: imageUrl,
+      description,
+      imageUrl,
       user: userId,
     });
 
     await newPost.save();
     res.status(201).json({ message: 'Post created successfully', post: newPost });
   } catch (error) {
-    console.error('Error creating the post:', error);
-    res.status(500).json({ message: 'Error creating the post' });
+    console.error('Error creating post:', error);
+    res.status(500).json({ message: 'Failed to create post.' });
   }
 });
 
-app.get('/posts', async (req, res) => {
+app.post('/posts/:postId/like', authenticateToken, async (req, res) => {
+  const { postId } = req.params;
+  const { userId } = req.body;
+
   try {
-    const posts = await Post.find().populate('user', 'name profileImage');
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const isLiked = post.likes.some(like => like.user.toString() === userId);
+
+    if (isLiked) {
+      post.likes = post.likes.filter(like => like.user.toString() !== userId);
+    } else {
+      post.likes.push({ user: userId });
+    }
+
+    await post.save();
+    res.status(200).json({ message: isLiked ? 'Post unliked' : 'Post liked', post });
+  } catch (error) {
+    console.error('Error updating like status:', error);
+    res.status(500).json({ message: 'Failed to update like status' });
+  }
+});
+
+app.post('/posts/:postId/comment', authenticateToken, async (req, res) => {
+  const { postId } = req.params;
+  const { userId, text } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ message: 'Comment text is required' });
+  }
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    post.comments.push({ user: userId, text });
+    await post.save();
+
+    res.status(200).json({ message: 'Comment added', post });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Failed to add comment' });
+  }
+});
+
+app.get('/posts', authenticateToken, async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate('user', 'firstName lastName image')
+      .populate('comments.user', 'firstName lastName image');
+
     res.status(200).json({ posts });
   } catch (error) {
     console.error('Error fetching posts:', error);
-    res.status(500).json({ message: 'Error fetching posts' });
+    res.status(500).json({ message: 'Failed to fetch posts' });
+  }
+});
+
+app.get('/posts/:postId', authenticateToken, async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    const post = await Post.findById(postId)
+      .populate('user', 'firstName lastName image')
+      .populate('comments.user', 'firstName lastName image');
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.status(200).json({ post });
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    res.status(500).json({ message: 'Failed to fetch post' });
   }
 });
