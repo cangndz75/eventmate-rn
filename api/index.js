@@ -1442,7 +1442,6 @@ app.get('/communities', async (req, res) => {
   }
 });
 
-// Remove any middlewares like 'authenticateToken' or 'authCheck' from this route
 app.post('/communities/:communityId/join', async (req, res) => {
   const { communityId } = req.params;
   const { answers, userId } = req.body;

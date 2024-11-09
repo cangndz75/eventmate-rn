@@ -74,19 +74,14 @@ const HomeScreen = () => {
   });
   const filteredEvents = filterEventsByCategory(eventList, selectedCategory);
   const fetchUserData = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (userId && token) {
-        const response = await axios.get(
-          `https://biletixai.onrender.com/user/${userId}`,
-          {headers: {Authorization: `Bearer ${token}`}},
-        );
-        setUser(response.data);
-      } else {
-        navigation.navigate('Login');
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+    const token = await AsyncStorage.getItem('token');
+    if (userId && token) {
+      const response = await axios.get(
+        `https://biletixai.onrender.com/user/${userId}`,
+        {headers: {Authorization: `Bearer ${token}`}},
+      );
+      setUser(response.data);
+    } else {
       navigation.navigate('Login');
     }
   };
@@ -249,7 +244,7 @@ const HomeScreen = () => {
         showsHorizontalScrollIndicator={false}
         style={{marginBottom: 20}}>
         {[
-          {title: 'Music Festivals', image: 'https://picsum.photos/200'},
+          {title: 'Concert', image: 'https://i.ibb.co/HFrRNQm/Yeni-Proje.png'},
           {title: 'Sport Events', image: 'https://picsum.photos/201'},
           {title: 'Fashion Shows', image: 'https://picsum.photos/202'},
           {title: 'Book Fair', image: 'https://picsum.photos/203'},
