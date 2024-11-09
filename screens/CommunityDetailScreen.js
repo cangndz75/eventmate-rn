@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useContext, useEffect} from 'react';
 import {
   View,
   Text,
@@ -17,15 +17,13 @@ import {
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BottomModal, SlideAnimation, ModalContent} from 'react-native-modals';
+import {AuthContext} from '../AuthContext';
 
 const CommunityDetailScreen = () => {
   const [community, setCommunityDetail] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [token, setToken] = useState(null);
   const [answers, setAnswers] = useState({
     name: '',
     email: '',
@@ -38,45 +36,36 @@ const CommunityDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {communityId} = route.params;
+  const {user, token} = useContext(AuthContext);
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchAuthData = async () => {
-        const storedUserId = await AsyncStorage.getItem('userId');
-        const storedToken = await AsyncStorage.getItem('token');
-        if (storedUserId && storedToken) {
-          setUserId(storedUserId);
-          setToken(storedToken);
-        } else {
-          Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
-          navigation.navigate('Login');
-        }
-      };
+  useEffect(() => {
+    const fetchCommunityDetails = async () => {
+      try {
+        const response = await axios.get(
+          `https://biletixai.onrender.com/communities/${communityId}`,
+        );
+        const communityData = response.data;
+        setCommunityDetail(communityData);
 
-      const fetchCommunityDetails = async () => {
-        try {
-          const response = await axios.get(
-            `https://biletixai.onrender.com/communities/${communityId}`,
-          );
-          setCommunityDetail(response.data);
-          setIsJoined(response.data.isJoined);
-        } catch (error) {
-          console.error('Topluluk detaylarını çekerken hata:', error.message);
-          Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
-        }
-      };
-
-      fetchAuthData();
-      if (communityId) {
-        fetchCommunityDetails();
-      } else {
-        Alert.alert('Hata', "Topluluk ID'si bulunamadı.");
+        const isMember = communityData.members.some(
+          member => member._id === user._id,
+        );
+        setIsJoined(isMember);
+      } catch (error) {
+        console.error('Error fetching community details:', error);
+        Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
       }
-    }, [communityId]),
-  );
+    };
+
+    if (communityId) {
+      fetchCommunityDetails();
+    } else {
+      Alert.alert('Hata', "Topluluk ID'si bulunamadı.");
+    }
+  }, [communityId, user._id]);
 
   const joinCommunity = async () => {
-    if (!userId || !token) {
+    if (!user || !token) {
       Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
       navigation.navigate('Login');
       return;
@@ -86,7 +75,7 @@ const CommunityDetailScreen = () => {
       const response = await axios.post(
         `https://biletixai.onrender.com/communities/${communityId}/join`,
         {
-          userId,
+          userId: user._id,
           answers,
         },
         {headers: {Authorization: `Bearer ${token}`}},
@@ -103,7 +92,7 @@ const CommunityDetailScreen = () => {
   };
 
   const submitAnswers = async () => {
-    if (!userId || !token) {
+    if (!user || !token) {
       Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
       navigation.navigate('Login');
       return;
@@ -111,7 +100,7 @@ const CommunityDetailScreen = () => {
 
     try {
       const response = await axios.post(
-        `https://biletixai.onrender.com/communities/${communityId}/accept-request`,
+        `https://biletixai.onrender.com/communities/${communityId}/send-request`,
         {requestId: communityId, answers},
         {headers: {Authorization: `Bearer ${token}`}},
       );
@@ -132,8 +121,6 @@ const CommunityDetailScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-
-
       <Image
         source={{
           uri: community?.headerImage || 'https://via.placeholder.com/400x200',
@@ -157,6 +144,14 @@ const CommunityDetailScreen = () => {
             <Text style={styles.location}>İstanbul, Turkey</Text>
           </View>
         </View>
+
+        {isJoined && (
+          <TouchableOpacity
+            style={styles.wallButton}
+            onPress={() => navigation.navigate('PostScreen', {communityId})}>
+            <Text style={styles.wallButtonText}>Duvar</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={styles.joinButton}
@@ -252,12 +247,6 @@ const CommunityDetailScreen = () => {
 
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#fff'},
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-  },
-  headerText: {fontSize: 20, fontWeight: 'bold', marginLeft: 10},
   headerImage: {width: '100%', height: 200},
   content: {padding: 20},
   profileInfo: {flexDirection: 'row', alignItems: 'center', marginBottom: 15},
@@ -274,8 +263,16 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   joinButtonText: {color: '#fff', fontWeight: 'bold'},
+  wallButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  wallButtonText: {color: 'white', fontWeight: 'bold'},
   description: {fontSize: 16, color: 'gray', marginVertical: 10},
-  linkText: {color: '#007bff', marginRight: 10, marginBottom: 5},
+  linkText: {color: '#007bff', marginBottom: 5},
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',

@@ -1572,30 +1572,18 @@ app.post(
 
 app.get('/communities/:communityId', async (req, res) => {
   const { communityId } = req.params;
-
-  console.log('Fetching community with ID:', communityId);
-
-  if (!mongoose.Types.ObjectId.isValid(communityId)) {
-    return res.status(400).json({ message: 'Invalid community ID' });
-  }
-
   try {
     const community = await Community.findById(communityId)
-      .populate('organizer', 'firstName lastName')
-      .populate('members', 'firstName lastName');
-
+      .populate('members', 'firstName lastName image')
+      .populate('joinRequests.userId', 'firstName lastName');
+    
     if (!community) {
-      console.warn('Community not found.');
       return res.status(404).json({ message: 'Community not found' });
     }
-
-    res.status(200).json(community);
+    res.json(community);
   } catch (error) {
-    console.error('Error fetching community details:', error);
-    res.status(500).json({
-      message: 'Failed to fetch community details',
-      error: error.message,
-    });
+    console.error('Error fetching community:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -1636,5 +1624,62 @@ app.put('/communities/:communityId/description', authenticateToken, async (req, 
   } catch (error) {
     console.error('Error updating community description:', error);
     res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.post('/communities/:communityId/send-request', async (req, res) => {
+  const { communityId } = req.params;
+  const { answers, userId } = req.body;
+
+  try {
+    const community = await Community.findById(communityId);
+
+    if (!community) {
+      return res.status(404).json({ message: 'Community not found' });
+    }
+
+    const existingRequest = community.joinRequests.find(
+      (request) => request.userId.toString() === userId
+    );
+
+    if (existingRequest) {
+      return res.status(400).json({ message: 'Join request already exists' });
+    }
+
+    community.joinRequests.push({ userId, answers, status: 'pending' });
+    await community.save();
+
+    return res.status(200).json({ message: 'Join request sent' });
+  } catch (error) {
+    console.error('Error sending join request:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/posts/create', async (req, res) => {
+  const { description, imageUrl, userId } = req.body;
+
+  try {
+    const newPost = new Post({
+      description: description,
+      imageUrl: imageUrl,
+      user: userId,
+    });
+
+    await newPost.save();
+    res.status(201).json({ message: 'Post created successfully', post: newPost });
+  } catch (error) {
+    console.error('Error creating the post:', error);
+    res.status(500).json({ message: 'Error creating the post' });
+  }
+});
+
+app.get('/posts', async (req, res) => {
+  try {
+    const posts = await Post.find().populate('user', 'name profileImage');
+    res.status(200).json({ posts });
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Error fetching posts' });
   }
 });

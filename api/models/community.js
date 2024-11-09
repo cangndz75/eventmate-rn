@@ -10,7 +10,7 @@ const communitySchema = new Schema(
     tags: {type: [String], default: []},
     isPrivate: {type: Boolean, default: false},
     links: {type: [String], default: []},
-    members: [{type: Schema.Types.ObjectId, ref: 'User', default: []}],
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     joinRequests: [
       {
         userId: {type: Schema.Types.ObjectId, ref: 'User'},

@@ -11,52 +11,22 @@ import {
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../AuthContext';
 
 const CommunityScreen = () => {
   const [communities, setCommunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [user, setUser] = useState(null);
   const navigation = useNavigation();
-  const {userId, setToken, setUserId} = useContext(AuthContext);
-
-  const fetchUserData = async () => {
-    try {
-      const storedToken = await AsyncStorage.getItem('token');
-      const storedUserId = await AsyncStorage.getItem('userId');
-
-      if (storedToken && storedUserId) {
-        const response = await axios.get(
-          `http://10.0.2.2:8000/user/${storedUserId}`,
-          {
-            headers: {Authorization: `Bearer ${storedToken}`},
-          },
-        );
-        setUser(response.data);
-      } else {
-        Alert.alert('Hata', 'Giriş yapmanız gerekiyor.');
-        navigation.navigate('Login');
-      }
-    } catch (error) {
-      console.error('Kullanıcı verilerini yüklerken hata:', error);
-    }
-  };
+  const {user, userId, token} = useContext(AuthContext); // Access user, userId, token from context
 
   useEffect(() => {
     if (userId) {
-      fetchUserData();
+      fetchCommunities();
     } else {
       navigation.navigate('Login');
     }
   }, [userId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchCommunities();
-    }, []),
-  );
 
   const fetchCommunities = async () => {
     setLoading(true);
@@ -66,8 +36,8 @@ const CommunityScreen = () => {
       );
       setCommunities(response.data);
     } catch (error) {
-      console.error('Toplulukları çekerken hata:', error.message);
-      Alert.alert('Hata', 'Topluluklar bulunamadı.');
+      console.error('Error fetching communities:', error.message);
+      Alert.alert('Error', 'Could not load communities.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +50,7 @@ const CommunityScreen = () => {
   };
 
   const handleNavigation = communityId => {
-    navigation.navigate('CommunityDetailScreen', {communityId});
+    navigation.navigate('CommunityDetailScreen', {communityId, user});
   };
 
   const renderCommunityItem = ({item: community}) => (
@@ -120,17 +90,6 @@ const CommunityScreen = () => {
           )}
         </View>
       </View>
-      <Pressable
-        onPress={() => handleNavigation(community._id)}
-        style={{
-          marginTop: 10,
-          backgroundColor: '#007bff',
-          padding: 10,
-          borderRadius: 5,
-          alignItems: 'center',
-        }}>
-        <Text style={{color: 'white'}}>Detay</Text>
-      </Pressable>
     </Pressable>
   );
 

@@ -48,6 +48,7 @@ import CommunityDetailScreen from '../screens/CommunityDetailScreen';
 import AdminManageCommunityScreen from '../screens/admin/AdminManageCommunityScreen';
 import AdminCommunityScreen from '../screens/admin/AdminCommunityScreen';
 import AdminCommunityDetailScreen from '../screens/admin/AdminCommunityDetailScreen';
+import PostScreen from '../screens/PostScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -301,6 +302,11 @@ const StackNavigator = () => {
       <Stack.Screen
         name="ReviewScreen"
         component={ReviewScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="PostScreen"
+        component={PostScreen}
         options={{headerShown: false}}
       />
       <Stack.Screen
