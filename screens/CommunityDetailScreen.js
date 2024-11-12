@@ -46,17 +46,20 @@ const CommunityDetailScreen = () => {
         );
         const communityData = response.data;
         setCommunityDetail(communityData);
-
         const isMember = communityData.members.some(
           member => member._id === user._id,
         );
+        const hasPendingRequest = communityData.joinRequests.some(
+          request => request.userId === user._id && request.status === 'pending'
+        );
+  
         setIsJoined(isMember);
+        setModalVisible(!isMember && hasPendingRequest); 
       } catch (error) {
         console.error('Error fetching community details:', error);
         Alert.alert('Hata', 'Topluluk detayları bulunamadı.');
       }
     };
-
     if (communityId) {
       fetchCommunityDetails();
     } else {
@@ -70,7 +73,6 @@ const CommunityDetailScreen = () => {
       navigation.navigate('Login');
       return;
     }
-
     try {
       const response = await axios.post(
         `https://biletixai.onrender.com/communities/${communityId}/join`,
@@ -80,7 +82,6 @@ const CommunityDetailScreen = () => {
         },
         {headers: {Authorization: `Bearer ${token}`}},
       );
-
       if (response.status === 200) {
         Alert.alert('Başarılı', 'Topluluğa başarıyla katıldınız!');
         setIsJoined(true);

@@ -1507,32 +1507,31 @@ app.post(
   authenticateToken,
   async (req, res) => {
     const { communityId } = req.params;
-    const { answers } = req.body;
+    const { requestId } = req.body;
 
     try {
       const community = await Community.findById(communityId);
-
       if (!community) {
-        return res.status(404).json({message: 'Community not found'});
+        return res.status(404).json({ message: 'Community not found' });
       }
 
       if (req.user.userId !== community.organizer.toString()) {
-        return res.status(403).json({message: 'Unauthorized access'});
+        return res.status(403).json({ message: 'Unauthorized access' });
       }
 
       const request = community.joinRequests.id(requestId);
       if (!request) {
-        return res.status(404).json({message: 'Request not found'});
+        return res.status(404).json({ message: 'Request not found' });
       }
 
-      request.status = 'accepted';
-      community.members.addToSet(request.userId);
-
+      request.status = 'approved';
+      community.members.push(request.userId);
       await community.save();
-      res.status(200).json({message: 'Request accepted'});
+
+      res.status(200).json({ message: 'Request approved successfully' });
     } catch (error) {
-      console.error('Error accepting request:', error);
-      res.status(500).json({message: 'Internal server error'});
+      console.error('Error approving request:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   }
 );
@@ -1541,32 +1540,31 @@ app.post(
   '/communities/:communityId/reject-request',
   authenticateToken,
   async (req, res) => {
-    const {communityId} = req.params;
-    const {requestId} = req.body;
+    const { communityId } = req.params;
+    const { requestId } = req.body;
 
     try {
       const community = await Community.findById(communityId);
-
       if (!community) {
-        return res.status(404).json({message: 'Community not found'});
+        return res.status(404).json({ message: 'Community not found' });
       }
 
       if (req.user.userId !== community.organizer.toString()) {
-        return res.status(403).json({message: 'Unauthorized access'});
+        return res.status(403).json({ message: 'Unauthorized access' });
       }
 
       const request = community.joinRequests.id(requestId);
       if (!request) {
-        return res.status(404).json({message: 'Request not found'});
+        return res.status(404).json({ message: 'Request not found' });
       }
 
       request.status = 'rejected';
-
       await community.save();
-      res.status(200).json({message: 'Request rejected'});
+
+      res.status(200).json({ message: 'Request rejected successfully' });
     } catch (error) {
       console.error('Error rejecting request:', error);
-      res.status(500).json({message: 'Internal server error'});
+      res.status(500).json({ message: 'Internal server error' });
     }
   }
 );
