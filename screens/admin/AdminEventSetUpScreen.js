@@ -40,8 +40,9 @@ const AdminEventSetUpScreen = () => {
   const times = ['10:00 AM', '12:00 PM', '02:00 PM', '04:00 PM'];
 
   useEffect(() => {
-    console.log('Organizer state:', organizer);
-  }, [organizer]);
+    setOrganizer(route?.params?.item?.organizer || null);
+  }, [route?.params?.item]);
+  
 
   useEffect(() => {
     const fetchAttendees = async () => {
@@ -100,38 +101,35 @@ const AdminEventSetUpScreen = () => {
   };
 
   const handleUpdateEvent = async () => {
+    if (userId !== organizer?._id) {
+      Alert.alert('Unauthorized', 'Only the organizer can update this event.');
+      return;
+    }
+  
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Error', 'No token found. Please log in again.');
-        return;
-      }
-
       const response = await axios.put(
         `http://10.0.2.2:8000/event/${eventId}`,
         eventData,
         {
           headers: {
-            Authorization: `Bearer ${token.replace(/"/g, '')}`,
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
-
+  
       if (response.status === 200) {
         Alert.alert('Success', 'Event updated successfully!');
         updateEvent(response.data);
-        navigation.replace('AdminEventSetUp', {item: response.data});
+        setEditModalVisible(false);
       } else {
         Alert.alert('Error', 'Failed to update event.');
       }
     } catch (error) {
-      console.error('Error updating event:', error.message);
       const errorMessage =
         error.response?.data?.message || 'An unexpected error occurred.';
       Alert.alert('Error', errorMessage);
     }
-  };
+  };  
 
   const generateDates = () => {
     const dates = [];
@@ -274,7 +272,6 @@ const AdminEventSetUpScreen = () => {
             <Text style={{color: '#fff'}}>See Location on Maps</Text>
           </TouchableOpacity>
 
-          {/* Organizer Section */}
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <Image
               source={{
@@ -290,7 +287,6 @@ const AdminEventSetUpScreen = () => {
             </View>
           </View>
 
-          {/* Edit Event Button */}
           <TouchableOpacity
             onPress={openEditModal}
             style={{
@@ -303,9 +299,308 @@ const AdminEventSetUpScreen = () => {
             <Text style={{color: '#fff'}}>Edit Event</Text>
           </TouchableOpacity>
 
-          {/* Other content here */}
+          <View>
+            <View
+              style={{
+                height: 1,
+                borderWidth: 0.5,
+                borderColor: '#E0E0E0',
+                marginVertical: 12,
+              }}
+            />
+            <Pressable
+              style={{flexDirection: 'row', alignItems: 'center', gap: 14}}>
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderWidth: 1,
+                  borderColor: '#E0E0E0',
+                  borderRadius: 30,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Image
+                  style={{width: 30, height: 30, resizeMode: 'contain'}}
+                  source={{
+                    uri: 'https://cdn-icons-png.flaticon.com/128/343/343303.png',
+                  }}
+                />
+              </View>
+
+              <Text style={{fontSize: 15, fontWeight: '500', flex: 1}}>
+                Add Co-Host
+              </Text>
+
+              <MaterialCommunityIcons
+                style={{textAlign: 'center'}}
+                name="chevron-right"
+                size={24}
+                color="black"
+              />
+            </Pressable>
+
+            <View
+              style={{
+                height: 1,
+                borderWidth: 0.5,
+                borderColor: '#E0E0E0',
+                marginVertical: 12,
+              }}
+            />
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Pressable>
+                <Pressable
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderWidth: 1,
+                    borderColor: '#E0E0E0',
+                    borderRadius: 30,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Image
+                    style={{width: 30, height: 30, resizeMode: 'contain'}}
+                    source={{
+                      uri: 'https://cdn-icons-png.flaticon.com/128/1474/1474545.png',
+                    }}
+                  />
+                </Pressable>
+                <Text
+                  style={{
+                    marginTop: 8,
+                    fontWeight: '500',
+                    textAlign: 'center',
+                  }}>
+                  Add
+                </Text>
+              </Pressable>
+
+              <Pressable>
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate('ManageRequest', {
+                      requests: requests,
+                      userId: userId,
+                      eventId: eventId,
+                    })
+                  }
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderWidth: 1,
+                    borderColor: '#E0E0E0',
+                    borderRadius: 30,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Image
+                    style={{
+                      width: 30,
+                      height: 30,
+                      resizeMode: 'contain',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                    source={{
+                      uri: 'https://cdn-icons-png.flaticon.com/128/7928/7928637.png',
+                    }}
+                  />
+                </Pressable>
+                <Text
+                  style={{
+                    marginTop: 8,
+                    fontWeight: '500',
+                    textAlign: 'center',
+                  }}>
+                  Manage ({requests?.length})
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() =>
+                  navigation.navigate('Players', {
+                    players: attendees,
+                  })
+                }
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    padding: 10,
+                    borderColor: '#E0E0E0',
+                    borderWidth: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginVertical: 12,
+                  }}>
+                  <MaterialCommunityIcons
+                    style={{textAlign: 'center'}}
+                    name="chevron-right"
+                    size={24}
+                    color="black"
+                  />
+                </View>
+
+                <Text
+                  style={{
+                    marginBottom: 12,
+                    fontWeight: '600',
+                    textAlign: 'center',
+                  }}>
+                  All Players
+                </Text>
+              </Pressable>
+            </View>
+
+            <View
+              style={{
+                height: 1,
+                borderWidth: 0.5,
+                borderColor: '#E0E0E0',
+                marginVertical: 12,
+              }}
+            />
+
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 15}}>
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderWidth: 1,
+                  borderColor: '#E0E0E0',
+                  borderRadius: 30,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Image
+                  style={{width: 30, height: 30, resizeMode: 'contain'}}
+                  source={{
+                    uri: 'https://cdn-icons-png.flaticon.com/128/1511/1511847.png',
+                  }}
+                />
+              </View>
+
+              <View>
+                <Text>Not on Playo? Invite</Text>
+                <Text style={{marginTop: 6, color: 'gray', width: '80%'}}>
+                  Earn 100 Karma points by referring your friend
+                </Text>
+              </View>
+            </View>
+          </View>
+          <Pressable
+            onPress={() =>
+              navigation.navigate('Players', {
+                players: attendees,
+              })
+            }
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderTopColor: '#E0E0E0',
+              borderTopWidth: 1,
+              borderBottomColor: '#E0E0E0',
+              borderBottomWidth: 1,
+              marginBottom: 20,
+            }}>
+            <View
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+                padding: 10,
+                borderColor: '#E0E0E0',
+                borderWidth: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginVertical: 12,
+              }}>
+              <MaterialCommunityIcons
+                style={{textAlign: 'center'}}
+                name="chevron-right"
+                size={24}
+                color="black"
+              />
+            </View>
+
+            <Text style={{marginBottom: 12, fontWeight: '600'}}>
+              All Players
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
+      <BottomModal
+        visible={editModalVisible}
+        onTouchOutside={() => setEditModalVisible(false)}
+        modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
+        <ModalContent style={{padding: 20}}>
+          <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 15}}>
+            Edit Event Details
+          </Text>
+          <TextInput
+            style={{
+              borderColor: '#ccc',
+              borderWidth: 1,
+              borderRadius: 8,
+              padding: 10,
+              marginBottom: 10,
+            }}
+            placeholder="Event Title"
+            value={eventData.title}
+            onChangeText={text => setEventData({...eventData, title: text})}
+          />
+          <TextInput
+            style={{
+              borderColor: '#ccc',
+              borderWidth: 1,
+              borderRadius: 8,
+              padding: 10,
+              marginBottom: 10,
+            }}
+            placeholder="Event Location"
+            value={eventData.location}
+            onChangeText={text => setEventData({...eventData, location: text})}
+          />
+          <TextInput
+            style={{
+              borderColor: '#ccc',
+              borderWidth: 1,
+              borderRadius: 8,
+              padding: 10,
+              marginBottom: 10,
+            }}
+            placeholder="Event Description"
+            value={eventData.description}
+            onChangeText={text =>
+              setEventData({...eventData, description: text})
+            }
+          />
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#5c6bc0',
+              borderRadius: 10,
+              padding: 10,
+              alignItems: 'center',
+              marginTop: 10,
+            }}
+            onPress={handleUpdateEvent}>
+            <Text style={{color: '#fff'}}>Save Changes</Text>
+          </TouchableOpacity>
+        </ModalContent>
+      </BottomModal>
     </SafeAreaView>
   );
 };

@@ -1189,8 +1189,8 @@ app.post('/venues/:venueId/comments', async (req, res) => {
   }
 });
 
-app.put('/event/:eventId', authenticateToken, async (req, res) => {
-  const {eventId} = req.params;
+app.put('/event/:eventId', async (req, res) => {
+  const { eventId } = req.params;
   const updateData = req.body;
 
   try {
@@ -1199,13 +1199,13 @@ app.put('/event/:eventId', authenticateToken, async (req, res) => {
     });
 
     if (!updatedEvent) {
-      return res.status(404).json({message: 'Event not found'});
+      return res.status(404).json({ message: 'Event not found' });
     }
 
     res.status(200).json(updatedEvent);
   } catch (error) {
     console.error('Error updating event:', error.message);
-    res.status(500).json({message: 'Failed to update event'});
+    res.status(500).json({ message: 'Failed to update event', error: error.message });
   }
 });
 
