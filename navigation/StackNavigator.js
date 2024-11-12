@@ -248,6 +248,11 @@ const StackNavigator = () => {
         options={{headerShown: false}}
       />
       <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
         name="Attendees"
         component={AttendeesScreen}
         options={{headerShown: false}}
