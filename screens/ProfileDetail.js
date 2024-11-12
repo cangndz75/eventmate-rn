@@ -26,15 +26,17 @@ const ProfileDetailScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const {userId, setToken, setUserId} = useContext(AuthContext);
   const navigation = useNavigation();
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const fetchUser = async () => {
     try {
       console.log('Fetching data for user ID:', userId);
       if (!userId) throw new Error('User ID is undefined');
 
-      const response = await axios.get(`http://10.0.2.2:8000/user/${userId}`);
+      const response = await axios.get(`https://biletixai.onrender.com/user/${userId}`);
       console.log('User data fetched:', response.data);
       setUser(response.data);
+      setIsPrivate(response.data.isPrivate);
     } catch (error) {
       console.error('Error fetching user data:', error.message);
     }
@@ -48,6 +50,20 @@ const ProfileDetailScreen = () => {
       navigation.navigate('Login');
     }
   }, [userId]);
+
+  const handlePrivacyToggle = async () => {
+    try {
+      const newPrivacyStatus = !isPrivate;
+      await axios.put(`https://biletixai.onrender.com/user/${userId}/privacy`, {
+        isPrivate: newPrivacyStatus,
+      });
+      setIsPrivate(newPrivacyStatus); // Durumu güncelle
+      setUser(prevState => ({ ...prevState, isPrivate: newPrivacyStatus }));
+    } catch (error) {
+      console.error('Failed to update privacy setting:', error.message);
+    }
+  };
+
 
   const clearAuthToken = async () => {
     try {
@@ -134,6 +150,14 @@ const ProfileDetailScreen = () => {
               </View>
             ))}
           </View>
+        </View>
+
+        <View style={styles.privacyContainer}>
+          <Text style={styles.privacyText}>Hesabı Gizli Yap</Text>
+          <Switch
+            value={isPrivate}
+            onValueChange={handlePrivacyToggle}
+          />
         </View>
 
         <TouchableOpacity

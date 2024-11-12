@@ -1754,3 +1754,25 @@ app.get('/posts/:postId', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch post' });
   }
 });
+
+app.put('/user/:userId/privacy', authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  const { isPrivate } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isPrivate },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Privacy setting updated', isPrivate: user.isPrivate });
+  } catch (error) {
+    console.error('Error updating privacy setting:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
