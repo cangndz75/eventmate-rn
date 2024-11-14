@@ -78,7 +78,7 @@ const ProfileDetailScreen = () => {
 
   const updateAboutMe = async () => {
     try {
-      const url = `http://10.0.2.2:8000/user/${userId}/about`;
+      const url = `https://biletixai.onrender.com/user/${userId}/about`;
       await axios.put(url, {aboutMe: aboutText});
 
       setUser(prevState => ({
