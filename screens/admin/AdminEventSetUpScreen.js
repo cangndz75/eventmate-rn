@@ -54,10 +54,10 @@ const AdminEventSetUpScreen = () => {
 
       try {
         console.log(
-          `Fetching attendees from: http://10.0.2.2:8000/event/${eventId}/attendees`,
+          `Fetching attendees from: https://biletixai.onrender.com/event/${eventId}/attendees`,
         );
         const response = await axios.get(
-          `http://10.0.2.2:8000/event/${eventId}/attendees`,
+          `https://biletixai.onrender.com/event/${eventId}/attendees`,
         );
 
         if (response.status === 200) {
@@ -82,7 +82,7 @@ const AdminEventSetUpScreen = () => {
 
     try {
       const response = await axios.get(
-        `http://10.0.2.2:8000/event/${eventId}/attendees`,
+        `https://biletixai.onrender.com/event/${eventId}/attendees`,
       );
       if (response.status === 200) {
         setAttendees(response.data || []);
@@ -108,7 +108,7 @@ const AdminEventSetUpScreen = () => {
   
     try {
       const response = await axios.put(
-        `http://10.0.2.2:8000/event/${eventId}`,
+        `https://biletixai.onrender.com/event/${eventId}`,
         eventData,
         {
           headers: {
