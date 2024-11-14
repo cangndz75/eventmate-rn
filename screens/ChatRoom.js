@@ -13,7 +13,7 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Feather from 'react-native-vector-icons/Feather';
-import AntDesign from 'react-native-vector-icons/AntDesign'; // Add this for the delete icon
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import axios from 'axios';
 import {useSocketContext} from '../SocketContext';
 
@@ -56,7 +56,7 @@ const ChatRoom = () => {
   const sendMessage = async (senderId, receiverId) => {
     try {
       console.log('Sending message:', {senderId, receiverId, message});
-      await axios.post('http://10.0.2.2:8000/sendMessage', {
+      await axios.post('https://biletixai.onrender.com/sendMessage', {
         senderId,
         receiverId,
         message,
@@ -66,7 +66,7 @@ const ChatRoom = () => {
       setMessage('');
 
       setTimeout(() => {
-        fetchMessages(); // Reload messages after sending
+        fetchMessages();
       }, 100);
     } catch (error) {
       console.log('Error sending message:', error);
@@ -78,7 +78,7 @@ const ChatRoom = () => {
       const senderId = userId;
       const receiverId = route?.params?.receiverId;
 
-      const response = await axios.get('http://10.0.2.2:8000/messages', {
+      const response = await axios.get('https://biletixai.onrender.com/messages', {
         params: {senderId, receiverId},
       });
 
@@ -90,7 +90,7 @@ const ChatRoom = () => {
 
   const deleteMessage = async messageId => {
     try {
-      await axios.delete(`http://10.0.2.2:8000/messages/${messageId}`);
+      await axios.delete(`https://biletixai.onrender.com/messages/${messageId}`);
       setMessages(messages.filter(item => item._id !== messageId));
     } catch (error) {
       console.log('Error deleting message:', error);
