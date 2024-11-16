@@ -15,10 +15,10 @@ const PeopleScreen = () => {
     try {
       const response = await fetch(`http://10.0.2.2:8000/users`);
       const data = await response.json();
-      console.log('Fetched Users:', data); // Log the data
-      setUsers(data); // Ensure you set the users state
+      console.log('Fetched Users:', data);
+      setUsers(data);
     } catch (error) {
-      console.log('Error fetching users:', error); // Log any errors
+      console.log('Error fetching users:', error);
     }
   };
 
