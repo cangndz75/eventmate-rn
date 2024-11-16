@@ -18,6 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ImageViewing from 'react-native-image-viewing';
 import {TextInput} from 'react-native';
+import { Switch } from 'react-native-paper';
 
 const ProfileDetailScreen = () => {
   const [user, setUser] = useState(null);
