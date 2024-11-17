@@ -190,8 +190,7 @@ const HomeScreen = () => {
         }}>
         <TouchableOpacity
           onPress={() => {
-            active.value = !active.value;
-            navigation.openDrawer();
+            
           }}
           style={{padding: 10}}>
           <Ionicons name="menu-outline" size={28} color="#333" />

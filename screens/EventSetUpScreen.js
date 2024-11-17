@@ -27,11 +27,9 @@ const EventSetUpScreen = () => {
   const route = useRoute();
   const {userId} = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
-  const [comment, setComment] = useState('');
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [requestStatus, setRequestStatus] = useState('none');
-  const [selectedTab, setSelectedTab] = useState('About');
+  const [comment, setComment] = useState('');
   const {item} = route.params;
   const eventId = item?._id;
 
@@ -76,39 +74,6 @@ const EventSetUpScreen = () => {
         error.response?.data?.message === 'Internal server error'
           ? 'Server encountered an issue. Please try again later.'
           : error.response?.data?.message || 'Error fetching event details.';
-      Alert.alert('Error', errorMessage);
-    }
-  };
-
-  const fetchReviews = async () => {
-    const response = await axios.get(
-      `https://biletixai.onrender.com/events/${eventId}/reviews`,
-    );
-    setReviews(response.data || []);
-  };
-
-  const submitReview = async () => {
-    if (!comment.trim()) {
-      Alert.alert('Error', 'Comment cannot be empty.');
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `https://biletixai.onrender.com/events/${eventId}/reviews`,
-        {userId, comment},
-      );
-
-      if (response.status === 201) {
-        setComment(''); // Yorum alanını temizle
-        ToastAndroid.show('Review added!', ToastAndroid.SHORT);
-      } else {
-        throw new Error('Failed to add review');
-      }
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      const errorMessage =
-        error.response?.data?.message || 'Failed to submit review.';
       Alert.alert('Error', errorMessage);
     }
   };
@@ -187,28 +152,7 @@ const EventSetUpScreen = () => {
     </TouchableOpacity>
   );
 
-  const renderReviewSection = () => (
-    <View style={{marginVertical: 10}}>
-      <TouchableOpacity
-        onPress={() => navigation.navigate('ReviewScreen', {eventId})}>
-        <Text style={{justifyContent: 'space-between', textAlign: 'right'}}>
-          See All
-        </Text>
-      </TouchableOpacity>
-      <Text style={{fontWeight: 'bold', fontSize: 18}}>Reviews</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Send your review"
-          value={comment}
-          onChangeText={setComment}
-          style={styles.textInput}
-        />
-        <TouchableOpacity onPress={submitReview}>
-          <Ionicons name="send" size={24} color="blue" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  
 
   const renderActionButton = () => {
     switch (requestStatus) {
@@ -383,72 +327,15 @@ const EventSetUpScreen = () => {
           </Text>
           {renderGoingSection()}
 
-          <View style={{flexDirection: 'row', marginTop: 10}}>
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                padding: 10,
-                borderBottomWidth: selectedTab === 'About' ? 2 : 0,
-              }}
-              onPress={() => setSelectedTab('About')}>
-              <Text>About</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                padding: 10,
-                borderBottomWidth: selectedTab === 'Review' ? 2 : 0,
-              }}
-              onPress={() => setSelectedTab('Review')}>
-              <Text>Review</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={{marginVertical: 10}}>
+            {item?.description || 'Event Description'}
+          </Text>
 
-          {selectedTab === 'About' ? (
-            <Text style={{marginVertical: 10}}>
-              {item?.description || 'Event Description'}
-            </Text>
-          ) : (
-            renderReviewSection()
-          )}
+
+
 
           {renderActionButton()}
 
-          <BottomModal
-            visible={modalVisible}
-            onTouchOutside={() => setModalVisible(false)}
-            modalAnimation={new SlideAnimation({slideFrom: 'bottom'})}>
-            <ModalContent style={{padding: 20}}>
-              <TextInput
-                value={comment}
-                onChangeText={setComment}
-                placeholder="Add a comment..."
-                style={{
-                  borderColor: '#ccc',
-                  borderWidth: 1,
-                  borderRadius: 8,
-                  padding: 10,
-                  height: 100,
-                  textAlignVertical: 'top',
-                  marginBottom: 10,
-                }}
-              />
-              <TouchableOpacity
-                onPress={submitReview}
-                style={{
-                  backgroundColor: 'green',
-                  padding: 15,
-                  borderRadius: 8,
-                  alignItems: 'center',
-                }}>
-                <Text style={{color: 'white', fontWeight: 'bold'}}>
-                  Submit Review
-                </Text>
-              </TouchableOpacity>
-            </ModalContent>
-          </BottomModal>
           <BottomModal
             onBackdropPress={() => setModalVisible(false)}
             swipeDirection={['up', 'down']}

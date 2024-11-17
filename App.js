@@ -16,7 +16,6 @@ import {SocketProvider} from './SocketContext';
 import {EventProvider} from './EventContext';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import CustomDrawerNavigator from './navigation/CustomDrawerNavigator';
 import StackNavigator from './navigation/StackNavigator';
 
 function App() {

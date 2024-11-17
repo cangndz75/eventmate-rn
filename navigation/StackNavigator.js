@@ -88,21 +88,6 @@ const StackNavigator = () => {
           }}
         />
         <Tab.Screen
-          name="Book"
-          component={BookScreen}
-          options={{
-            headerShown: false,
-            tabBarActiveTintColor: 'green',
-            tabBarIcon: ({focused}) => (
-              <Ionicons
-                name={focused ? 'book' : 'book-outline'}
-                size={24}
-                color={focused ? 'green' : 'gray'}
-              />
-            ),
-          }}
-        />
-        <Tab.Screen
           name="Profile"
           component={ProfileDetailScreen}
           options={{
@@ -111,21 +96,6 @@ const StackNavigator = () => {
             tabBarIcon: ({focused}) => (
               <Ionicons
                 name={focused ? 'person' : 'person-outline'}
-                size={24}
-                color={focused ? 'green' : 'gray'}
-              />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="Chats"
-          component={ChatsScreen}
-          options={{
-            headerShown: false,
-            tabBarActiveTintColor: 'green',
-            tabBarIcon: ({focused}) => (
-              <Ionicons
-                name={focused ? 'chatbox' : 'chatbox-outline'}
                 size={24}
                 color={focused ? 'green' : 'gray'}
               />
@@ -203,8 +173,8 @@ const StackNavigator = () => {
     return (
       <Stack.Navigator>
         <Stack.Screen
-          name="Drawer"
-          component={CustomDrawerNavigator}
+          name="Main"
+          component={BottomTabs}
           options={{headerShown: false}}
         />
         <Stack.Screen

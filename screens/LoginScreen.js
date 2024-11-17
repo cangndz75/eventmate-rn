@@ -43,7 +43,7 @@ const LoginScreen = () => {
       if (role === 'organizer') {
         navigation.navigate('AdminDashboard');
       } else {
-        navigation.navigate('Drawer', {screen: 'Home'});
+        navigation.navigate('Main');
       }
       
     } catch (error) {
