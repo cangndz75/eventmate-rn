@@ -32,7 +32,6 @@ import AdminCreateVenueScreen from '../screens/admin/AdminCreateVenueScreen';
 import InterestSelectionScreen from '../screens/InterestSelectionScreen';
 import SearchScreen from '../screens/SearchScreen';
 import NotificationScreen from '../screens/NotificationScreen';
-import ProfileViewScreen from '../screens/ProfileViewScreen';
 import EventAttendeesScreen from '../screens/EventAttendeesScreen';
 
 const StackNavigator = () => {
@@ -249,11 +248,7 @@ const StackNavigator = () => {
           component={NotificationScreen}
           options={{headerShadowVisible: false}}
         />
-        <Stack.Screen
-          name="ProfileView"
-          component={ProfileViewScreen}
-          options={{headerShadowVisible: false}}
-        />
+    
         <Stack.Screen
           name="EventAttendees"
           component={EventAttendeesScreen}

@@ -245,8 +245,8 @@ const HomeScreen = () => {
         {[
           {title: 'Concert', image: 'https://i.ibb.co/HFrRNQm/Yeni-Proje.png'},
           {title: 'Sport Events', image: 'https://picsum.photos/201'},
-          {title: 'Fashion Shows', image: 'https://picsum.photos/202'},
-          {title: 'Book Fair', image: 'https://picsum.photos/203'},
+          {title: 'Theatre', image: 'https://picsum.photos/202'},
+          {title: 'Seminars', image: 'https://picsum.photos/203'},
         ].map((category, index) => (
           <Pressable key={index} style={{marginRight: 10}}>
             <ImageBackground
