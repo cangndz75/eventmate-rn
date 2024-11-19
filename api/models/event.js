@@ -23,7 +23,6 @@ const eventSchema = new Schema(
       ref: 'User',
       required: true,
     },
-    community: { type: mongoose.Schema.Types.ObjectId, ref: 'Community' },
     attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     requests: [
       {
@@ -34,13 +33,6 @@ const eventSchema = new Schema(
           enum: ['pending', 'accepted', 'rejected'],
           default: 'pending',
         },
-      },
-    ],
-    reviews: [
-      {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        review: String,
-        date: { type: Date, default: Date.now },
       },
     ],
   },
