@@ -159,15 +159,6 @@ const StartScreen = () => {
           <Text style={{fontSize: 16, color: '#666', marginBottom: 20}}>
             Just like you did as a kid!
           </Text>
-          <Image
-            source={{uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp4StDYFfxq27RMKG7uFJ6GptDm5KDGmGKsA&s'}}
-            style={{
-              width: 120,
-              height: 40,
-              marginTop: 20,
-              resizeMode: 'contain',
-            }}
-          />
         </View>
 
         <Pressable
@@ -190,12 +181,7 @@ const StartScreen = () => {
             alignItems: 'center',
             marginBottom: 20,
           }}>
-          <Image
-            source={{
-              uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp4StDYFfxq27RMKG7uFJ6GptDm5KDGmGKsA&s' || 'https://via.placeholder.com/150',
-            }}
-            style={{ width: 120, height: 40, marginTop: 20, resizeMode: 'contain' }}
-          />
+          
         </View>
       </SafeAreaView>
 

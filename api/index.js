@@ -768,7 +768,7 @@ app.get('/friends/:userId', async (req, res) => {
     console.log(`Fetching friends for userId: ${userId}`);
 
     const user = await User.findById(userId).populate(
-      'friends', // Populate friends array
+      'friends', 
       'firstName lastName image',
     );
 

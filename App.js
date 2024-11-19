@@ -9,10 +9,8 @@ import {
   View,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {NavigationContainer} from '@react-navigation/native';
 import {AuthProvider} from './AuthContext';
 import {ModalPortal} from 'react-native-modals';
-import {SocketProvider} from './SocketContext';
 import {EventProvider} from './EventContext';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -29,12 +27,10 @@ function App() {
     <GestureHandlerRootView style={{flex: 1}}>
       <SafeAreaProvider>
         <AuthProvider>
-          <SocketProvider>
             <EventProvider>
               <StackNavigator />
               <ModalPortal />
             </EventProvider>
-          </SocketProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

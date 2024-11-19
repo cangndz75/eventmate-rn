@@ -8,7 +8,7 @@ const AuthContext = createContext();
 const AuthProvider = ({children}) => {
   const [token, setToken] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [user, setUser] = useState(null); // Store user data here
+  const [user, setUser] = useState(null);
   const [role, setRole] = useState('user');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,7 +44,7 @@ const AuthProvider = ({children}) => {
       if (userIdFromToken) {
         setUserId(userIdFromToken);
         setRole(userRole);
-        fetchUserData(userIdFromToken); // Fetch user data after decoding token
+        fetchUserData(userIdFromToken); 
       } else {
         console.warn('No userId found in token');
       }

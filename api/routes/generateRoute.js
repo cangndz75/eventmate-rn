@@ -1,6 +1,5 @@
-// api/routes/generateRoute.js
 const express = require('express');
-const {generateText} = require('../googleAI'); // Import Google AI function
+const {generateText} = require('../googleAI'); 
 const router = express.Router();
 
 router.post('/', async (req, res) => {

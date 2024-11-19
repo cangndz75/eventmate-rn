@@ -19,7 +19,6 @@ import {AuthContext} from '../AuthContext';
 import TagVenueScreen from '../screens/TagVenueScreen';
 import SelectTimeScreen from '../screens/SelectTimeScreen';
 import EventSetUpScreen from '../screens/EventSetUpScreen';
-import AttendeesScreen from '../screens/admin/AttendeesScreen';
 import ManageRequests from '../screens/admin/ManageRequest';
 import ProfileDetailScreen from '../screens/ProfileDetail';
 import PeopleScreen from '../screens/PeopleScreen';
@@ -28,11 +27,9 @@ import AdminCreateScreen from '../screens/admin/AdminCreateScreen';
 import HomeScreen from '../screens/HomeScreen';
 import AdminEventSetUpScreen from '../screens/admin/AdminEventSetUpScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
-import AdminCreateVenueScreen from '../screens/admin/AdminCreateVenueScreen';
 import InterestSelectionScreen from '../screens/InterestSelectionScreen';
 import SearchScreen from '../screens/SearchScreen';
 import NotificationScreen from '../screens/NotificationScreen';
-import EventAttendeesScreen from '../screens/EventAttendeesScreen';
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -202,11 +199,6 @@ const StackNavigator = () => {
           component={LoginScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen
-          name="Attendees"
-          component={AttendeesScreen}
-          options={{headerShown: false}}
-        />
         <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
         <Stack.Screen
           name="ManageRequest"
@@ -231,10 +223,6 @@ const StackNavigator = () => {
         />
         <Stack.Screen name="ProfileEditScreen" component={ProfileEditScreen} />
         <Stack.Screen
-          name="AdminCreateVenue"
-          component={AdminCreateVenueScreen}
-        />
-        <Stack.Screen
           name="InterestSelectionScreen"
           component={InterestSelectionScreen}
         />
@@ -246,12 +234,6 @@ const StackNavigator = () => {
         <Stack.Screen
           name="NotificationScreen"
           component={NotificationScreen}
-          options={{headerShadowVisible: false}}
-        />
-    
-        <Stack.Screen
-          name="EventAttendees"
-          component={EventAttendeesScreen}
           options={{headerShadowVisible: false}}
         />
         <Stack.Screen

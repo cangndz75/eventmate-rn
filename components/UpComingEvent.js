@@ -84,7 +84,7 @@ const UpComingEvent = ({item}) => {
 
   const renderEventItem = () => (
     <Pressable
-      onPress={handleNavigation} // Call the handler here
+      onPress={handleNavigation}
       style={{
         backgroundColor: '#fff',
         padding: 16,
