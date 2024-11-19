@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useContext, useState} from 'react';
 import axios from 'axios';
-import {AuthContext} from '../AuthContext'; // Ensure the path to AuthContext is correct
+import {AuthContext} from '../AuthContext';
 import {getRegistrationProgress} from '../registrationUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';

@@ -18,28 +18,28 @@ const SelectTimeScreen = () => {
             id: '0',
             type: 'Morning',
             timings: '12 AM - 9 AM',
-            icon: 'partly-sunny-outline', // Valid Ionicons name
+            icon: 'partly-sunny-outline',
             iconComponent: Ionicons,
         },
         {
             id: '1',
             type: 'Day',
             timings: '9 AM - 4 PM',
-            icon: 'sun', // Valid Feather name
+            icon: 'sun',
             iconComponent: Feather,
         },
         {
             id: '2',
             type: 'Evening',
             timings: '4 PM - 9 PM',
-            icon: 'sunset', // Valid Feather name
+            icon: 'sunset',
             iconComponent: Feather,
         },
         {
             id: '3',
             type: 'Night',
             timings: '9 PM - 11 PM',
-            icon: 'moon-outline', // Valid Ionicons name
+            icon: 'moon-outline',
             iconComponent: Ionicons,
         },
     ];
@@ -172,7 +172,6 @@ const SelectTimeScreen = () => {
                         <Text style={styles.clearButtonText}>Clear Selections</Text>
                     </TouchableOpacity>
 
-                    {/* Floating Circular "+" Button */}
                     {startTime && endTime && (
                         <TouchableOpacity
                             style={styles.floatingButton}

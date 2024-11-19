@@ -494,7 +494,7 @@ const AdminEventSetUpScreen = () => {
               </View>
 
               <View>
-                <Text>Not on Playo? Invite</Text>
+                <Text>Not on EventMate? Invite</Text>
                 <Text style={{marginTop: 6, color: 'gray', width: '80%'}}>
                   Earn 100 Karma points by referring your friend
                 </Text>

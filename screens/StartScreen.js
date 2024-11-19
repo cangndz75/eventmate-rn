@@ -160,7 +160,7 @@ const StartScreen = () => {
             Just like you did as a kid!
           </Text>
           <Image
-            source={{uri: 'https://playo.co/img/logos/logo-green-1.svg'}}
+            source={{uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp4StDYFfxq27RMKG7uFJ6GptDm5KDGmGKsA&s'}}
             style={{
               width: 120,
               height: 40,
@@ -192,7 +192,7 @@ const StartScreen = () => {
           }}>
           <Image
             source={{
-              uri: 'https://playo.co/img/logos/logo-green-1.svg' || 'https://via.placeholder.com/150',
+              uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp4StDYFfxq27RMKG7uFJ6GptDm5KDGmGKsA&s' || 'https://via.placeholder.com/150',
             }}
             style={{ width: 120, height: 40, marginTop: 20, resizeMode: 'contain' }}
           />
