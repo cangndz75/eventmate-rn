@@ -157,7 +157,7 @@ const StartScreen = () => {
             Find Players in your neighbourhood
           </Text>
           <Text style={{fontSize: 16, color: '#666', marginBottom: 20}}>
-            Just like you did as a kid!
+            Doğuş Üniversitesi
           </Text>
         </View>
 
