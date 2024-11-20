@@ -59,6 +59,17 @@ const AdminDashboard = () => {
 
   const styles = getStyles(darkMode); 
 
+  const clearAuthToken = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      setToken('');
+      setUserId('');
+      navigation.navigate('Start');
+    } catch (error) {
+      console.log('Error during logout:', error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollView}>
@@ -100,6 +111,16 @@ const AdminDashboard = () => {
           <View style={[styles.card, styles.highlightCard]}>
             <Text style={styles.cardTitle}>35%</Text>
             <Text style={styles.cardSubTitle}>Desktop users</Text>
+          </View>
+          <View style={[styles.card,styles.highlightCard]}>
+            <TouchableOpacity
+            style={styles.optionContainer}
+            onPress={clearAuthToken}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="log-out-outline" size={24} color="red" />
+            </View>
+            <Text style={styles.optionText}>Logout</Text>
+        </TouchableOpacity>
           </View>
         </View>
 
