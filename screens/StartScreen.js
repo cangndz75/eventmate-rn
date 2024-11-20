@@ -154,7 +154,7 @@ const StartScreen = () => {
               marginBottom: 10,
               color: '#333',
             }}>
-            Find Players in your neighbourhood
+            Find friends in your event
           </Text>
           <Text style={{fontSize: 16, color: '#666', marginBottom: 20}}>
             Doğuş Üniversitesi

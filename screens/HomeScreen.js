@@ -462,7 +462,7 @@ const HomeScreen = () => {
         }}>
         <View style={{flex: 1, paddingRight: 10}}>
           <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 5}}>
-            Brown Lamp
+            Text View
           </Text>
           <Text
             style={{
@@ -471,7 +471,7 @@ const HomeScreen = () => {
               fontWeight: '700',
               marginBottom: 5,
             }}>
-            New Collection Special Sale Up to 70%
+            Lorem Ipsum Dolor Sit Amet
           </Text>
           <Text style={{fontSize: 14, color: '#777', marginBottom: 10}}>
             Lorem ipsum is placeholder text commonly used in the graphic.
@@ -484,7 +484,7 @@ const HomeScreen = () => {
               borderRadius: 20,
               alignSelf: 'flex-start',
             }}>
-            <Text style={{color: '#fff', fontWeight: 'bold'}}>Shop Now</Text>
+            <Text style={{color: '#fff', fontWeight: 'bold'}}>Join Us</Text>
           </TouchableOpacity>
         </View>
 
@@ -509,7 +509,7 @@ const HomeScreen = () => {
         <TouchableOpacity
           style={{
             flex: 1,
-            borderWidth: 2,
+            borderWidth: 3,
             borderColor: '#7b61ff',
             paddingVertical: 15,
             alignItems: 'center',
@@ -526,7 +526,7 @@ const HomeScreen = () => {
             style={{marginRight: 5}}
           />
           <Text style={{color: '#7b61ff', fontWeight: 'bold', fontSize: 16}}>
-            Topluluk Oluştur
+            Create Community
           </Text>
         </TouchableOpacity>
 
@@ -549,7 +549,7 @@ const HomeScreen = () => {
             style={{marginRight: 5}}
           />
           <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>
-            Organizatör Ol
+            Become an Organizer
           </Text>
         </TouchableOpacity>
       </View>
