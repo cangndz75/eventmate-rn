@@ -1,4 +1,11 @@
-import {Image, Pressable, SafeAreaView, Text, View} from 'react-native';
+import {
+  Image,
+  Pressable,
+  SafeAreaView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import React, {useRef} from 'react';
 import MapView, {Marker} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
@@ -84,132 +91,64 @@ const StartScreen = () => {
   };
 
   return (
-    <>
-      <SafeAreaView style={{flex: 1, backgroundColor: '#f2f2f2'}}>
-        <MapView
-          ref={mapView}
-          style={{width: '100%', height: '45%'}}
-          initialRegion={{
-            latitude: KARTAL_COORDS.latitude,
-            longitude: KARTAL_COORDS.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-          onMapReady={onMapReady}>
-          {users.map(user => (
-            <Marker
-              key={user.id}
-              coordinate={{latitude: user.latitude, longitude: user.longitude}}>
-              <View style={{justifyContent: 'center', alignItems: 'center'}}>
-              <Image
-                  source={{ uri: user.image || 'https://via.placeholder.com/150' }}
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    borderWidth: 2,
-                    borderColor: 'white',
-                  }}
-                />
-                <Text
-                  style={{
-                    backgroundColor: 'white',
-                    paddingHorizontal: 5,
-                    paddingVertical: 3,
-                    borderRadius: 5,
-                    textAlign: 'center',
-                    marginTop: 5,
-                    fontSize: 12,
-                    color: '#333',
-                    shadowColor: '#000',
-                    shadowOpacity: 0.1,
-                    shadowOffset: {width: 0, height: 2},
-                    shadowRadius: 2,
-                  }}>
-                  {user.description}
-                </Text>
-              </View>
-            </Marker>
-          ))}
-        </MapView>
-
-        <View
+    <SafeAreaView style={{flex: 1, backgroundColor: '#f2f2f2'}}>
+      <View style={{flex: 1, justifyContent: 'center', paddingHorizontal: 20}}>
+        <Text
           style={{
-            alignItems: 'center',
-            padding: 25,
-            backgroundColor: '#fff',
-            flex: 1,
-            marginTop: -10,
-            borderTopLeftRadius: 25,
-            borderTopRightRadius: 25,
-            shadowColor: '#000',
-            shadowOpacity: 0.2,
-            shadowOffset: {width: 0, height: -5},
-            shadowRadius: 10,
-          }}>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: 'bold',
-              marginBottom: 10,
-              color: '#333',
-            }}>
-            Find friends in your event
-          </Text>
-          <Text style={{fontSize: 16, color: '#666', marginBottom: 20}}>
-            Doğuş Üniversitesi
-          </Text>
-        </View>
-
-        <Pressable
-          style={{
-            padding: 10,
-            borderRadius: 8,
-            marginHorizontal: 30,
-            alignItems: 'center',
-            marginBottom: 15,
-          }}
-          onPress={() => navigation.navigate('Login')}>
-          <Text style={{fontSize: 16, color: 'gray', fontWeight: 'bold'}}>
-            Already have an account? Login
-          </Text>
-        </Pressable>
-
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
+            fontSize: 24,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            color: '#d32f2f',
             marginBottom: 20,
           }}>
-          
-        </View>
-      </SafeAreaView>
-
-      <View style={{padding: 10, backgroundColor: 'white', marginTop: 'auto'}}>
-        <Pressable
-          onPress={() => navigation.navigate('Register')}
+          Login
+        </Text>
+        <TextInput
+          placeholder="Email"
           style={{
-            backgroundColor: '#fff',
-            padding: 12,
-            borderRadius: 7,
-            borderWidth: 2,
-            borderColor: '#000',
+            borderWidth: 1,
+            borderColor: '#ccc',
+            padding: 10,
+            marginVertical: 10,
+            borderRadius: 5,
+          }}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          placeholder="Password"
+          style={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            padding: 10,
+            marginVertical: 10,
+            borderRadius: 5,
+          }}
+          secureTextEntry
+        />
+        <Pressable
+          style={{
+            backgroundColor: '#d32f2f',
+            padding: 15,
+            borderRadius: 5,
             alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-          }}>
-          <Text
-            style={{
-              textAlign: 'center',
-              color: '#000',
-              fontWeight: '500',
-              marginRight: 10,
-            }}>
-            READY
+            marginVertical: 10,
+          }}
+          onPress={() => navigation.navigate('Home')}>
+          <Text style={{color: '#fff', fontWeight: 'bold'}}>Login</Text>
+        </Pressable>
+        <Pressable onPress={() => navigation.navigate('Register')}>
+          <Text style={{textAlign: 'center', color: '#666'}}>
+            Don’t have an account? Sign up
+          </Text>
+        </Pressable>
+        <Pressable onPress={() => alert('Forgot password?')}>
+          <Text style={{textAlign: 'center', color: '#666', marginTop: 5}}>
+            Forgot Password?
           </Text>
         </Pressable>
       </View>
-    </>
+    </SafeAreaView>
   );
 };
 

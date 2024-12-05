@@ -10,6 +10,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Pressable,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,7 +27,7 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post('http://10.0.2.2:8000/login', {
+      const response = await axios.post('https://biletixai.onrender.com/login', {
         email,
         password,
       });
@@ -54,14 +55,16 @@ const LoginScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{flex: 1}}>
+      style={{flex: 1, backgroundColor: '#fff'}}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{flex: 1, justifyContent: 'center', padding: 20}}>
+        <View
+          style={{flex: 1, justifyContent: 'center', paddingHorizontal: 20}}>
           <Text
             style={{
               fontSize: 24,
               fontWeight: 'bold',
               textAlign: 'center',
+              color: '#d32f2f',
               marginBottom: 20,
             }}>
             Login
@@ -74,9 +77,10 @@ const LoginScreen = () => {
             style={{
               borderWidth: 1,
               borderColor: '#ccc',
-              padding: 10,
+              padding: 15,
               marginVertical: 10,
-              borderRadius: 5,
+              borderRadius: 10,
+              fontSize: 16,
             }}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -89,9 +93,10 @@ const LoginScreen = () => {
             style={{
               borderWidth: 1,
               borderColor: '#ccc',
-              padding: 10,
+              padding: 15,
               marginVertical: 10,
-              borderRadius: 5,
+              borderRadius: 10,
+              fontSize: 16,
             }}
             secureTextEntry
           />
@@ -99,20 +104,69 @@ const LoginScreen = () => {
           <TouchableOpacity
             onPress={handleLogin}
             style={{
-              backgroundColor: '#007bff',
+              backgroundColor: '#d32f2f',
               padding: 15,
-              borderRadius: 5,
+              borderRadius: 10,
               alignItems: 'center',
               marginVertical: 10,
             }}>
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={{color: '#fff', fontWeight: 'bold'}}>Login</Text>
+              <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>
+                Login
+              </Text>
             )}
           </TouchableOpacity>
+
+          <Pressable onPress={() => navigation.navigate('Register')}>
+            <Text
+              style={{
+                textAlign: 'center',
+                color: '#666',
+                marginVertical: 10,
+                fontSize: 14,
+              }}>
+              Don’t have an account? Register
+            </Text>
+          </Pressable>
+
+          <Pressable onPress={() => alert('Forgot password?')}>
+            <Text
+              style={{
+                textAlign: 'center',
+                color: '#666',
+                marginVertical: 5,
+                fontSize: 14,
+              }}>
+              Forgot Password?
+            </Text>
+          </Pressable>
         </View>
       </TouchableWithoutFeedback>
+
+      <View style={{padding: 20, backgroundColor: 'white'}}>
+        <Pressable
+          onPress={() => navigation.navigate('Ready')}
+          style={{
+            backgroundColor: '#fff',
+            padding: 15,
+            borderRadius: 10,
+            borderWidth: 2,
+            borderColor: '#d32f2f',
+            alignItems: 'center',
+          }}>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#d32f2f',
+              fontWeight: 'bold',
+              fontSize: 16,
+            }}>
+            Ready
+          </Text>
+        </Pressable>
+      </View>
     </KeyboardAvoidingView>
   );
 };

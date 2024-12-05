@@ -107,11 +107,11 @@ const StackNavigator = () => {
 
   const AuthStack = () => (
     <Stack.Navigator>
-      <Stack.Screen
+      {/* <Stack.Screen
         name="Start"
         component={StartScreen}
         options={{headerShown: false}}
-      />
+      /> */}
       <Stack.Screen
         name="Login"
         component={LoginScreen}
