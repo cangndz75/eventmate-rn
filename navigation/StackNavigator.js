@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import EventScreen from '../screens/EventScreen';
@@ -31,14 +31,25 @@ import InterestSelectionScreen from '../screens/InterestSelectionScreen';
 import SearchScreen from '../screens/SearchScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 
+
+
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
   const {token, role} = useContext(AuthContext);
 
+  useEffect(() => {
+    console.log("Token:", token); // Token'ın konsolda doğru göründüğünden emin olun
+  }, [token]);
   function BottomTabs() {
     return (
-      <Tab.Navigator>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: 'green',
+          tabBarStyle: {height: 60, backgroundColor: '#fff'},
+          tabBarLabelStyle: {fontSize: 12},
+        }}>
         <Tab.Screen
           name="Home"
           component={role === 'organizer' ? AdminDashboard : HomeScreen}

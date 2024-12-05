@@ -24,6 +24,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import SearchBar from '../components/Search';
+import Footer from '../components/Footer';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -214,30 +216,7 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: '#F5F5F5',
-          borderRadius: 10,
-          padding: 10,
-          marginBottom: 20,
-        }}>
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color="#777"
-          style={{marginRight: 5}}
-        />
-        <TextInput
-          placeholder="What event are you looking for..."
-          style={{flex: 1, fontSize: 16}}
-        />
-        <TouchableOpacity>
-          <Ionicons name="options-outline" size={20} color="#777" />
-        </TouchableOpacity>
-      </View>
-
+      <SearchBar />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -446,125 +425,7 @@ const HomeScreen = () => {
         </View>
       </View>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: '#fff',
-          borderRadius: 15,
-          padding: 15,
-          marginVertical: 20,
-          shadowColor: '#000',
-          shadowOffset: {width: 0, height: 2},
-          shadowOpacity: 0.1,
-          shadowRadius: 5,
-          elevation: 5,
-          alignItems: 'center',
-        }}>
-        <View style={{flex: 1, paddingRight: 10}}>
-          <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 5}}>
-            Text View
-          </Text>
-          <Text
-            style={{
-              fontSize: 16,
-              color: '#7b61ff',
-              fontWeight: '700',
-              marginBottom: 5,
-            }}>
-            Lorem Ipsum Dolor Sit Amet
-          </Text>
-          <Text style={{fontSize: 14, color: '#777', marginBottom: 10}}>
-            Lorem ipsum is placeholder text commonly used in the graphic.
-          </Text>
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#7b61ff',
-              paddingVertical: 10,
-              paddingHorizontal: 20,
-              borderRadius: 20,
-              alignSelf: 'flex-start',
-            }}>
-            <Text style={{color: '#fff', fontWeight: 'bold'}}>Join Us</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Image
-          source={{uri: 'https://picsum.photos/200'}}
-          style={{width: 100, height: 100, resizeMode: 'contain'}}
-        />
-      </View>
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: '#fff',
-          borderRadius: 10,
-          padding: 15,
-          marginVertical: 20,
-          shadowColor: '#000',
-          shadowOffset: {width: 0, height: 2},
-          shadowOpacity: 0.1,
-          shadowRadius: 5,
-          elevation: 5,
-        }}>
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            borderWidth: 3,
-            borderColor: '#7b61ff',
-            paddingVertical: 15,
-            alignItems: 'center',
-            marginRight: 10,
-            borderRadius: 10,
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}
-          onPress={() => console.log('Topluluk Oluştur Pressed')}>
-          <Ionicons
-            name="people-outline"
-            size={18}
-            color="#7b61ff"
-            style={{marginRight: 5}}
-          />
-          <Text style={{color: '#7b61ff', fontWeight: 'bold', fontSize: 16}}>
-            Create Community
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            backgroundColor: '#ff8c42',
-            paddingVertical: 15,
-            alignItems: 'center',
-            marginLeft: 10,
-            borderRadius: 10,
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}
-          onPress={() => console.log('Organizatör Ol Pressed')}>
-          <Ionicons
-            name="person-add-outline"
-            size={18}
-            color="#fff"
-            style={{marginRight: 5}}
-          />
-          <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>
-            Become an Organizer
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View
-        style={{
-          backgroundColor: '#fff',
-          paddingVertical: 20,
-          alignItems: 'center',
-          borderTopWidth: 1,
-          borderColor: '#e0e0e0',
-          marginTop: 20,
-        }}>
-        <Text style={{fontSize: 14, color: '#888'}}>© 2024 EventMate</Text>
-      </View>
+      <Footer />
     </Animated.ScrollView>
   );
 };
