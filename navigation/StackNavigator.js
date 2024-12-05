@@ -3,7 +3,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import EventScreen from '../screens/EventScreen';
 import AdminDashboard from '../screens/admin/AdminDashboard';
-import AdminEventScreen from '../screens/admin/AdminEventScreen'; 
+import AdminEventScreen from '../screens/admin/AdminEventScreen';
 import {NavigationContainer} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -147,6 +147,11 @@ const StackNavigator = () => {
         component={PreFinalScreen}
         options={{headerShown: false}}
       />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{headerShown: false}}
+      />
       <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
     </Stack.Navigator>
   );
@@ -215,7 +220,7 @@ const StackNavigator = () => {
           component={EventScreen}
           options={{headerShown: false}}
         />
-        
+
         <Stack.Screen
           name="EventSetUp"
           component={EventSetUpScreen}

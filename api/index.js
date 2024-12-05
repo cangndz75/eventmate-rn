@@ -25,23 +25,23 @@ mongoose
   .catch(error => console.log('Connection error:', error));
 
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-  
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided, unauthorized' });
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({message: 'No token provided, unauthorized'});
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({message: 'Invalid token'});
     }
-  
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if (err) {
-        return res.status(403).json({ message: 'Invalid token' }); 
-      }
-  
-      req.user = user;
-      next();
-    });
+
+    req.user = user;
+    next();
+  });
 };
-  
+
 app.post('/refresh', async (req, res) => {
   const {token} = req.body;
   if (!token) {
@@ -589,7 +589,6 @@ app.post('/events/:eventId/cancel-request', async (req, res) => {
   }
 });
 
-
 app.get('/events/:eventId/requests', async (req, res) => {
   try {
     const {eventId} = req.params;
@@ -754,15 +753,13 @@ app.post('/sendrequest', async (req, res) => {
   res.status(200).json({message: 'Request sent successfully'});
 });
 
-
-
 app.get('/friends/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     console.log(`Fetching friends for userId: ${userId}`);
 
     const user = await User.findById(userId).populate(
-      'friends', 
+      'friends',
       'firstName lastName image',
     );
 
@@ -777,7 +774,6 @@ app.get('/friends/:userId', async (req, res) => {
     return res.status(500).json({message: 'Server error'});
   }
 });
-
 
 app.get('/users', async (req, res) => {
   console.log('Fetching users...');
@@ -980,9 +976,8 @@ app.get('/events/:eventId', async (req, res) => {
   }
 });
 
-
 app.put('/event/:eventId', async (req, res) => {
-  const { eventId } = req.params;
+  const {eventId} = req.params;
   const updateData = req.body;
 
   try {
@@ -991,13 +986,15 @@ app.put('/event/:eventId', async (req, res) => {
     });
 
     if (!updatedEvent) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({message: 'Event not found'});
     }
 
     res.status(200).json(updatedEvent);
   } catch (error) {
     console.error('Error updating event:', error.message);
-    res.status(500).json({ message: 'Failed to update event', error: error.message });
+    res
+      .status(500)
+      .json({message: 'Failed to update event', error: error.message});
   }
 });
 
@@ -1051,7 +1048,6 @@ app.get('/user/:userId/interests', async (req, res) => {
   }
 });
 
-
 app.put('/user/:userId/about', async (req, res) => {
   try {
     const {userId} = req.params;
@@ -1072,4 +1068,3 @@ app.put('/user/:userId/about', async (req, res) => {
     res.status(500).json({message: 'Failed to update about me', error});
   }
 });
-
