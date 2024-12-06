@@ -1,7 +1,7 @@
+import React, {useEffect, useState, createContext} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useEffect, useState, createContext} from 'react';
-import {decode as atob} from 'base-64';
 import axios from 'axios';
+import {decode as atob} from 'base-64';
 
 const AuthContext = createContext();
 
@@ -98,10 +98,13 @@ const AuthProvider = ({children}) => {
     }
   };
 
+
   const login = async (newAccessToken, newRefreshToken) => {
     try {
-      await AsyncStorage.setItem('accessToken', newAccessToken);
-      await AsyncStorage.setItem('refreshToken', newRefreshToken);
+      await AsyncStorage.multiSet([
+        ['accessToken', newAccessToken],
+        ['refreshToken', newRefreshToken],
+      ]);
       await decodeToken(newAccessToken, newRefreshToken);
     } catch (error) {
       console.error('Login error:', error);

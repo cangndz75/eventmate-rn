@@ -43,24 +43,38 @@ const authenticateToken = (req, res, next) => {
 };
 
 app.post('/refresh', async (req, res) => {
-  const {token} = req.body;
-  if (!token) {
+  const {token: refreshToken} = req.body;
+
+  if (!refreshToken) {
     return res.status(400).json({message: 'Refresh token is required'});
   }
 
   try {
-    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
-      if (err) return res.status(403).json({message: 'Invalid refresh token'});
+    const user = await User.findOne({refreshToken});
 
-      const newAccessToken = jwt.sign(
-        {userId: user.userId, role: user.role},
-        process.env.JWT_SECRET_KEY,
-        {expiresIn: '1h'},
-      );
+    if (!user) {
+      return res.status(403).json({message: 'Invalid refresh token'});
+    }
 
-      res.status(200).json({token: newAccessToken});
-    });
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      (err, decoded) => {
+        if (err) {
+          return res.status(403).json({message: 'Invalid refresh token'});
+        }
+
+        const accessToken = jwt.sign(
+          {userId: decoded.userId, role: decoded.role},
+          process.env.JWT_SECRET_KEY,
+          {expiresIn: '1h'},
+        );
+
+        res.status(200).json({accessToken});
+      },
+    );
   } catch (error) {
+    console.error('Error refreshing token:', error);
     res.status(500).json({message: 'Internal Server Error'});
   }
 });
@@ -127,14 +141,24 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({message: 'Invalid credentials'});
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       {userId: user._id, role: user.role},
       process.env.JWT_SECRET_KEY,
       {expiresIn: '1h'},
     );
 
+    const refreshToken = jwt.sign(
+      {userId: user._id, role: user.role},
+      process.env.REFRESH_TOKEN_SECRET,
+      {expiresIn: '7d'},
+    );
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
     res.status(200).json({
-      token,
+      accessToken,
+      refreshToken,
       userId: user._id,
       role: user.role,
       firstName: user.firstName,

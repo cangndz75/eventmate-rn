@@ -27,14 +27,22 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post('https://biletixai.onrender.com/login', {
-        email,
-        password,
-      });
-      const {userId, role} = response.data;
+      const response = await axios.post(
+        'https://biletixai.onrender.com/login',
+        {
+          email,
+          password,
+        },
+      );
 
-      await AsyncStorage.setItem('userId', String(userId));
-      await AsyncStorage.setItem('role', role);
+      const {accessToken, refreshToken, userId, role} = response.data;
+
+      await AsyncStorage.multiSet([
+        ['accessToken', accessToken],
+        ['refreshToken', refreshToken],
+        ['userId', String(userId)],
+        ['role', role],
+      ]);
 
       setUserId(userId);
       setRole(role);
@@ -147,7 +155,7 @@ const LoginScreen = () => {
 
       <View style={{padding: 20, backgroundColor: 'white'}}>
         <Pressable
-          onPress={() => navigation.navigate('Ready')}
+          onPress={() => navigation.navigate('Register')}
           style={{
             backgroundColor: '#fff',
             padding: 15,
