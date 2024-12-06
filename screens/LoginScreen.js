@@ -37,6 +37,10 @@ const LoginScreen = () => {
 
       const {accessToken, refreshToken, userId, role} = response.data;
 
+      if (!accessToken || !refreshToken) {
+        throw new Error('Tokens are missing from the server response');
+      }
+
       await AsyncStorage.multiSet([
         ['accessToken', accessToken],
         ['refreshToken', refreshToken],
@@ -54,7 +58,12 @@ const LoginScreen = () => {
       }
     } catch (error) {
       console.error('Login failed:', error);
-      Alert.alert('Error', 'Login failed. Please try again.');
+
+      Alert.alert(
+        'Login Failed',
+        error.response?.data?.message ||
+          'Invalid email or password. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +148,8 @@ const LoginScreen = () => {
             </Text>
           </Pressable>
 
-          <Pressable onPress={() => alert('Forgot password?')}>
+          <Pressable
+            onPress={() => Alert.alert('Reset Password', 'Forgot password?')}>
             <Text
               style={{
                 textAlign: 'center',

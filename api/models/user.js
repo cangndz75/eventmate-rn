@@ -34,6 +34,7 @@ const userSchema = mongoose.Schema(
     interests: [{type: String}],
     aboutMe: {type: String, default: ''},
     isPrivate: {type: Boolean, default: false},
+    tokenExpiresIn: { type: Number, default: 3600 },
   },
   {
     timestamps: true,

@@ -39,7 +39,7 @@ const StackNavigator = () => {
   const {token, role} = useContext(AuthContext);
 
   useEffect(() => {
-  console.log("Token:", token);
+  console.log("Token1:", token);
   }, [token]);
   function BottomTabs() {
     return (

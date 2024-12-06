@@ -26,6 +26,7 @@ const AuthProvider = ({children}) => {
       ]);
     } catch (error) {
       console.error('Error clearing user data:', error);
+      Alert.alert('Error', 'Failed to clear user data. Please try again.');
     }
   };
 
@@ -62,7 +63,7 @@ const AuthProvider = ({children}) => {
       const response = await axios.post(
         'https://eventmate-rn.onrender.com/refresh',
         {token: refreshToken},
-        {timeout: 5000},
+        {timeout: 10000},
       );
 
       const {accessToken: newAccessToken} = response.data;
@@ -80,25 +81,17 @@ const AuthProvider = ({children}) => {
 
   const isLoggedIn = async () => {
     try {
-      const [storedAccessToken, storedRefreshToken] = await Promise.all([
-        AsyncStorage.getItem('accessToken'),
-        AsyncStorage.getItem('refreshToken'),
-      ]);
-
-      if (storedAccessToken) {
-        await decodeToken(storedAccessToken, storedRefreshToken);
-      } else if (storedRefreshToken) {
-        await refreshAccessToken(storedRefreshToken);
+      const token = await AsyncStorage.getItem('accessToken');
+      if (token) {
+        setAccessToken(token);
+      } else {
+        console.log('No token found');
       }
     } catch (error) {
-      console.error('Error checking session:', error);
-      await clearUserData();
-    } finally {
-      setIsLoading(false);
+      console.error('Error checking login status:', error);
     }
   };
-
-
+  
   const login = async (newAccessToken, newRefreshToken) => {
     try {
       await AsyncStorage.multiSet([
