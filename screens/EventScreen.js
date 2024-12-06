@@ -39,7 +39,7 @@ const EventScreen = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('https://eventmate-rn.onrender.com//events');
+      const response = await axios.get('https://eventmate-rn.onrender.com/events');
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching events:', error);

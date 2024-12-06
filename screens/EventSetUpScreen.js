@@ -37,7 +37,7 @@ const EventSetUpScreen = () => {
     const fetchUserAndEventDetails = async () => {
       try {
         const userResponse = await axios.get(
-          `https://eventmate-rn.onrender.com//user/${userId}`,
+          `https://eventmate-rn.onrender.com/user/${userId}`,
         );
         console.log('User data:', userResponse.data);
 
@@ -63,7 +63,7 @@ const EventSetUpScreen = () => {
       if (!token) throw new Error('Authentication token is missing');
 
       const response = await axios.get(
-        `https://eventmate-rn.onrender.com//events/${eventId}`,
+        `https://eventmate-rn.onrender.com/events/${eventId}`,
         {headers: {Authorization: `Bearer ${token}`}},
       );
 
@@ -81,7 +81,7 @@ const EventSetUpScreen = () => {
   const checkRequestStatus = async () => {
     try {
       const response = await axios.get(
-        `https://eventmate-rn.onrender.com//events/${eventId}/requests`,
+        `https://eventmate-rn.onrender.com/events/${eventId}/requests`,
       );
       const userRequest = response.data.find(req => req.userId === userId);
       setRequestStatus(userRequest ? userRequest.status : 'none');

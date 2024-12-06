@@ -54,10 +54,10 @@ const AdminEventSetUpScreen = () => {
 
       try {
         console.log(
-          `Fetching attendees from: https://eventmate-rn.onrender.com//event/${eventId}/attendees`,
+          `Fetching attendees from: https://eventmate-rn.onrender.com/event/${eventId}/attendees`,
         );
         const response = await axios.get(
-          `https://eventmate-rn.onrender.com//event/${eventId}/attendees`,
+          `https://eventmate-rn.onrender.com/event/${eventId}/attendees`,
         );
 
         if (response.status === 200) {
@@ -82,7 +82,7 @@ const AdminEventSetUpScreen = () => {
 
     try {
       const response = await axios.get(
-        `https://eventmate-rn.onrender.com//event/${eventId}/attendees`,
+        `https://eventmate-rn.onrender.com/event/${eventId}/attendees`,
       );
       if (response.status === 200) {
         setAttendees(response.data || []);
@@ -108,7 +108,7 @@ const AdminEventSetUpScreen = () => {
   
     try {
       const response = await axios.put(
-        `https://eventmate-rn.onrender.com//event/${eventId}`,
+        `https://eventmate-rn.onrender.com/event/${eventId}`,
         eventData,
         {
           headers: {

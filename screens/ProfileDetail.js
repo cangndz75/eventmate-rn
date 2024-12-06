@@ -34,7 +34,7 @@ const ProfileDetailScreen = () => {
       console.log('Fetching data for user ID:', userId);
       if (!userId) throw new Error('User ID is undefined');
 
-      const response = await axios.get(`https://eventmate-rn.onrender.com//user/${userId}`);
+      const response = await axios.get(`https://eventmate-rn.onrender.com/user/${userId}`);
       console.log('User data fetched:', response.data);
       setUser(response.data);
       setIsPrivate(response.data.isPrivate);
@@ -55,7 +55,7 @@ const ProfileDetailScreen = () => {
   const handlePrivacyToggle = async () => {
     try {
       const newPrivacyStatus = !isPrivate;
-      await axios.put(`https://eventmate-rn.onrender.com//user/${userId}/privacy`, {
+      await axios.put(`https://eventmate-rn.onrender.com/user/${userId}/privacy`, {
         isPrivate: newPrivacyStatus,
       });
       setIsPrivate(newPrivacyStatus);
@@ -79,7 +79,7 @@ const ProfileDetailScreen = () => {
 
   const updateAboutMe = async () => {
     try {
-      const url = `https://eventmate-rn.onrender.com//user/${userId}/about`;
+      const url = `https://eventmate-rn.onrender.com/user/${userId}/about`;
       await axios.put(url, {aboutMe: aboutText});
 
       setUser(prevState => ({

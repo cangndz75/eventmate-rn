@@ -79,7 +79,7 @@ const HomeScreen = () => {
     const token = await AsyncStorage.getItem('token');
     if (userId && token) {
       const response = await axios.get(
-        `https://eventmate-rn.onrender.com//user/${userId}`,
+        `https://eventmate-rn.onrender.com/user/${userId}`,
         {headers: {Authorization: `Bearer ${token}`}},
       );
       setUser(response.data);
@@ -92,7 +92,7 @@ const HomeScreen = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(
-        'https://eventmate-rn.onrender.com//events',
+        'https://eventmate-rn.onrender.com/events',
         {
           headers: {Authorization: `Bearer ${token}`},
         },
@@ -122,7 +122,7 @@ const HomeScreen = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const response = await axios.get(
-          'https://eventmate-rn.onrender.com//events',
+          'https://eventmate-rn.onrender.com/events',
           {
             headers: {Authorization: `Bearer ${token}`},
           },

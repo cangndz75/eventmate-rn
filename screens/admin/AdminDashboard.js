@@ -43,7 +43,7 @@ const AdminDashboard = () => {
   const fetchRecentParticipants = async () => {
     try {
       const response = await axios.get(
-        'https://eventmate-rn.onrender.com//recent-participants',
+        'https://eventmate-rn.onrender.com/recent-participants',
       );
       setRecentParticipants(response.data);
     } catch (error) {

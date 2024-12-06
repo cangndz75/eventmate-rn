@@ -22,7 +22,7 @@ const NotificationScreen = () => {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `https://eventmate-rn.onrender.com//user/${userId}/notifications`
+          `https://eventmate-rn.onrender.com/user/${userId}/notifications`
         );
         if (response.status === 200) {
           setNotifications(response.data.notifications);
