@@ -60,7 +60,7 @@ const AuthProvider = ({children}) => {
       }
 
       const response = await axios.post(
-        'https://biletixai.onrender.com/refresh',
+        'https://eventmate-rn.onrender.com//refresh',
         {token: refreshToken},
         {timeout: 5000},
       );

@@ -34,7 +34,7 @@ const UpComingEvent = ({item}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(
-        `https://biletixai.onrender.com/events/${item?._id}`,
+        `https://eventmate-rn.onrender.com//events/${item?._id}`,
         {
           headers: {Authorization: `Bearer ${token}`},
         },

@@ -29,7 +29,7 @@ const AdminEventScreen = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `https://biletixai.onrender.com/events`,
+        `https://eventmate-rn.onrender.com//events`,
         {params: {organizerId: userId}},
       );
 

@@ -28,7 +28,7 @@ const LoginScreen = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        'https://biletixai.onrender.com/login',
+        'https://eventmate-rn.onrender.com//login',
         {
           email,
           password,

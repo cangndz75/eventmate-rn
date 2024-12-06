@@ -37,7 +37,7 @@ const InterestSelectionScreen = ({navigation}) => {
       try {
         console.log('Fetching interests for user:', userId);
         const response = await axios.get(
-          `https://biletixai.onrender.com/user/${userId}/interests`,
+          `https://eventmate-rn.onrender.com//user/${userId}/interests`,
         );
 
         if (response.data.user && response.data.user.interests) {
@@ -82,7 +82,7 @@ const InterestSelectionScreen = ({navigation}) => {
   const saveInterests = async () => {
     try {
       await axios.post(
-        `https://biletixai.onrender.com/user/${userId}/interests`,
+        `https://eventmate-rn.onrender.com//user/${userId}/interests`,
         { interests: selectedInterests },
       );
   

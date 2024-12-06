@@ -156,7 +156,7 @@ const AdminCreateScreen = () => {
       const token = await AsyncStorage.getItem('token');
   
       const response = await axios.post(
-        'https://biletixai.onrender.com/createevent',
+        'https://eventmate-rn.onrender.com//createevent',
         eventData,
         {
           headers: {
