@@ -14,7 +14,6 @@ const app = express();
 const port = process.env.PORT || 8000;
 const generateRoute = require('./routes/generateRoute');
 const path = require('path');
-// app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use('/generate', generateRoute);
@@ -89,7 +88,16 @@ app.post('/refresh', async (req, res) => {
 
 app.post('/register', async (req, res) => {
   try {
-    const {email, password, firstName, lastName, image} = req.body;
+    const { email, password, firstName, lastName, image } = req.body;
+
+    if (!email || !password || !firstName) {
+      return res.status(400).json({ message: 'Email, password, and first name are required.' });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email is already in use.' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -103,10 +111,10 @@ app.post('/register', async (req, res) => {
 
     await newUser.save();
 
-    res.status(201).json({message: 'User registered successfully'});
+    res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -119,38 +127,60 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({message: 'Invalid email or password'});
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({message: 'Invalid email or password'});
     }
 
     const accessToken = jwt.sign(
-      {userId: user._id, role: user.role},
+      {userId: user._id},
       process.env.ACCESS_TOKEN_SECRET,
       {expiresIn: '1h'},
     );
-
     const refreshToken = jwt.sign(
-      {userId: user._id, role: user.role},
+      {userId: user._id},
       process.env.REFRESH_TOKEN_SECRET,
       {expiresIn: '7d'},
     );
 
-    user.refreshToken = refreshToken;
-    await user.save();
-
     res.status(200).json({
       accessToken,
       refreshToken,
-      userId: user._id,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      image: user.image,
+      message: `Welcome back, ${user.firstName}!`,
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Error logging in:', error);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+});
+
+app.post('/refresh', async (req, res) => {
+  try {
+    const {refreshToken} = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({message: 'Refresh token is required'});
+    }
+
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      (err, decoded) => {
+        if (err) {
+          return res.status(403).json({message: 'Invalid refresh token'});
+        }
+
+        const accessToken = jwt.sign(
+          {userId: decoded.userId},
+          process.env.ACCESS_TOKEN_SECRET,
+          {expiresIn: '1h'},
+        );
+
+        res.status(200).json({accessToken});
+      },
+    );
+  } catch (error) {
+    console.error('Error refreshing token:', error);
     res.status(500).json({message: 'Internal Server Error'});
   }
 });

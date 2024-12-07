@@ -1,192 +1,172 @@
-import React, {useState, useContext} from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  TextInput,
   Pressable,
+  Image,
+  Alert,
 } from 'react-native';
-import axios from 'axios';
+import React, {useContext, useEffect, useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../AuthContext';
-import {useNavigation} from '@react-navigation/native';
+import axios from 'axios';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const {setUserId, setRole} = useContext(AuthContext);
   const navigation = useNavigation();
+  const {token, setToken} = useContext(AuthContext);
+
+  useEffect(() => {
+    if (token) {
+      navigation.replace('MainStack', {screen: 'Main'});
+    }
+  }, [token, navigation]);
 
   const handleLogin = async () => {
-    setIsLoading(true);
+    const user = {
+      email: email,
+      password: password,
+    };
+
     try {
-      const response = await axios.post(
-        'https://eventmate-rn.onrender.com/login',
-        {
-          email,
-          password,
-        },
-      );
-
-      const {accessToken, refreshToken, userId, role} = response.data;
-
-      if (!accessToken || !refreshToken) {
-        throw new Error('Tokens are missing from the server response');
-      }
-
-      await AsyncStorage.multiSet([
-        ['accessToken', accessToken],
-        ['refreshToken', refreshToken],
-        ['userId', String(userId)],
-        ['role', role],
-      ]);
-
-      setUserId(userId);
-      setRole(role);
-
-      if (role === 'organizer') {
-        navigation.navigate('AdminDashboard');
-      } else {
-        navigation.navigate('Home');
-      }
+      const response = await axios.post('http://localhost:8000/login', user);
+      const token = response.data.token;
+      console.log("token", token);
+      await AsyncStorage.setItem('token', token);
+      setToken(token);
+      navigation.replace('MainStack', {screen: 'Main'}); // Giriş başarılıysa yönlendirme
     } catch (error) {
-      console.error('Login failed:', error);
-
-      Alert.alert(
-        'Login Failed',
-        error.response?.data?.message ||
-          'Invalid email or password. Please try again.',
-      );
-    } finally {
-      setIsLoading(false);
+      console.error("Login error:", error.response?.data || error);
+      Alert.alert('Login Failed', error.response?.data?.message || 'Something went wrong!');
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{flex: 1, backgroundColor: '#fff'}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View
-          style={{flex: 1, justifyContent: 'center', paddingHorizontal: 20}}>
-          <Text
+    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
+      <View style={{padding: 10, alignItems: 'center'}}>
+        <KeyboardAvoidingView>
+          <View
             style={{
-              fontSize: 24,
-              fontWeight: 'bold',
-              textAlign: 'center',
-              color: '#d32f2f',
-              marginBottom: 20,
-            }}>
-            Login
-          </Text>
-
-          <TextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              padding: 15,
-              marginVertical: 10,
-              borderRadius: 10,
-              fontSize: 16,
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <TextInput
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              padding: 15,
-              marginVertical: 10,
-              borderRadius: 10,
-              fontSize: 16,
-            }}
-            secureTextEntry
-          />
-
-          <TouchableOpacity
-            onPress={handleLogin}
-            style={{
-              backgroundColor: '#d32f2f',
-              padding: 15,
-              borderRadius: 10,
+              marginTop: 80,
               alignItems: 'center',
-              marginVertical: 10,
+              justifyContent: 'center',
             }}>
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>
+            <Text style={{fontSize: 20, fontWeight: '500'}}>
+              Login to your account
+            </Text>
+          </View>
+
+          <View style={{marginTop: 50}}>
+            <View>
+              <Text style={{fontSize: 18, fontWeight: '600', color: 'gray'}}>
+                Email
+              </Text>
+              <View>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholderTextColor="#BEBEBE"
+                  style={{
+                    width: 340,
+                    marginTop: 15,
+                    borderBottomColor: '#BEBEBE',
+                    borderBottomWidth: 1,
+                    paddingBottom: 10,
+                    fontFamily: 'GeezaPro-Bold',
+                    fontSize: email ? 15 : 15,
+                  }}
+                  placeholder="Enter your email"
+                />
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: 'gray',
+                  marginTop: 25,
+                }}>
+                Password
+              </Text>
+              <View>
+                <TextInput
+                  secureTextEntry={true}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholderTextColor="#BEBEBE"
+                  style={{
+                    width: 340,
+                    marginTop: 15,
+                    borderBottomColor: '#BEBEBE',
+                    borderBottomWidth: 1,
+                    paddingBottom: 10,
+                    fontFamily: 'GeezaPro-Bold',
+                    fontSize: email ? 15 : 15,
+                  }}
+                  placeholder="Enter your password"
+                />
+              </View>
+            </View>
+
+            <Pressable
+              onPress={handleLogin}
+              style={{
+                width: 200,
+                backgroundColor: 'green',
+                padding: 15,
+                marginTop: 50,
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                borderRadius: 6,
+              }}>
+              <Text
+                style={{
+                  color: 'white',
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                }}>
                 Login
               </Text>
-            )}
-          </TouchableOpacity>
+            </Pressable>
 
-          <Pressable onPress={() => navigation.navigate('Register')}>
-            <Text
-              style={{
-                textAlign: 'center',
-                color: '#666',
-                marginVertical: 10,
-                fontSize: 14,
-              }}>
-              Don’t have an account? Register
-            </Text>
-          </Pressable>
+            <Pressable onPress={() => navigation.navigate('Register')}>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  color: 'gray',
+                  fontSize: 16,
+                  margin: 12,
+                }}>
+                Don't have an account? Sign Up
+              </Text>
+            </Pressable>
+          </View>
 
-          <Pressable
-            onPress={() => Alert.alert('Reset Password', 'Forgot password?')}>
-            <Text
-              style={{
-                textAlign: 'center',
-                color: '#666',
-                marginVertical: 5,
-                fontSize: 14,
-              }}>
-              Forgot Password?
-            </Text>
-          </Pressable>
-        </View>
-      </TouchableWithoutFeedback>
-
-      <View style={{padding: 20, backgroundColor: 'white'}}>
-        <Pressable
-          onPress={() => navigation.navigate('Register')}
-          style={{
-            backgroundColor: '#fff',
-            padding: 15,
-            borderRadius: 10,
-            borderWidth: 2,
-            borderColor: '#d32f2f',
-            alignItems: 'center',
-          }}>
-          <Text
+          <View
             style={{
-              textAlign: 'center',
-              color: '#d32f2f',
-              fontWeight: 'bold',
-              fontSize: 16,
+              marginTop: 50,
+              justifyContent: 'center',
+              alignItems: 'center',
             }}>
-            Ready
-          </Text>
-        </Pressable>
+            <Image
+              style={{width: 110, height: 60, resizeMode: 'contain'}}
+              source={{
+                uri: 'https://playo-website.gumlet.io/playo-website-v2/logos-icons/new-logo-playo.png?q=50',
+              }}
+            />
+          </View>
+        </KeyboardAvoidingView>
       </View>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 export default LoginScreen;
+
+const styles = StyleSheet.create({});

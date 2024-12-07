@@ -67,7 +67,7 @@ const PreFinalScreen = () => {
       console.log('User Data being sent:', userData); 
   
       const response = await axios.post(
-        'http://10.0.2.2:8000/register',
+        'https://eventmate-rn.onrender.com/register',
         userData
       );
   

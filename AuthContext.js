@@ -7,30 +7,53 @@ const AuthContext = createContext();
 
 const AuthProvider = ({children}) => {
   const [accessToken, setAccessToken] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [user, setUser] = useState(null);
   const [role, setRole] = useState('user');
   const [isLoading, setIsLoading] = useState(true);
 
+  /**
+   * Sets the token and updates the context state.
+   */
+  const setToken = async (token, refresh) => {
+    try {
+      await AsyncStorage.multiSet([
+        ['accessToken', token],
+        ['refreshToken', refresh],
+      ]);
+      setAccessToken(token);
+      setRefreshToken(refresh);
+      await decodeToken(token);
+    } catch (error) {
+      console.error('Error setting token:', error);
+      clearUserData();
+    }
+  };
+
+  /**
+   * Clears all user-related data from AsyncStorage and resets state.
+   */
   const clearUserData = async () => {
     try {
-      setAccessToken(null);
-      setUserId(null);
-      setUser(null);
-      setRole('user');
       await AsyncStorage.multiRemove([
         'accessToken',
         'refreshToken',
         'userId',
         'role',
       ]);
+      setAccessToken(null);
+      setRefreshToken(null);
+      setUserId(null);
+      setRole('user');
     } catch (error) {
       console.error('Error clearing user data:', error);
-      Alert.alert('Error', 'Failed to clear user data. Please try again.');
     }
   };
 
-  const decodeToken = async (token, refreshToken) => {
+  /**
+   * Decodes the JWT token and updates the user state.
+   */
+  const decodeToken = async token => {
     try {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -39,22 +62,24 @@ const AuthProvider = ({children}) => {
       const currentTime = Math.floor(Date.now() / 1000);
       if (decodedData.exp < currentTime) {
         if (refreshToken) {
-          await refreshAccessToken(refreshToken);
+          await refreshAccessToken();
           return;
         }
         throw new Error('Token has expired');
       }
 
-      setAccessToken(token);
       setUserId(decodedData.userId);
       setRole(decodedData.role);
     } catch (error) {
       console.error('Error decoding token:', error);
-      await clearUserData();
+      clearUserData();
     }
   };
 
-  const refreshAccessToken = async refreshToken => {
+  /**
+   * Refreshes the access token using the refresh token.
+   */
+  const refreshAccessToken = async () => {
     try {
       if (!refreshToken) {
         throw new Error('Refresh token not found');
@@ -62,8 +87,9 @@ const AuthProvider = ({children}) => {
 
       const response = await axios.post(
         'https://eventmate-rn.onrender.com/refresh',
-        {token: refreshToken},
-        {timeout: 10000},
+        {
+          token: refreshToken,
+        },
       );
 
       const {accessToken: newAccessToken} = response.data;
@@ -72,37 +98,43 @@ const AuthProvider = ({children}) => {
       }
 
       await AsyncStorage.setItem('accessToken', newAccessToken);
-      await decodeToken(newAccessToken, refreshToken);
+      setAccessToken(newAccessToken);
+      await decodeToken(newAccessToken);
     } catch (error) {
       console.error('Error refreshing token:', error);
-      await clearUserData();
+      clearUserData();
     }
   };
 
+  /**
+   * Checks if the user is logged in by validating stored tokens.
+   */
   const isLoggedIn = async () => {
     try {
-      const token = await AsyncStorage.getItem('accessToken');
-      if (token) {
-        setAccessToken(token);
+      const [storedAccessToken, storedRefreshToken] =
+        await AsyncStorage.multiGet(['accessToken', 'refreshToken']);
+
+      if (storedAccessToken[1]) {
+        setAccessToken(storedAccessToken[1]);
+        setRefreshToken(storedRefreshToken[1]);
+        await decodeToken(storedAccessToken[1]);
       } else {
-        console.log('No token found');
+        console.log('No valid token found');
+        clearUserData();
       }
     } catch (error) {
       console.error('Error checking login status:', error);
+      clearUserData();
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-  const login = async (newAccessToken, newRefreshToken) => {
-    try {
-      await AsyncStorage.multiSet([
-        ['accessToken', newAccessToken],
-        ['refreshToken', newRefreshToken],
-      ]);
-      await decodeToken(newAccessToken, newRefreshToken);
-    } catch (error) {
-      console.error('Login error:', error);
-      await clearUserData();
-    }
+
+  /**
+   * Handles user login by saving the tokens and decoding the access token.
+   */
+  const login = async (accessToken, refreshToken) => {
+    await setToken(accessToken, refreshToken);
   };
 
   useEffect(() => {
@@ -113,16 +145,14 @@ const AuthProvider = ({children}) => {
     <AuthContext.Provider
       value={{
         accessToken,
-        isLoading,
-        setAccessToken,
         userId,
-        user,
         role,
-        setRole,
-        setUserId,
+        isLoading,
+        setToken,
         clearUserData,
-        login,
+        refreshAccessToken,
         isLoggedIn,
+        login,
       }}>
       {children}
     </AuthContext.Provider>
